@@ -1681,14 +1681,14 @@ class Phix
      */
     public static function defaultFormatHtmlError($phix, $status, $msg)
     {
-        return '<!DOCTYPE html>
-    <html>
-        <head></head>
-        <body>
-            <h1>' . $phix->statusPhrase($status) . '</h1>
-            <p>' . $phix->escape($msg) . '</p>
-        </body>
-    </html>';
+        return '<!DOCTYPE html>' .
+               '<html>' .
+                 '<head></head>' .
+                 '<body>' .
+                   '<h1>' . $phix->statusPhrase($status) . '</h1>' .
+                   '<p>' . $phix->escape($msg) . '</p>' .
+                 '</body>' .
+               '</html>';
     }
 
     /**
@@ -1714,11 +1714,11 @@ class Phix
      */
     public static function defaultFormatXmlError($phix, $status, $msg)
     {
-        return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-    <response>
-        <status>error</status>
-        <message>' . $phix->escape($msg) . '</message>
-    </response>';
+        return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' .
+               '<response>' .
+                 '<status>error</status>' .
+                 '<message>' . $phix->escape($msg) . '</message>' .
+               '</response>';
     }
 
     /**
