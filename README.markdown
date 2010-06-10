@@ -9,7 +9,7 @@ Phix is released under the [BSD license](http://opensource.org/licenses/bsd-lice
 
 ## Credits ##
 
-Phix is inspired and/or uses code from
+Phix is inspired by and/or uses code from
 
 *   [limonade](http://github.com/sofadesign/limonade)
 *   [Zend Framework](http://github.com/zendframework/zf2)
