@@ -117,6 +117,121 @@ class PhixTest extends PHPUnit_Framework_TestCase
     }
 
     /**
+     * @covers Phix::run
+     * @covers Phix::flush
+     */
+    public function testRunFlushesByDefault()
+    {
+        ob_start();
+
+        $phix = Phix::instance()
+            ->get('/', function($phix) {
+                $phix->response('<html/>','html');
+            })
+            ->requestUri('/')
+            ->run();
+
+        $this->assertSame('<html/>', ob_get_clean());
+        $this->assertSame(array(), $phix->headers());
+        $this->assertSame(null, $phix->output());
+    }
+
+    /**
+     * @covers Phix::run
+     * @covers Phix::flush
+     */
+    public function testRunDoesNotFlushIfAutoFlushIsFalse()
+    {
+        ob_start();
+
+        Phix::instance()
+            ->autoFlush(false)
+            ->get('/', function($phix) {
+                $phix->response('<html/>','html');
+            })
+            ->requestUri('/')
+            ->run();
+
+        $this->assertSame('', ob_get_clean());
+    }
+
+    /**
+     * @covers Phix::run
+     */
+    public function testRunHandlesExceptionsThroughExceptionHandler()
+    {
+        $e = new Exception('test');
+
+        $phix = Phix::instance()
+            ->autoFlush(false)
+            ->get('/', function($phix) use ($e) {
+                throw $e;
+            })
+            ->requestUri('/')
+            ->run();
+
+        $this->assertSame(array($e), $phix->exceptions());
+    }
+
+    /**
+     * @covers Phix::flush
+     */
+    public function testFlush()
+    {
+        ob_start();
+
+        Phix::instance()
+            ->bind('flush', function() {
+                return false;
+            })
+            ->get('/', function($phix) {
+                $phix->response('<html/>','html');
+            })
+            ->requestUri('/')
+            ->run();
+
+        $this->assertSame('', ob_get_clean());
+    }
+
+    /**
+     * @covers Phix::reset
+     */
+    public function testReset()
+    {
+        $phix = new Phix();
+        $phix
+            ->autoFlush(false)
+            ->param('foo','bar')
+            ->get('/', function($phix) {
+                $phix->errorHandler(E_USER_NOTICE, 'Test error', __FILE__, __LINE__);
+                $phix->error(404);
+            })
+            ->requestUri('/')
+            ->run();
+
+        $phix->reset();
+
+        $this->assertSame(200, $phix->status());
+        $this->assertSame(null, $phix->output());
+        $this->assertSame(array(), $phix->errors());
+        $this->assertSame(array(), $phix->params());
+
+        $phix
+            ->param('foo','bar')
+            ->bind('reset',function() {
+                return false;
+            })
+            ->run();
+
+        $phix->reset();
+
+        $this->assertSame(404, $phix->status());
+        $this->assertNotSame(null, $phix->output());
+        $this->assertNotSame(array(), $phix->errors());
+        $this->assertSame('bar', $phix->param('foo'));
+    }
+
+    /**
      * @covers Phix::escape
      */
     public function testEscape()
