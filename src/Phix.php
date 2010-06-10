@@ -536,14 +536,16 @@ class Phix
         $requestMethod = $this->requestMethod();
         $pathInfo      = $this->pathInfo();
 
+        $params = array('route' => &$route, 'request_method' => &$requestMethod);
+
         if (false === ($route = $this->_route($requestMethod, $pathInfo))) {
-            if (false !== $this->trigger('route_missing', array('route' => &$route, 'request_method' => &$requestMethod))) {
+            if (false !== $this->trigger('route_missing', $params)) {
                 $this->notFound();
             }
             return;
         }
 
-        if (false === $this->trigger('before_callback', array('route' => &$route, 'request_method' => &$requestMethod))) {
+        if (false === $this->trigger('before_callback', $params)) {
             return;
         }
 
@@ -557,7 +559,7 @@ class Phix
             ob_end_clean();
         }
 
-        if (false === $this->trigger('after_callback', array('route' => &$route, 'request_method' => &$requestMethod))) {
+        if (false === $this->trigger('after_callback', $params)) {
             return;
         }
     }
@@ -664,7 +666,8 @@ class Phix
             throw new Exception('Invalid format "' . $format . '"');
         }
 
-        $this->header('Content-Type: ' . $formats[$format]['header']['content-type'] . ';charset=' . strtolower($this->encoding()));
+        $contentType = $formats[$format]['header']['content-type'];
+        $this->header('Content-Type: ' . $contentType . ';charset=' . strtolower($this->encoding()));
 
         if ($append) {
             $output = $this->output() . $output;
@@ -887,7 +890,7 @@ class Phix
             $parsed = array();
             $elts = explode('/', $pattern);
 
-            $parameters_count = 0;
+            $parametersCount = 0;
 
             foreach ($elts as $elt) {
                 if (empty($elt)) {
@@ -899,12 +902,12 @@ class Phix
                 // Extracting double asterisk **
                 if ($elt == '**') {
                     $parsed[] = $doubleAsteriskSubpattern;
-                    $name = $parameters_count;
+                    $name = $parametersCount;
 
                 // Extracting single asterisk *
                 } elseif ($elt == '*') {
                     $parsed[] = $singleAsteriskSubpattern;
-                    $name = $parameters_count;
+                    $name = $parametersCount;
                     
                 // Extracting named parameters :my_param
                 } elseif ($elt[0] == ':') {
@@ -913,14 +916,14 @@ class Phix
                         $name = $matches[1];
                     }
                 } elseif (strpos($elt, '*') !== false) {
-                    $sub_elts = explode('*', $elt);
-                    $parsed_sub = array();
-                    foreach ($sub_elts as $sub_elt) {
-                        $parsed_sub[] = preg_quote($sub_elt, '#');
-                        $name = $parameters_count;
+                    $subElts = explode('*', $elt);
+                    $parsedSub = array();
+                    foreach ($subElts as $subElt) {
+                        $parsedSub[] = preg_quote($subElt, '#');
+                        $name = $parametersCount;
                     }
 
-                    $parsed[] = '/' . implode($noSlashAsteriskSubpattern, $parsed_sub);
+                    $parsed[] = '/' . implode($noSlashAsteriskSubpattern, $parsedSub);
                 } else {
                     $parsed[] = '/' . preg_quote($elt, '#');
                 }
@@ -929,11 +932,11 @@ class Phix
                     continue;
                 }
 
-                if (!array_key_exists($parameters_count, $names) || is_null($names[$parameters_count])) {
-                    $names[$parameters_count] = $name;
+                if (!array_key_exists($parametersCount, $names) || is_null($names[$parametersCount])) {
+                    $names[$parametersCount] = $name;
                 }
 
-                $parameters_count++;
+                $parametersCount++;
             }
 
             $pattern = '#^' . implode('', $parsed) . $optionalSlashSubpattern . '?$#i';
@@ -1522,8 +1525,9 @@ class Phix
         if (!isset($formats[$format])) {
             throw new Exception('Invalid format "' . $format . '"');
         }
-
-        $content = call_user_func($this->renderer(), $this, $this->_viewFilename($file, $format), $vars);
+        
+        $viewFilename = $this->_viewFilename($file, $format);
+        $content = call_user_func($this->renderer(), $this, $viewFilename, $vars);
 
         if (false !== $layout) {
             if (false !== $formats[$format]['view']['layout']) {
@@ -1536,7 +1540,9 @@ class Phix
                 }
 
                 if (null !== $layout) {
-                    $content = call_user_func($this->renderer(), $this, $this->_viewFilename($layout, $format), array('content' => $content));
+                    $viewFilename = $this->_viewFilename($layout, $format);
+                    $vars = array('content' => $content);
+                    $content = call_user_func($this->renderer(), $this, $viewFilename, $vars);
                 }
             }
         }
@@ -1675,7 +1681,14 @@ class Phix
      */
     public static function defaultFormatHtmlError($phix, $status, $msg)
     {
-        return '<!DOCTYPE html><html><head></head><body><h1>' . $phix->statusPhrase($status) . '</h1><p>' . $phix->escape($msg) . '</p></body></html>';
+        return '<!DOCTYPE html>
+    <html>
+        <head></head>
+        <body>
+            <h1>' . $phix->statusPhrase($status) . '</h1>
+            <p>' . $phix->escape($msg) . '</p>
+        </body>
+    </html>';
     }
 
     /**
@@ -1701,7 +1714,11 @@ class Phix
      */
     public static function defaultFormatXmlError($phix, $status, $msg)
     {
-        return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><response><status>error</status><message>' . $phix->escape($msg) . '</message></response>';
+        return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+    <response>
+        <status>error</status>
+        <message>' . $phix->escape($msg) . '</message>
+    </response>';
     }
 
     /**
@@ -1813,7 +1830,8 @@ class Phix
                     $requestUri = $_SERVER['UNENCODED_URL'];
                 } elseif (isset($_SERVER['REQUEST_URI'])) {
                     $requestUri = $_SERVER['REQUEST_URI'];
-                    // Http proxy reqs setup request uri with scheme and host [and port] + the url path, only use url path
+                    // Http proxy reqs setup request uri with scheme and host [and port]
+                    // and the url path, only use url path
                     $serverUrl = $this->serverUrl();
                     if (strpos($requestUri, $serverUrl) === 0) {
                         $requestUri = substr($requestUri, strlen($serverUrl));

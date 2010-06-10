@@ -170,7 +170,12 @@ class PhixTestCase extends PHPUnit_Framework_TestCase
         }
 
         if (!$found) {
-            $failure = sprintf('Failed asserting node denoted by %s CONTAINS content "%s"', $path, $match);
+            $failure = sprintf(
+                'Failed asserting node denoted by %s CONTAINS content "%s"',
+                $path,
+                $match
+            );
+
             if (!empty($message)) {
                 $failure = $message . "\n" . $failure;
             }
@@ -305,7 +310,12 @@ class PhixTestCase extends PHPUnit_Framework_TestCase
         }
 
         if (!$found) {
-            $failure = sprintf('Failed asserting response header "%s" exists and contains "%s"', $header, $match);
+            $failure = sprintf(
+                'Failed asserting response header "%s" exists and contains "%s"',
+                $header,
+                $match
+            );
+
             if (!empty($message)) {
                 $failure = $message . "\n" . $failure;
             }
@@ -337,7 +347,12 @@ class PhixTestCase extends PHPUnit_Framework_TestCase
         }
 
         if (!$found) {
-            $failure = sprintf('Failed asserting response header "%s" exists and matches regex "%s"', $header, $pattern);
+            $failure = sprintf(
+                'Failed asserting response header "%s" exists and matches regex "%s"',
+                $header,
+                $pattern
+            );
+
             if (!empty($message)) {
                 $failure = $message . "\n" . $failure;
             }
