@@ -29,6 +29,10 @@ class PhixTest extends PHPUnit_Framework_TestCase
 
     public function setUp()
     {
+        if (!defined('SID')) {
+            define('SID', session_name() . '=1234567890');
+        }
+
         $this->_serverBackup = $_SERVER;
         $this->_getBackup    = $_GET;
         $this->_postBackup   = $_POST;
