@@ -589,6 +589,16 @@ class Phix
     }
 
     /**
+     * Whether the application was stopped in _shutdown().
+     *
+     * @return boolean
+     */
+    public function stopped()
+    {
+        return $this->_stopped;
+    }
+
+    /**
      * Escape a string for safe displaying in views.
      *
      * Note that $doubleEncode is false by default.
