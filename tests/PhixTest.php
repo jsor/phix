@@ -184,7 +184,7 @@ class PhixTest extends PHPUnit_Framework_TestCase
 
         $phix = new Phix();
         $phix
-            ->bind('flush', function() {
+            ->hook('flush', function() {
                 return false;
             })
             ->get('/', function($phix) {
@@ -221,7 +221,7 @@ class PhixTest extends PHPUnit_Framework_TestCase
 
         $phix
             ->param('foo','bar')
-            ->bind('reset',function() {
+            ->hook('reset',function() {
                 return false;
             })
             ->run();
@@ -232,6 +232,63 @@ class PhixTest extends PHPUnit_Framework_TestCase
         $this->assertNotSame(null, $phix->output());
         $this->assertNotSame(array(), $phix->errors());
         $this->assertSame('bar', $phix->param('foo'));
+    }
+
+    /**
+     * @covers Phix::_startup
+     * @covers Phix::stopped
+     */
+    public function testStartupWithoutHook()
+    {
+        ob_start();
+
+        $phix = new Phix();
+        $phix
+            ->autoFlush(false)
+            // Hook shutdown event to prevent restoring of the error handler
+            ->hook('shutdown', function() {
+                return false;
+            })
+            ->get('/', function($phix) {
+                $phix->response('<html/>','html');
+            })
+            ->requestUri('/')
+            ->run();
+
+        $this->assertTrue($phix->stopped());
+        $this->assertSame(array($phix, 'errorHandler'), set_error_handler(function() { return false; }));
+        restore_error_handler();
+        restore_error_handler();
+    }
+
+    /**
+     * @covers Phix::_startup
+     * @covers Phix::stopped
+     */
+    public function testStartupWithHook()
+    {
+        ob_start();
+
+        $phix = new Phix();
+        $phix
+            ->autoFlush(false)
+            // Hook shutdown event to prevent restoring of the error handler
+            ->hook('shutdown', function() {
+                return false;
+            })
+            ->hook('startup', function() {
+                return false;
+            })
+            ->get('/', function($phix) {
+                $phix->response('<html/>','html');
+            })
+            ->requestUri('/')
+            ->run();
+
+        $this->assertTrue($phix->stopped());
+        $this->assertNotSame(array($phix, 'errorHandler'), set_error_handler(function() { return false; }));
+        restore_error_handler();
+        restore_error_handler();
     }
 
     /**

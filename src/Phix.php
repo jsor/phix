@@ -697,6 +697,30 @@ class Phix
     }
 
     /**
+     * Set/Get multiple hooks.
+     *
+     * @param string $hooks The hooks
+     * @param boolean $reset Whether to reset existing hooks
+     * @return array|Phix
+     */
+    public function hooks(array $hooks = array(), $reset = false)
+    {
+        if (func_num_args() == 0) {
+            return $this->_hooks;
+        }
+
+        if ($reset) {
+            $this->_hooks = array();
+        }
+
+        foreach ($hooks as $hook) {
+            $this->hook($hook[0], $hook[1], isset($hook[2]) ? $hook[2] : null);
+        }
+
+        return $this;
+    }
+
+    /**
      * Register a hook.
      *
      * @param string $event The event
@@ -726,7 +750,7 @@ class Phix
      * @param mixed $callback The callback
      * @return Phix
      */
-    public function unhook($event, $callback = null)
+    public function unhook($event = null, $callback = null)
     {
         if (func_num_args() == 0) {
             $this->_hooks = array();
@@ -1033,7 +1057,7 @@ class Phix
         }
 
         foreach ($routes as $route) {
-            call_user_func(array($this, 'route'), $route[0], $route[1], $route[2]);
+            $this->route($route[0], $route[1], $route[2]);
         }
 
         return $this;
@@ -1467,7 +1491,8 @@ class Phix
             if (!is_array($header) || is_callable($header)) {
                 $header = array($header);
             }
-            call_user_func_array(array($this, 'header'), $header);
+
+            $this->header($header[0], isset($header[1]) ? $header[1] : true);
         }
 
         return $this;
