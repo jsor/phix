@@ -365,6 +365,122 @@ class PhixTest extends PHPUnit_Framework_TestCase
     /**
      * @covers Phix::_init
      */
+    public function testInitProcessesRawBody()
+    {
+        $_POST = array();
+
+        $phix = new Phix();
+        $phix
+            ->autoFlush(false)
+            ->requestHeader('Content-Type', 'application/json')
+            ->requestRawBody(json_encode(array('foo' => 'bar', 'bar' => 'baz')))
+            ->get('/', function($phix) {
+            })
+            ->requestUri('/')
+            ->run();
+
+        $this->assertArrayHasKey('foo', $_POST);
+        $this->assertArrayHasKey('bar', $_POST);
+        $this->assertEquals('bar', $_POST['foo']);
+        $this->assertEquals('baz', $_POST['bar']);
+
+        $_POST = array();
+
+        $rawBody = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' .
+                   '<request>' .
+                   '<foo>bar</foo>' .
+                   '<bar>baz</bar>' .
+                   '</request>';
+
+        $phix = new Phix();
+        $phix
+            ->autoFlush(false)
+            ->requestHeader('Content-Type', 'text/xml')
+            ->requestRawBody($rawBody)
+            ->get('/', function($phix) {
+            })
+            ->requestUri('/')
+            ->run();
+
+        $this->assertArrayHasKey('foo', $_POST);
+        $this->assertArrayHasKey('bar', $_POST);
+        $this->assertEquals('bar', $_POST['foo']);
+        $this->assertEquals('baz', $_POST['bar']);
+
+        $_POST = array();
+
+        $phix = new Phix();
+        $phix
+            ->autoFlush(false)
+            ->requestMethod('PUT')
+            ->requestHeader('Content-Type', 'application/x-www-form-urlencoded')
+            ->requestRawBody(http_build_query(array('foo' => 'bar', 'bar' => 'baz'), null, '&'))
+            ->get('/', function($phix) {
+            })
+            ->requestUri('/')
+            ->run();
+
+        $this->assertArrayHasKey('foo', $_POST);
+        $this->assertArrayHasKey('bar', $_POST);
+        $this->assertEquals('bar', $_POST['foo']);
+        $this->assertEquals('baz', $_POST['bar']);
+
+        $_FILES = array();
+
+        $phix = new Phix();
+        $phix
+            ->autoFlush(false)
+            ->requestMethod('PUT')
+            ->requestHeader('Content-Type', 'text/plain')
+            ->requestRawBody('Blablabla')
+            ->get('/', function($phix) {
+            })
+            ->requestUri('/')
+            ->run();
+
+        $this->assertArrayHasKey('rawbody', $_FILES);
+        $this->assertArrayHasKey('name', $_FILES['rawbody']);
+        $this->assertArrayHasKey('type', $_FILES['rawbody']);
+        $this->assertArrayHasKey('size', $_FILES['rawbody']);
+        $this->assertArrayHasKey('tmp_name', $_FILES['rawbody']);
+        $this->assertArrayHasKey('error', $_FILES['rawbody']);
+        $this->assertArrayHasKey('is_uploaded_file', $_FILES['rawbody']);
+        $this->assertEquals('text/plain', $_FILES['rawbody']['type']);
+        $this->assertEquals(strlen('Blablabla'), $_FILES['rawbody']['size']);
+        $this->assertEquals(UPLOAD_ERR_OK, $_FILES['rawbody']['error']);
+        $this->assertFalse($_FILES['rawbody']['is_uploaded_file']);
+        $this->assertStringEqualsFile($_FILES['rawbody']['tmp_name'], 'Blablabla');
+
+        $_FILES = array();
+
+        $phix = new Phix();
+        $phix
+            ->autoFlush(false)
+            ->requestMethod('POST')
+            ->requestHeader('Content-Type', 'text/plain')
+            ->requestRawBody('Blablabla')
+            ->get('/', function($phix) {
+            })
+            ->requestUri('/')
+            ->run();
+
+        $this->assertArrayHasKey('rawbody', $_FILES);
+        $this->assertArrayHasKey('name', $_FILES['rawbody']);
+        $this->assertArrayHasKey('type', $_FILES['rawbody']);
+        $this->assertArrayHasKey('size', $_FILES['rawbody']);
+        $this->assertArrayHasKey('tmp_name', $_FILES['rawbody']);
+        $this->assertArrayHasKey('error', $_FILES['rawbody']);
+        $this->assertArrayHasKey('is_uploaded_file', $_FILES['rawbody']);
+        $this->assertEquals('text/plain', $_FILES['rawbody']['type']);
+        $this->assertEquals(strlen('Blablabla'), $_FILES['rawbody']['size']);
+        $this->assertEquals(UPLOAD_ERR_OK, $_FILES['rawbody']['error']);
+        $this->assertFalse($_FILES['rawbody']['is_uploaded_file']);
+        $this->assertStringEqualsFile($_FILES['rawbody']['tmp_name'], 'Blablabla');
+    }
+
+    /**
+     * @covers Phix::_init
+     */
     public function testInitWithHook()
     {
         ob_start();
@@ -797,15 +913,15 @@ class PhixTest extends PHPUnit_Framework_TestCase
     {
         $phix = new Phix();
         $this->assertArrayHasKey('view', $phix->format('html'));
-        $this->assertArrayHasKey('header', $phix->format('html'));
+        $this->assertArrayHasKey('contenttype', $phix->format('html'));
         $this->assertArrayHasKey('error', $phix->format('html'));
 
         $this->assertArrayHasKey('view', $phix->format('json'));
-        $this->assertArrayHasKey('header', $phix->format('json'));
+        $this->assertArrayHasKey('contenttype', $phix->format('json'));
         $this->assertArrayHasKey('error', $phix->format('json'));
 
         $this->assertArrayHasKey('view', $phix->format('xml'));
-        $this->assertArrayHasKey('header', $phix->format('xml'));
+        $this->assertArrayHasKey('contenttype', $phix->format('xml'));
         $this->assertArrayHasKey('error', $phix->format('xml'));
 
         $foo = array(
@@ -813,9 +929,9 @@ class PhixTest extends PHPUnit_Framework_TestCase
                 'layout'    => false,
                 'extension' => array('.foo.php', '.foo.phtml', '.foo')
             ),
-            'header' => array(
-                'accept'       => array('application/foo'),
-                'content-type' => 'application/foo'
+            'contenttype' => array(
+                'request'  => array('application/foo'),
+                'response' => 'application/foo'
             ),
             'error' => function() {
                 return 'Foo';
