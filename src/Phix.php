@@ -71,10 +71,10 @@ class Phix
     private $_options = array();
 
     /**
-     * Bound events.
+     * Bound hooks.
      * @var array
      */
-    private $_binds = array();
+    private $_hooks = array();
 
     /**
      * Environment.
@@ -417,6 +417,8 @@ class Phix
         $this->_headers = array();
         $this->_output  = null;
 
+        $this->trigger('flush_end');
+
         return $this;
     }
 
@@ -440,6 +442,8 @@ class Phix
 
         $this->params(array(), true);
 
+        $this->trigger('reset_end');
+
         return $this;
     }
 
@@ -457,6 +461,8 @@ class Phix
         }
 
         set_error_handler(array($this, 'errorHandler'));
+
+        $this->trigger('startup_end');
     }
 
     /**
@@ -516,6 +522,8 @@ class Phix
         if (count($vary) > 0) {
             $this->header('Vary', implode(', ', $vary));
         }
+
+        $this->trigger('init_end');
     }
 
     /**
@@ -545,7 +553,7 @@ class Phix
             return;
         }
 
-        if (false === $this->trigger('before_callback', $params)) {
+        if (false === $this->trigger('run_callback', $params)) {
             return;
         }
 
@@ -559,9 +567,7 @@ class Phix
             ob_end_clean();
         }
 
-        if (false === $this->trigger('after_callback', $params)) {
-            return;
-        }
+        $this->trigger('run_end');
     }
 
     /**
@@ -586,6 +592,8 @@ class Phix
         }
 
         restore_error_handler();
+
+        $this->trigger('shutdown_end');
     }
 
     /**
@@ -689,21 +697,58 @@ class Phix
     }
 
     /**
-     * Bind a event listener.
+     * Register a hook.
      *
      * @param string $event The event
-     * @param mixed $callback A callback
+     * @param mixed $callback The callback
+     * @param mixed $index The index
      * @return Phix
      */
-    public function bind($event, $callback)
+    public function hook($event, $callback, $index = null)
     {
-        $this->_binds[$event][] = $callback;
+        if (null === $index) {
+            $this->_hooks[$event][] = $callback;
+        } else {
+            if (isset($this->_hooks[$event][$index])) {
+                throw new Exception('There is already a hook registered at index "' . $index . '"');
+            }
+
+            $this->_hooks[$event][$index] = $callback;
+        }
 
         return $this;
     }
 
     /**
-     * Trigger event and notify all listeners.
+     * Unregister hook(s).
+     *
+     * @param string $event The event
+     * @param mixed $callback The callback
+     * @return Phix
+     */
+    public function unhook($event, $callback = null)
+    {
+        if (func_num_args() == 0) {
+            $this->_hooks = array();
+        } elseif (func_num_args() == 1) {
+            if (isset($this->_hooks[$event])) {
+                unset($this->_hooks[$event]);
+            }
+        } else {
+            if (isset($this->_hooks[$event])) {
+                foreach ($this->_hooks[$event] as $index => $cb) {
+                    if ($cb === $callback) {
+                        unset($this->_hooks[$event]);
+                    }
+                }
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * Trigger event and notify all hooks.
      *
      * @param string $event The event
      * @param array $params Params to be passed to the listeners
@@ -713,8 +758,8 @@ class Phix
     {
         $ret = true;
 
-        if (isset($this->_binds[$event])) {
-            foreach ($this->_binds[$event] as $callback) {
+        if (isset($this->_hooks[$event])) {
+            foreach ($this->_hooks[$event] as $callback) {
                 if (false === call_user_func($callback, $this, $params)) {
                     $ret = false;
                 }
