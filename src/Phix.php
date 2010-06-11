@@ -150,19 +150,25 @@ class Phix
 
     /**
      * Request headers.
-     * @var string;
+     * @var string
      */
     private $_requestHeaders = array();
 
     /**
+     * Raw request body
+     * @var string|false
+     */
+    protected $_requestRawBody;
+
+    /**
      * REQUEST_METHOD
-     * @var string;
+     * @var string
      */
     private $_requestMethod;
 
     /**
      * REQUEST_URI
-     * @var string;
+     * @var string
      */
     private $_requestUri;
 
@@ -276,9 +282,9 @@ class Phix
                     'layout'    => null,
                     'extension' => array('.html.php', '.html.phtml', '.html', '.php', '.phtml')
                 ),
-                'header' => array(
-                    'accept'       => array('text/html', 'application/xhtml+xml'),
-                    'content-type' => 'text/html'
+                'contenttype' => array(
+                    'request'  => array('text/html', 'application/xhtml+xml'),
+                    'response' => 'text/html'
                 ),
                 'error' => array('Phix', 'defaultFormatHtmlError')
             ),
@@ -287,22 +293,24 @@ class Phix
                     'layout'    => false,
                     'extension' => array('.json.php', '.json.phtml', '.json')
                 ),
-                'header' => array(
-                    'accept'       => array('application/json'),
-                    'content-type' => 'application/json'
+                'contenttype' => array(
+                    'request'  => array('application/json'),
+                    'response' => 'application/json'
                 ),
-                'error' => array('Phix', 'defaultFormatJsonError')
+                'error' => array('Phix', 'defaultFormatJsonError'),
+                'unserialize' => array('Phix', 'defaultFormatJsonUnserialize')
             ),
             'xml' => array(
                 'view' => array(
                     'layout'    => false,
                     'extension' => array('.xml.php', '.xml.phtml', '.xml')
                 ),
-                'header' => array(
-                    'accept'       => array('text/xml', 'application/xml'),
-                    'content-type' => 'text/xml'
+                'contenttype' => array(
+                    'request'  => array('text/xml', 'application/xml'),
+                    'response' => 'text/xml'
                 ),
-                'error' => array('Phix', 'defaultFormatXmlError')
+                'error' => array('Phix', 'defaultFormatXmlError'),
+                'unserialize' => array('Phix', 'defaultFormatXmlUnserialize')
             )
         );
 
@@ -491,14 +499,14 @@ class Phix
                     continue;
                 }
 
-                $acc = $options['header']['accept'];
+                $contentTypes = $options['contenttype']['request'];
 
-                if (!is_array($acc)) {
-                    $acc = array($acc);
+                if (!is_array($contentTypes)) {
+                    $contentTypes = array($contentTypes);
                 }
 
-                foreach ($acc as $header) {
-                    if (strstr($accept, $header)) {
+                foreach ($contentTypes as $contentType) {
+                    if (strstr($accept, $contentType)) {
                         $this->param('format', $format);
                         $vary[] = 'Accept';
                         break 2;
@@ -515,6 +523,72 @@ class Phix
                 $this->param('range_start', (int) $start);
                 $this->param('range_end', (int) $end);
                 $vary[] = 'Range';
+            }
+        }
+
+        // Process raw body
+        $rawBody = $this->requestRawBody();
+
+        if ($rawBody) {
+            $processed = false;
+            $requestContentType = $this->requestHeader('Content-Type');
+
+            foreach ($this->formats() as $format => $options) {
+                $contentTypes = $options['contenttype']['request'];
+
+                if (!is_array($contentTypes)) {
+                    $contentTypes = array($contentTypes);
+                }
+
+                foreach ($contentTypes as $contentType) {
+                    if (strstr($requestContentType, $contentType)) {
+                        if (isset($options['unserialize']) && is_callable($options['unserialize'])) {
+                            $_POST = array_merge($_POST, call_user_func($options['unserialize'], $this, $rawBody));
+                            $processed = true;
+                            break 2;
+                        }
+                    }
+                }
+            }
+
+            if (!$processed) {
+                $requestMethod = $this->requestMethod();
+                if ($requestMethod == 'PUT' || $requestMethod == 'DELETE') {
+                    if (strstr($requestContentType, 'application/x-www-form-urlencoded')) {
+                        parse_str($rawBody, $params);
+                        $_POST = array_merge($_POST, $params);
+                    } else {
+                        $putFile = tempnam(ini_get('upload_tmp_dir'), 'PUTUpload_');
+                        file_put_contents($putFile, $rawBody);
+
+                        $_FILES = array(
+                            'rawbody' => array(
+                                'name'             => $putFile,
+                                'type'             => !empty($requestContentType) ? $requestContentType : 'application/octet-stream',
+                                'size'             => strlen($rawBody),
+                                'tmp_name'         => $putFile,
+                                'error'            => UPLOAD_ERR_OK,
+                                'is_uploaded_file' => false
+                            )
+                        );
+                    }
+                } elseif ($requestMethod == 'POST') {
+                    if (!strstr($requestContentType, 'application/x-www-form-urlencoded') && !strstr($requestContentType, 'multipart/form-data')) {
+                        $postFile = tempnam(ini_get('upload_tmp_dir'), 'POSTUpload_');
+                        file_put_contents($postFile, $rawBody);
+
+                        $_FILES = array(
+                            'rawbody' => array(
+                                'name'             => $postFile,
+                                'type'             => !empty($requestContentType) ? $requestContentType : 'application/octet-stream',
+                                'size'             => strlen($rawBody),
+                                'tmp_name'         => $postFile,
+                                'error'            => UPLOAD_ERR_OK,
+                                'is_uploaded_file' => false
+                            )
+                        );
+                    }
+                }
             }
         }
 
@@ -684,7 +758,7 @@ class Phix
             throw new Exception('Invalid format "' . $format . '"');
         }
 
-        $contentType = $formats[$format]['header']['content-type'];
+        $contentType = $formats[$format]['contenttype']['response'];
         $this->header('Content-Type: ' . $contentType . ';charset=' . strtolower($this->encoding()));
 
         if ($append) {
@@ -1756,7 +1830,7 @@ class Phix
      *
      * @param Phix $phix The Phix instance
      * @param integer $status The HTTP status code
-     * @param string The error message
+     * @param string $msg The error message
      * @return string
      */
     public static function defaultFormatHtmlError($phix, $status, $msg)
@@ -1776,7 +1850,7 @@ class Phix
      *
      * @param Phix $phix The Phix instance
      * @param integer $status The HTTP status code
-     * @param string The error message
+     * @param string $msg The error message
      * @return string
      */
     public static function defaultFormatJsonError($phix, $status, $msg)
@@ -1789,7 +1863,7 @@ class Phix
      *
      * @param Phix $phix The Phix instance
      * @param integer $status The HTTP status code
-     * @param string The error message
+     * @param string $msg The error message
      * @return string
      */
     public static function defaultFormatXmlError($phix, $status, $msg)
@@ -1799,6 +1873,74 @@ class Phix
                  '<status>error</status>' .
                  '<message>' . $phix->escape($msg) . '</message>' .
                '</response>';
+    }
+
+    /**
+     * Default JSON unserialize callback.
+     *
+     * @param Phix $phix The Phix instance
+     * @param string $string The string to unserialize
+     * @return array
+     */
+    public static function defaultFormatJsonUnserialize($phix, $string)
+    {
+        return json_decode($string, true);
+    }
+
+    /**
+     * Default XML unserialize callback.
+     *
+     * @param Phix $phix The Phix instance
+     * @param string $string The string to unserialize
+     * @return array
+     */
+    public static function defaultFormatXmlUnserialize($phix, $string)
+    {
+        return self::_xmlToArray(simplexml_load_string($string));
+    }
+
+    /**
+     * Returns a string or an associative and possibly multidimensional array from
+     * a SimpleXMLElement.
+     *
+     * @param  SimpleXMLElement $xmlObject Convert a SimpleXMLElement into an array
+     * @return array|string
+     */
+    protected static function _xmlToArray(SimpleXMLElement $xmlObject)
+    {
+        $config = array();
+
+        // Search for children
+        if (count($xmlObject->children()) > 0) {
+            foreach ($xmlObject->children() as $key => $value) {
+                if (count($value->children()) > 0) {
+                    $value = self::_xmlToArray($value);
+                } else if (count($value->attributes()) > 0) {
+                    $attributes = $value->attributes();
+                    if (isset($attributes['value'])) {
+                        $value = (string) $attributes['value'];
+                    } else {
+                        $value = self::_xmlToArray($value);
+                    }
+                } else {
+                    $value = (string) $value;
+                }
+
+                if (array_key_exists($key, $config)) {
+                    if (!is_array($config[$key]) || !array_key_exists(0, $config[$key])) {
+                        $config[$key] = array($config[$key]);
+                    }
+
+                    $config[$key][] = $value;
+                } else {
+                    $config[$key] = $value;
+                }
+            }
+        } else {
+            $config = (string) $xmlObject;
+        }
+
+        return $config;
     }
 
     /**
@@ -1844,6 +1986,37 @@ class Phix
         }
 
         $this->_requestHeaders[$name] = $value;
+
+        return $this;
+    }
+
+    /**
+     * Set/Get the raw body of the request.
+     *
+     * @param string $requestRawBody The raw body of the request (Might be a callable)
+     * @return string|false Raw body, or false if not present
+     */
+    public function requestRawBody($requestRawBody = null)
+    {
+        if (func_num_args() == 0) {
+            if (null === $this->_requestRawBody) {
+                $body = file_get_contents('php://input');
+
+                if (strlen(trim($body)) > 0) {
+                    $this->_requestRawBody = $body;
+                } else {
+                    $this->_requestRawBody = false;
+                }
+            }
+
+            return $this->_requestRawBody;
+        }
+
+        if (is_callable($requestRawBody)) {
+            $requestRawBody = call_user_func($requestRawBody, $this);
+        }
+
+        $this->_requestRawBody = $requestRawBody;
 
         return $this;
     }
