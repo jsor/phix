@@ -124,7 +124,8 @@ class PhixTest extends PHPUnit_Framework_TestCase
     {
         ob_start();
 
-        $phix = Phix::instance()
+        $phix = new Phix();
+        $phix
             ->get('/', function($phix) {
                 $phix->response('<html/>','html');
             })
@@ -144,7 +145,8 @@ class PhixTest extends PHPUnit_Framework_TestCase
     {
         ob_start();
 
-        Phix::instance()
+        $phix = new Phix();
+        $phix
             ->autoFlush(false)
             ->get('/', function($phix) {
                 $phix->response('<html/>','html');
@@ -162,8 +164,8 @@ class PhixTest extends PHPUnit_Framework_TestCase
     {
         $e = new Exception('test');
 
-        $phix = Phix::instance()
-            ->autoFlush(false)
+        $phix = new Phix();
+        $phix->autoFlush(false)
             ->get('/', function($phix) use ($e) {
                 throw $e;
             })
@@ -180,7 +182,8 @@ class PhixTest extends PHPUnit_Framework_TestCase
     {
         ob_start();
 
-        Phix::instance()
+        $phix = new Phix();
+        $phix
             ->bind('flush', function() {
                 return false;
             })
