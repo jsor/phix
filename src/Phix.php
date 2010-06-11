@@ -520,7 +520,7 @@ class Phix
 
         // Set Vary-Header
         if (count($vary) > 0) {
-            $this->header('Vary', implode(', ', $vary));
+            $this->header('Vary: ' . implode(', ', $vary));
         }
 
         $this->trigger('init_end');
