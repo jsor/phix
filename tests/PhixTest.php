@@ -240,8 +240,6 @@ class PhixTest extends PHPUnit_Framework_TestCase
      */
     public function testStartupWithoutHook()
     {
-        ob_start();
-
         $phix = new Phix();
         $phix
             ->autoFlush(false)
@@ -267,8 +265,6 @@ class PhixTest extends PHPUnit_Framework_TestCase
      */
     public function testStartupWithHook()
     {
-        ob_start();
-
         $phix = new Phix();
         $phix
             ->autoFlush(false)
@@ -289,6 +285,109 @@ class PhixTest extends PHPUnit_Framework_TestCase
         $this->assertNotSame(array($phix, 'errorHandler'), set_error_handler(function() { return false; }));
         restore_error_handler();
         restore_error_handler();
+    }
+
+    /**
+     * @covers Phix::_init
+     */
+    public function testInitProcessesAcceptHeader()
+    {
+        $phix = new Phix();
+        $phix
+            ->autoFlush(false)
+            ->requestHeader('Accept', 'application/json')
+            ->get('/', function($phix) {
+            })
+            ->requestUri('/')
+            ->run();
+
+        $this->assertEquals('json', $phix->param('format'));
+        $this->assertTrue(in_array('Vary: Accept', $phix->headers()));
+
+        $phix = new Phix();
+        $phix
+            ->autoFlush(false)
+            ->requestHeader('Accept', 'text/xml')
+            ->get('/', function($phix) {
+            })
+            ->requestUri('/')
+            ->run();
+
+        $this->assertEquals('xml', $phix->param('format'));
+        $this->assertTrue(in_array('Vary: Accept', $phix->headers()));
+
+        $phix = new Phix();
+        $phix
+            ->autoFlush(false)
+            ->requestHeader('Accept', 'text/html')
+            ->get('/', function($phix) {
+            })
+            ->requestUri('/')
+            ->run();
+
+        $this->assertNull($phix->param('format'));
+    }
+
+    /**
+     * @covers Phix::_init
+     */
+    public function testInitProcessesRangeHeader()
+    {
+        $phix = new Phix();
+        $phix
+            ->autoFlush(false)
+            ->requestHeader('Range', 'items=0-24')
+            ->get('/', function($phix) {
+            })
+            ->requestUri('/')
+            ->run();
+
+        $this->assertEquals('items', $phix->param('range_type'));
+        $this->assertEquals(0, $phix->param('range_start'));
+        $this->assertEquals(24, $phix->param('range_end'));
+        $this->assertTrue(in_array('Vary: Range', $phix->headers()));
+
+        $phix = new Phix();
+        $phix
+            ->autoFlush(false)
+            ->requestHeader('Range', 'bytes=100-200')
+            ->get('/', function($phix) {
+            })
+            ->requestUri('/')
+            ->run();
+
+        $this->assertEquals('bytes', $phix->param('range_type'));
+        $this->assertEquals(100, $phix->param('range_start'));
+        $this->assertEquals(200, $phix->param('range_end'));
+        $this->assertTrue(in_array('Vary: Range', $phix->headers()));
+    }
+
+    /**
+     * @covers Phix::_init
+     */
+    public function testInitWithHook()
+    {
+        ob_start();
+
+        $called = false;
+
+        $phix = new Phix();
+        $phix
+            ->autoFlush(false)
+            // Hook shutdown event to prevent restoring of the error handler
+            ->hook('init', function() {
+                return false;
+            })
+            ->hook('init_end', function() use (&$called) {
+                $called = true;
+                return false;
+            })
+            ->get('/', function($phix) {
+            })
+            ->requestUri('/')
+            ->run();
+
+        $this->assertFalse($called);
     }
 
     /**
