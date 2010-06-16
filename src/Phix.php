@@ -1643,32 +1643,36 @@ class Phix
      * Default renderer implementation.
      *
      * @param Phix $phix The Phix instance
-     * @param string $file The file to render
+     * @param string $view The view to render
      * @param array $vars The vars to pass to the view
      * @return string
      */
-    public static function defaultRenderer($phix, $file, array $vars)
+    public static function defaultRenderer($phix, $view, array $vars, $format)
     {
-        if (!file_exists($file)) {
-            throw new Exception('Invalid view "' . $file . '"');
+        if (is_callable($view)) {
+            $content = call_user_func($view, $phix, $vars, $format);
+        } elseif (false !== ($viewFilename = $phix->viewFilename($view, $format))) {
+            ob_start();
+            extract($vars);
+            include $viewFilename;
+            $content = ob_get_clean();
+        } else {
+            $content = (string) $view;
         }
 
-        ob_start();
-        extract($vars);
-        include $file;
-        return ob_get_clean();
+        return $content;
     }
 
     /**
      * Render a view at set as response.
      *
-     * @param string $file The file to render
+     * @param string $view The view
      * @param array $vars The vars to pass to the view
      * @param string $format The format to render
      * @param string $layout The layout to use
      * @return Phix
      */
-    public function render($file, array $vars = array(), $format = null, $layout = null)
+    public function render($view, array $vars = array(), $format = null, $layout = null)
     {
         if (null === $format) {
             $format = $this->param('format');
@@ -1684,8 +1688,7 @@ class Phix
             throw new Exception('Invalid format "' . $format . '"');
         }
 
-        $viewFilename = $this->_viewFilename($file, $format);
-        $content = call_user_func($this->renderer(), $this, $viewFilename, $vars);
+        $content = call_user_func($this->renderer(), $this, $view, $vars, $format);
 
         if (false !== $layout) {
             if (false !== $formats[$format]['view']['layout']) {
@@ -1698,9 +1701,8 @@ class Phix
                 }
 
                 if (null !== $layout) {
-                    $viewFilename = $this->_viewFilename($layout, $format);
                     $vars = array('content' => $content);
-                    $content = call_user_func($this->renderer(), $this, $viewFilename, $vars);
+                    $content = call_user_func($this->renderer(), $this, $layout, $vars, $format);
                 }
             }
         }
@@ -1715,10 +1717,14 @@ class Phix
      *
      * @param string $view The view
      * @param string $format The format
-     * @return string
+     * @return string|boolean
      */
-    private function _viewFilename($view, $format)
+    public function viewFilename($view, $format)
     {
+        if (null === ($format = $this->format($format))) {
+            return false;
+        }
+
         $file       = $view;
         $default    = $this->format($this->defaultFormat());
         $extensions = $default['view']['extension'];
@@ -1739,7 +1745,6 @@ class Phix
             $path = rtrim($viewsDir, '/\\') . DIRECTORY_SEPARATOR . $file;
         }
 
-        $format     = $this->format($format);
         $extensions = $format['view']['extension'];
 
         if (!is_array($extensions)) {
@@ -1753,7 +1758,7 @@ class Phix
             }
         }
 
-        throw new Exception('Invalid view "' . $view . '"');
+        return false;
     }
 
     /**
