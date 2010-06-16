@@ -747,10 +747,9 @@ class Phix
      *
      * @param mixed $output String or a callback
      * @param string $format The format
-     * @param boolean $append Whether to append output
      * @return string|Phix
      */
-    public function response($output, $format = null, $append = false)
+    public function response($output, $format = null)
     {
         if (null === $format) {
             $format = $this->defaultFormat();
@@ -764,10 +763,6 @@ class Phix
 
         $contentType = $formats[$format]['contenttype']['response'];
         $this->header('Content-Type: ' . $contentType . ';charset=' . strtolower($this->encoding()));
-
-        if ($append) {
-            $output = $this->output() . $output;
-        }
 
         $this->output($output);
 

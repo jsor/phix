@@ -1,1 +1,1 @@
-<?php json_encode(array('status' => 'success', 'data' => array('controller' => $controller))); ?>
+<?php echo json_encode(array('status' => 'success', 'data' => array('controller' => $controller))); ?>
