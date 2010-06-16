@@ -260,9 +260,9 @@ class Phix
 
     /**
      * Create Phix instance.
-     * 
+     *
      * @param mixed $config
-     * @return Phix 
+     * @return Phix
      */
     public static function instance($config = null)
     {
@@ -271,7 +271,7 @@ class Phix
 
     /**
      * Contructor.
-     * 
+     *
      * @param mixed $config
      */
     public function __construct($config = null)
@@ -321,7 +321,7 @@ class Phix
 
     /**
      * Configure Phix.
-     * 
+     *
      * @param mixed $config
      * @return Phix
      */
@@ -353,7 +353,7 @@ class Phix
 
     /**
      * Set/Get whether to flush automatically.
-     * 
+     *
      * @param boolean $bool
      * @return boolean|Phix
      */
@@ -374,7 +374,7 @@ class Phix
 
     /**
      * Run application.
-     * 
+     *
      * @return Phix
      */
     public function run()
@@ -397,7 +397,7 @@ class Phix
 
     /**
      * Flush headers and output.
-     * 
+     *
      * @return Phix
      */
     public function flush()
@@ -1065,7 +1065,7 @@ class Phix
                 } elseif ($elt == '*') {
                     $parsed[] = $singleAsteriskSubpattern;
                     $name = $parametersCount;
-                    
+
                 // Extracting named parameters :my_param
                 } elseif ($elt[0] == ':') {
                     if (preg_match('/^:([^\:]+)$/', $elt, $matches)) {
@@ -1269,7 +1269,7 @@ class Phix
 
     /**
      * Set/Get session data.
-     * 
+     *
      * Automatically starts session if not started.
      *
      * @param string $key The key
@@ -1683,7 +1683,7 @@ class Phix
         if (!isset($formats[$format])) {
             throw new Exception('Invalid format "' . $format . '"');
         }
-        
+
         $viewFilename = $this->_viewFilename($file, $format);
         $content = call_user_func($this->renderer(), $this, $viewFilename, $vars);
 
@@ -1745,7 +1745,7 @@ class Phix
         if (!is_array($extensions)) {
             $extensions = array($extensions);
         }
-            
+
         foreach ($extensions as $extension) {
             $full = $path . $extension;
             if (file_exists($full)) {
@@ -1949,7 +1949,7 @@ class Phix
 
     /**
      * Set/Get the value of the given HTTP header.
-     * 
+     *
      * Pass the header name as the plain, HTTP-specified header name.
      * Ex.: Ask for 'Accept' to get the Accept header, 'Accept-Encoding'
      * to get the Accept-Encoding header.
@@ -2215,7 +2215,7 @@ class Phix
                 $this->_baseUrl = rtrim($baseUrl, '/');
             }
 
-            return $this->_baseUrl;            
+            return $this->_baseUrl;
         }
 
         if (null !== $baseUrl) {
@@ -2316,7 +2316,7 @@ class Phix
 
                 $this->_pathInfo = $pathInfo;
             }
-            
+
             return $this->_pathInfo;
         }
 
