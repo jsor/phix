@@ -750,8 +750,12 @@ class Phix
      * @param boolean $append Whether to append output
      * @return string|Phix
      */
-    public function response($output, $format, $append = false)
+    public function response($output, $format = null, $append = false)
     {
+        if (null === $format) {
+            $format = $this->defaultFormat();
+        }
+
         $formats = $this->formats();
 
         if (!isset($formats[$format])) {
