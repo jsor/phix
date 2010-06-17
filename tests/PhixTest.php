@@ -240,7 +240,7 @@ class PhixTest extends PHPUnit_Framework_TestCase
      * @covers Phix::_startup
      * @covers Phix::stopped
      */
-    public function testStartupWithoutHook()
+    public function test_StartupWithoutHook()
     {
         $phix = new Phix();
         $phix
@@ -265,7 +265,7 @@ class PhixTest extends PHPUnit_Framework_TestCase
      * @covers Phix::_startup
      * @covers Phix::stopped
      */
-    public function testStartupWithHook()
+    public function test_StartupWithHook()
     {
         $phix = new Phix();
         $phix
@@ -292,7 +292,7 @@ class PhixTest extends PHPUnit_Framework_TestCase
     /**
      * @covers Phix::_init
      */
-    public function testInitProcessesAcceptHeader()
+    public function test_InitProcessesAcceptHeader()
     {
         $phix = new Phix();
         $phix
@@ -333,7 +333,7 @@ class PhixTest extends PHPUnit_Framework_TestCase
     /**
      * @covers Phix::_init
      */
-    public function testInitProcessesRangeHeader()
+    public function test_InitProcessesRangeHeader()
     {
         $phix = new Phix();
         $phix
@@ -367,7 +367,7 @@ class PhixTest extends PHPUnit_Framework_TestCase
     /**
      * @covers Phix::_init
      */
-    public function testInitProcessesRawBody()
+    public function test_InitProcessesRawBody()
     {
         $_POST = array();
 
@@ -483,7 +483,7 @@ class PhixTest extends PHPUnit_Framework_TestCase
     /**
      * @covers Phix::_init
      */
-    public function testInitWithHook()
+    public function test_InitWithHook()
     {
         $called = false;
 
