@@ -419,7 +419,9 @@ class Phix
                 }
             }
 
-            echo $this->output();
+            if ($this->requestMethod() != 'HEAD') {
+                echo $this->output();
+            }
         }
 
         $this->_headers = array();
@@ -621,13 +623,13 @@ class Phix
         $params = array('route' => &$route, 'request_method' => &$requestMethod);
 
         if (false === ($route = $this->_route($requestMethod, $pathInfo))) {
-            if (false !== $this->trigger('route_missing', $params)) {
+            if (false !== $this->trigger('run_no_route', $params)) {
                 $this->notFound();
             }
             return;
         }
 
-        if (false === $this->trigger('run_callback', $params)) {
+        if (false === $this->trigger('run_dispatch', $params)) {
             return;
         }
 
@@ -1223,7 +1225,7 @@ class Phix
      * @param array $route The route
      * @return void
      */
-    public function _dispatch($route)
+    private function _dispatch($route)
     {
         $this->params($route['params'] + $_GET);
         call_user_func($this->dispatcher(), $this, $route['controller']);
@@ -1529,14 +1531,14 @@ class Phix
         if ($replace) {
             list($name,) = explode(':', $header);
             $name .= ':';
-            foreach ($this->_headers as $key => $header) {
-                if (stripos($header, $name) === 0) {
+            foreach ($this->_headers as $key => $val) {
+                if (stripos($val, $name) === 0) {
                     unset($this->_headers[$key]);
                 }
             }
-        }
 
-        array_values($this->_headers);
+            array_values($this->_headers);
+        }
 
         $this->_headers[] = $header;
 
@@ -1919,13 +1921,6 @@ class Phix
             foreach ($xmlObject->children() as $key => $value) {
                 if (count($value->children()) > 0) {
                     $value = self::_xmlToArray($value);
-                } else if (count($value->attributes()) > 0) {
-                    $attributes = $value->attributes();
-                    if (isset($attributes['value'])) {
-                        $value = (string) $attributes['value'];
-                    } else {
-                        $value = self::_xmlToArray($value);
-                    }
                 } else {
                     $value = (string) $value;
                 }

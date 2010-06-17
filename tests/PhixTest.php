@@ -485,8 +485,6 @@ class PhixTest extends PHPUnit_Framework_TestCase
      */
     public function testInitWithHook()
     {
-        ob_start();
-
         $called = false;
 
         $phix = new Phix();
@@ -506,6 +504,198 @@ class PhixTest extends PHPUnit_Framework_TestCase
             ->run();
 
         $this->assertFalse($called);
+    }
+
+    /**
+     * @covers Phix::_run
+     */
+    public function test_RunTriggersAllHooks()
+    {
+        $runCalled = false;
+        $runDispatchCalled = false;
+        $runEndCalled = false;
+
+        $phix = new Phix();
+        $phix
+            ->autoFlush(false)
+            // Hook shutdown event to prevent restoring of the error handler
+            ->hook('run', function() use (&$runCalled) {
+                $runCalled = true;
+            })
+            ->hook('run_dispatch', function() use (&$runDispatchCalled) {
+                $runDispatchCalled = true;
+            })
+            ->hook('run_end', function() use (&$runEndCalled) {
+                $runEndCalled = true;
+            })
+            ->get('/', function($phix) {
+            })
+            ->requestUri('/')
+            ->run();
+
+        $this->assertTrue($runCalled);
+        $this->assertTrue($runDispatchCalled);
+        $this->assertTrue($runEndCalled);
+    }
+
+    /**
+     * @covers Phix::_run
+     */
+    public function test_RunTriggersOnlyFirstHookIfFirstHookReturnsFalse()
+    {
+        $runCalled = false;
+        $runDispatchCalled = false;
+        $runEndCalled = false;
+
+        $phix = new Phix();
+        $phix
+            ->autoFlush(false)
+            // Hook shutdown event to prevent restoring of the error handler
+            ->hook('run', function() use (&$runCalled) {
+                $runCalled = true;
+                return false;
+            })
+            ->hook('run_dispatch', function() use (&$runDispatchCalled) {
+                $runDispatchCalled = true;
+            })
+            ->hook('run_end', function() use (&$runEndCalled) {
+                $runEndCalled = true;
+            })
+            ->get('/', function($phix) {
+            })
+            ->requestUri('/')
+            ->run();
+
+        $this->assertTrue($runCalled);
+        $this->assertFalse($runDispatchCalled);
+        $this->assertFalse($runEndCalled);
+    }
+
+    /**
+     * @covers Phix::_run
+     */
+    public function test_RunTriggersOnlyFirstAndSecondHookIfSecondHookReturnsFalse()
+    {
+        $runCalled = false;
+        $runDispatchCalled = false;
+        $runEndCalled = false;
+
+        $phix = new Phix();
+        $phix
+            ->autoFlush(false)
+            // Hook shutdown event to prevent restoring of the error handler
+            ->hook('run', function() use (&$runCalled) {
+                $runCalled = true;
+            })
+            ->hook('run_dispatch', function() use (&$runDispatchCalled) {
+                $runDispatchCalled = true;
+                return false;
+            })
+            ->hook('run_end', function() use (&$runEndCalled) {
+                $runEndCalled = true;
+            })
+            ->get('/', function($phix) {
+            })
+            ->requestUri('/')
+            ->run();
+
+        $this->assertTrue($runCalled);
+        $this->assertTrue($runDispatchCalled);
+        $this->assertFalse($runEndCalled);
+    }
+
+    /**
+     * @covers Phix::_run
+     */
+    public function test_RunTriggersRunNoRoute()
+    {
+        $runNoRouteCalled = false;
+
+        $phix = new Phix();
+        $phix
+            ->autoFlush(false)
+            // Hook shutdown event to prevent restoring of the error handler
+            ->hook('run_no_route', function() use (&$runNoRouteCalled) {
+                $runNoRouteCalled = true;
+            })
+            ->requestUri('/foo')
+            ->run();
+
+        $this->assertTrue($runNoRouteCalled);
+    }
+
+    /**
+     * @covers Phix::_run
+     */
+    public function test_RunProducesNoOutputForHead()
+    {
+        ob_start();
+        $phix = new Phix();
+        $phix
+            ->autoFlush(false)
+            ->get('/', function($phix) {
+                echo 'foo';
+            })
+            ->requestUri('/')
+            ->requestMethod('HEAD')
+            ->run();
+
+        $this->assertSame('', ob_get_clean());
+    }
+
+    /**
+     * @covers Phix::_shutdown
+     */
+    public function test_ShutdownTriggersAllHooks()
+    {
+        $shutdownCalled = false;
+        $shutdownEndCalled = false;
+
+        $phix = new Phix();
+        $phix
+            ->autoFlush(false)
+            // Hook shutdown event to prevent restoring of the error handler
+            ->hook('shutdown', function() use (&$shutdownCalled) {
+                $shutdownCalled = true;
+            })
+            ->hook('shutdown_end', function() use (&$shutdownEndCalled) {
+                $shutdownEndCalled = true;
+            })
+            ->get('/', function($phix) {
+            })
+            ->requestUri('/')
+            ->run();
+
+        $this->assertTrue($shutdownCalled);
+        $this->assertTrue($shutdownEndCalled);
+    }
+
+    /**
+     * @covers Phix::_shutdown
+     */
+    public function test_ShutdownTriggersOnlyFirstHookIfFirstHookReturnsFalse()
+    {
+        $shutdownCalled = false;
+        $shutdownEndCalled = false;
+
+        $phix = new Phix();
+        $phix
+            ->autoFlush(false)
+            // Hook shutdown event to prevent restoring of the error handler
+            ->hook('shutdown', function() use (&$shutdownCalled) {
+                $shutdownCalled = true;
+                return false;
+            })
+            ->hook('shutdown_end', function() use (&$shutdownEndCalled) {
+                $shutdownEndCalled = true;
+            })
+            ->get('/', function($phix) {
+            })
+            ->requestUri('/')
+            ->run();
+
+        $this->assertTrue($shutdownCalled);
+        $this->assertFalse($shutdownEndCalled);
     }
 
     /**
@@ -899,6 +1089,51 @@ class PhixTest extends PHPUnit_Framework_TestCase
     }
 
     /**
+     * @covers Phix::header
+     */
+    public function testHeader()
+    {
+        $phix = new Phix();
+
+        $ret = $phix->header(function($phix) {
+            return 'Location: http://example.com';
+        });
+        $this->assertTrue(in_array('Location: http://example.com', $phix->headers()));
+        $this->assertEquals($ret, $phix);
+
+        $phix->reset();
+
+        $phix->header('Location: http://localhost');
+        $this->assertTrue(in_array('Location: http://localhost', $phix->headers()));
+
+        $phix->header('Location: http://127.0.0.1', true);
+        $this->assertTrue(in_array('Location: http://127.0.0.1', $phix->headers()));
+        $this->assertFalse(in_array('Location: http://localhost', $phix->headers()));
+    }
+
+    /**
+     * @covers Phix::headers
+     */
+    public function testHeaders()
+    {
+        $phix = new Phix();
+
+        $phix->header('X-Foo: bar');
+
+        $phix->headers(array(
+            'X-Bar: baz',
+            'Location: http://localhost',
+            array('Location: http://127.0.0.1', true)
+        ), true);
+
+        $this->assertFalse(in_array('X-Foo: bar', $phix->headers()));
+        $this->assertTrue(in_array('X-Bar: baz', $phix->headers()));
+
+        $this->assertTrue(in_array('Location: http://127.0.0.1', $phix->headers()));
+        $this->assertFalse(in_array('Location: http://localhost', $phix->headers()));
+    }
+
+    /**
      * @covers Phix::viewsDir
      */
     public function testViewsDir()
@@ -1173,6 +1408,38 @@ class PhixTest extends PHPUnit_Framework_TestCase
         $this->assertEquals('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><response><status>error</status><message>foo</message></response>', $error);
     }
 
+    /**
+     * @covers Phix::defaultFormatJsonUnserialize
+     */
+    public function testDefaultFormatJsonUnserialize()
+    {
+        $obj = new stdClass();
+        $obj->bar = array('baz', 'test');
+        $json = json_encode(array('foo' => 'bar', 'obj' => $obj));
+
+        $arr = Phix::defaultFormatJsonUnserialize(new Phix(), $json);
+
+        $expected = array('foo' => 'bar', 'obj' => array('bar' =>  array('baz', 'test')));
+        $this->assertSame($expected, $arr);
+    }
+
+    /**
+     * @covers Phix::defaultFormatXmlUnserialize
+     * @covers Phix::_xmlToArray
+     */
+    public function testDefaultFormatXmlUnserialize()
+    {
+        $xml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' .
+               '<data>' .
+               '<foo>bar</foo>' .
+               '<obj><bar>baz</bar><bar>test</bar></obj>' .
+               '</data>';
+
+        $arr = Phix::defaultFormatXmlUnserialize(new Phix(), $xml);
+
+        $expected = array('foo' => 'bar', 'obj' => array('bar' => array('baz', 'test')));
+        $this->assertSame($expected, $arr);
+    }
 
     /**
      * @covers Phix::requestHeader
