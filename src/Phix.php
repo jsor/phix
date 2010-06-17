@@ -1654,7 +1654,11 @@ class Phix
             include $viewFilename;
             $content = ob_get_clean();
         } else {
-            $content = (string) $view;
+            if (count($vars) > 0) {
+                $content = vsprintf($view, $vars);
+            } else {
+                $content = (string) $view;
+            }
         }
 
         return $content;
