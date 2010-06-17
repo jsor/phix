@@ -1033,13 +1033,13 @@ class Phix
         $optionalSlashSubpattern   = '(?:/*?)';
         $noSlashAsteriskSubpattern = '(?:([^\/]*))?';
 
-        if ($pattern[0] == '^') {
+        if (empty($pattern) || $pattern == '/') {
+            $pattern = '#^' . $optionalSlashSubpattern . '$#';
+        } elseif ($pattern[0] == '^') {
             if ($pattern{strlen($pattern) - 1} != '$') {
                 $pattern .= '$';
             }
             $pattern = '#' . $pattern . '#i';
-        } elseif (empty($pattern) || $pattern == '/') {
-            $pattern = '#^' . $optionalSlashSubpattern . '$#';
         } else {
             $parsed = array();
             $elts = explode('/', $pattern);
@@ -2177,7 +2177,7 @@ class Phix
 
                 if (0 === strpos($requestUri, $baseUrl)) {
                     // full $baseUrl matches
-                    $this->_baseUrl = $baseUrl;
+                    $this->_baseUrl = rtrim($baseUrl, '/');
                     return $this->_baseUrl;
                 }
 
