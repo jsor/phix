@@ -1632,6 +1632,9 @@ class PhixTest extends PHPUnit_Framework_TestCase
 
         $content = Phix::defaultRenderer($phix, 'Just a string', array(), 'html');
         $this->assertEquals('Just a string', $content);
+
+        $content = Phix::defaultRenderer($phix, 'Just a %s', array('string'), 'html');
+        $this->assertEquals('Just a string', $content);
     }
 
     /**
