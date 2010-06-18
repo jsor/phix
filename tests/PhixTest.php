@@ -2051,8 +2051,10 @@ class PhixTest extends PHPUnit_Framework_TestCase
         $this->assertEquals('/mycontroller/myaction?foo=bar', $phix->requestUri());
         $phix->requestUri('/archives/past/4?set=this&unset=that');
         $this->assertEquals('/archives/past/4?set=this&unset=that', $phix->requestUri());
-        $this->assertEquals('this', $phix->param('set'));
-        $this->assertEquals('that', $phix->param('unset'));
+        $this->assertArrayHasKey('set', $_GET);
+        $this->assertArrayHasKey('unset', $_GET);
+        $this->assertEquals('this', $_GET['set']);
+        $this->assertEquals('that', $_GET['unset']);
 
         $ret = $phix->requestUri(function() {
             return '/archives/past/4?set=this&unset=that';

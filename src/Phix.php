@@ -2120,7 +2120,7 @@ class Phix
                 // Get key => value pairs and set $_GET
                 $query = substr($requestUri, $pos + 1);
                 parse_str($query, $vars);
-                $this->params($vars);
+                $_GET = array_merge($_GET, $vars);
             }
         }
 
