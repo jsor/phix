@@ -793,6 +793,103 @@ class PhixTest extends PHPUnit_Framework_TestCase
     }
 
     /**
+     * @covers Phix::hooks
+     */
+    public function testHooks()
+    {
+        $hooks = array(
+            array('init', function() {}),
+            array('run', function() {})
+        );
+
+        $phix = new Phix();
+        $this->assertSame(array(), $phix->hooks());
+        $phix->hooks($hooks);
+        $this->assertArrayHasKey('init', $phix->hooks());
+        $this->assertArrayHasKey('run', $phix->hooks());
+        $ret = $phix->hooks(array(), true);
+        $this->assertSame(array(), $phix->hooks());
+        $this->assertEquals($ret, $phix);
+    }
+
+    /**
+     * @covers Phix::hook
+     */
+    public function testHook()
+    {
+        $phix = new Phix();
+        $phix->hook('init', 'callback1');
+        $this->assertArrayHasKey('init', $phix->hooks());
+        $this->assertSame(array('init' => array(0 => 'callback1')), $phix->hooks());
+        $ret = $phix->hook('init', 'callback2', 2);
+        $this->assertSame(array('init' => array(0 => 'callback1', 2 => 'callback2')), $phix->hooks());
+        $this->assertEquals($ret, $phix);
+    }
+
+    /**
+     * @covers Phix::hook
+     */
+    public function testHookThrowsExceptionOnDuplicateIndex()
+    {
+        $this->setExpectedException('Exception', 'There is already a hook registered at index "2"');
+        $phix = new Phix();
+        $phix->hook('init', 'callback1', 2);
+        $phix->hook('init', 'callback2', 2);
+    }
+
+    /**
+     * @covers Phix::unhook
+     */
+    public function testUnhook()
+    {
+        $phix = new Phix();
+        $phix->hook('init', 'callback1');
+        $phix->unhook();
+        $this->assertSame(array(), $phix->hooks());
+        
+        $phix->hook('init', 'callback1');
+        $phix->hook('setup', 'callback2');
+        $phix->unhook('init');
+        $this->assertSame(array('setup' => array(0 => 'callback2')), $phix->hooks());
+
+        $phix->hook('setup', 'callback3');
+        $ret = $phix->unhook('setup', 'callback3');
+        $this->assertSame(array('setup' => array(0 => 'callback2')), $phix->hooks());
+        $this->assertEquals($ret, $phix);
+    }
+
+    /**
+     * @covers Phix::trigger
+     */
+    public function testTrigger()
+    {
+        $called1 = false;
+        $called2 = false;
+
+        $phix = new Phix();
+
+        $phix->hook('init', function() use (&$called1) {
+            $called1 = true;
+            return false;
+        });
+        $phix->hook('setup', function() use (&$called2) {
+            $called2 = true;
+            return true;
+        });
+
+        $ret = $phix->trigger('init');
+
+        $this->assertTrue($called1);
+        $this->assertFalse($called2);
+        $this->assertFalse($ret);
+
+        $ret = $phix->trigger('setup');
+
+        $this->assertTrue($called2);
+        $this->assertTrue($ret);
+    }
+
+    /**
      * @covers Phix::env
      */
     public function testEnv()

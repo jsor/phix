@@ -837,9 +837,11 @@ class Phix
             if (isset($this->_hooks[$event])) {
                 foreach ($this->_hooks[$event] as $index => $cb) {
                     if ($cb === $callback) {
-                        unset($this->_hooks[$event]);
+                        unset($this->_hooks[$event][$index]);
                     }
                 }
+
+                $this->_hooks[$event] = array_values($this->_hooks[$event]);
             }
         }
 
