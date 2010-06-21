@@ -297,7 +297,7 @@ class Phix
     /**
      * Create Phix instance.
      *
-     * @param mixed $config
+     * @param array $config (Can be a callable)
      * @return Phix
      */
     public static function instance($config = null)
@@ -308,7 +308,7 @@ class Phix
     /**
      * Contructor.
      *
-     * @param mixed $config
+     * @param array $config (Can be a callable)
      */
     public function __construct($config = null)
     {
@@ -320,7 +320,7 @@ class Phix
     /**
      * Configure Phix.
      *
-     * @param mixed $config
+     * @param array $config (Can be a callable)
      * @return Phix
      */
     public function configure($config)
@@ -352,7 +352,7 @@ class Phix
     /**
      * Set/Get whether to flush automatically.
      *
-     * @param boolean $bool
+     * @param boolean $bool (Can be a callable)
      * @return boolean|Phix
      */
     public function autoFlush($autoFlush = true)
@@ -703,7 +703,7 @@ class Phix
     /**
      * Set/Get encoding used through the application.
      *
-     * @param mixed $encoding String or a callback
+     * @param string $encoding The encoding (Can be a callable)
      * @return string|Phix
      */
     public function encoding($encoding = null)
@@ -724,7 +724,7 @@ class Phix
     /**
      * Set/Get output.
      *
-     * @param mixed $output String or a callback
+     * @param string $output The output (Can be a callable)
      * @return string|Phix
      */
     public function output($output = null)
@@ -743,16 +743,20 @@ class Phix
     }
 
     /**
-     * Set/Get response output and format.
+     * Set response output and format.
      *
-     * @param mixed $output String or a callback
-     * @param string $format The format
+     * @param string $output The output (Can be a callable)
+     * @param string $format The format (Can be a callable)
      * @return string|Phix
      */
     public function response($output, $format = null)
     {
         if (null === $format) {
             $format = $this->defaultFormat();
+        }
+
+        if (is_callable($format)) {
+            $format = call_user_func($format, $this);
         }
 
         $formats = $this->formats();
@@ -871,7 +875,7 @@ class Phix
     /**
      * Set/Get environment.
      *
-     * @param mixed $env String or a callback
+     * @param string $env The environment (Can be a callable)
      * @return string|Phix
      */
     public function env($env = null)
@@ -903,7 +907,7 @@ class Phix
      * Set/Get parameter.
      *
      * @param string $key The key
-     * @param mixed $value String or a callback
+     * @param mixed $value The value (Can be a callable)
      * @return string|Phix
      */
     public function param($key, $value = null)
@@ -1270,7 +1274,7 @@ class Phix
      * Automatically starts session if not started.
      *
      * @param string $key The key
-     * @param mixed $value The values (might be a callable)
+     * @param mixed $value The value (Can be a callable)
      * @return mixed|Phix
      */
     public function session($key, $value = null)
@@ -1307,7 +1311,7 @@ class Phix
     /**
      * Set/Get flash messages.
      *
-     * @param mixed $message The message
+     * @param mixed $message The message (Can be a callable)
      * @return mixed|Phix
      */
     public function flash($message = null)
@@ -1345,7 +1349,7 @@ class Phix
      * Set/Get options.
      *
      * @param string $key The key
-     * @param string $value The value (might be a callable)
+     * @param string $value The value (Can be a callable)
      * @return mixed|Phix
      */
     public function option($key, $value = null)
@@ -1394,7 +1398,7 @@ class Phix
     /**
      * Set/Get the HTTP response status code.
      *
-     * @param integer $status The status
+     * @param integer $status The status (Can be a callable)
      * @return integer|Phix
      */
     public function status($status = null)
@@ -1435,8 +1439,8 @@ class Phix
     /**
      * Set HTTP redirection.
      *
-     * @param string $url The url (might be a callable)
-     * @param integer $status The status
+     * @param string $url The url (Can be a callable)
+     * @param integer $status The status (Can be a callable)
      * @return integer|Phix
      */
     public function redirect($url, $status = 302)
@@ -1469,7 +1473,7 @@ class Phix
     /**
      * Assemble a url from the given parameters.
      *
-     * @param array $params The parameters (might be a callable)
+     * @param array $params The parameters (Can be a callable)
      * @return string
      */
     public function url($params)
@@ -1493,7 +1497,7 @@ class Phix
      * Set/Get a HTTP status phrase.
      *
      * @param integer $status The status
-     * @param string $phrase The phrase (Might be a callable)
+     * @param string $phrase The phrase (Can be a callable)
      * @return string|Phix
      */
     public function statusPhrase($status, $phrase = null)
@@ -1518,7 +1522,7 @@ class Phix
     /**
      * Set a HTTP response header.
      *
-     * @param string $header The header
+     * @param string $header The header (Can be a callable)
      * @param boolean $replace Whether to replace exiting headers
      * @return Phix
      */
@@ -1576,7 +1580,7 @@ class Phix
     /**
      * Set/Get directory where views are located.
      *
-     * @param string $viewsDir The views directory
+     * @param string $viewsDir The views directory (Can be a callable)
      * @return string|Phix
      */
     public function viewsDir($viewsDir = null)
@@ -1597,7 +1601,7 @@ class Phix
     /**
      * Set/Get the layout view.
      *
-     * @param string $layout The layout
+     * @param string $layout The layout (Can be a callable)
      * @return string|Phix
      */
     public function layout($layout = null)
@@ -1765,7 +1769,7 @@ class Phix
     /**
      * Set/Get the default format.
      *
-     * @param string $defaultFormat The default format
+     * @param string $defaultFormat The default format (Can be a callable)
      * @return string|Phix
      */
     public function defaultFormat($defaultFormat = null)
@@ -1787,7 +1791,7 @@ class Phix
      * Set/Get the a format and its configuration.
      *
      * @param string $format The format
-     * @param array $config The configuration (Might be a callable)
+     * @param array $config The configuration (Can be a callable)
      * @return array|Phix
      */
     public function format($format, $config = null)
@@ -1954,7 +1958,7 @@ class Phix
      * to get the Accept-Encoding header.
      *
      * @param string $name HTTP header name
-     * @param string $value HTTP header value
+     * @param string $value HTTP header value (Can be a callable)
      * @return string|false|Phix
      */
     public function requestHeader($name, $value = null)
@@ -1996,7 +2000,7 @@ class Phix
     /**
      * Set/Get the raw body of the request.
      *
-     * @param string $requestRawBody The raw body of the request (Might be a callable)
+     * @param string $requestRawBody The raw body of the request (Can be a callable)
      * @return string|false Raw body, or false if not present
      */
     public function requestRawBody($requestRawBody = null)
@@ -2027,7 +2031,7 @@ class Phix
     /**
      * Get/Set the method by which the request was made.
      *
-     * @param string $requestMethod The request method (Might be a callable)
+     * @param string $requestMethod The request method (Can be a callable)
      * @return string|Phix
      */
     public function requestMethod($requestMethod = null)
@@ -2067,7 +2071,7 @@ class Phix
      * If no request URI is passed, uses the value in $_SERVER['REQUEST_URI'],
      * $_SERVER['HTTP_X_REWRITE_URL'], or $_SERVER['ORIG_PATH_INFO'] + $_SERVER['QUERY_STRING'].
      *
-     * @param string|null $requestUri
+     * @param string|null $requestUri (Can be a callable)
      * @return string|Phix
      */
     public function requestUri($requestUri = null)
@@ -2108,11 +2112,11 @@ class Phix
 
         }
 
-        if (null !== $requestUri) {
-            if (is_callable($requestUri)) {
-                $requestUri = call_user_func($requestUri, $this);
-            }
+        if (is_callable($requestUri)) {
+            $requestUri = call_user_func($requestUri, $this);
+        }
 
+        if (null !== $requestUri) {
             // Set GET items, if available
             if (false !== ($pos = strpos($requestUri, '?'))) {
                 // Get key => value pairs and set $_GET
@@ -2144,7 +2148,7 @@ class Phix
      * environment, using SCRIPT_FILENAME, SCRIPT_NAME, PHP_SELF, and
      * ORIG_SCRIPT_NAME in its determination.
      *
-     * @param string|null $baseUrl
+     * @param string|null $baseUrl (Can be a callable)
      * @return string|Phix
      */
     public function baseUrl($baseUrl = null)
@@ -2217,11 +2221,11 @@ class Phix
             return $this->_baseUrl;
         }
 
-        if (null !== $baseUrl) {
-            if (is_callable($baseUrl)) {
-                $baseUrl = call_user_func($baseUrl, $this);
-            }
+        if (is_callable($baseUrl)) {
+            $baseUrl = call_user_func($baseUrl, $this);
+        }
 
+        if (null !== $baseUrl) {
             $baseUrl = rtrim($baseUrl, '/');
         }
 
@@ -2233,7 +2237,7 @@ class Phix
     /**
      * Set the base path for the URL.
      *
-     * @param string|null $basePath
+     * @param string|null $basePath (Can be a callable)
      * @return string|Phix
      */
     public function basePath($basePath = null)
@@ -2266,10 +2270,11 @@ class Phix
             return $this->_basePath;
         }
 
+        if (is_callable($basePath)) {
+            $basePath = call_user_func($basePath, $this);
+        }
+
         if (null !== $basePath) {
-            if (is_callable($basePath)) {
-                $basePath = call_user_func($basePath, $this);
-            }
             $basePath = rtrim($basePath, '/');
         }
 
@@ -2281,7 +2286,7 @@ class Phix
     /**
      * Set/Get the PATH_INFO string.
      *
-     * @param string|null $pathInfo
+     * @param string|null $pathInfo (Can be a callable)
      * @return string|Phix
      */
     public function pathInfo($pathInfo = null)
@@ -2331,7 +2336,7 @@ class Phix
     /**
      * Set/Get the server url.
      *
-     * @param string|null $serverUrl
+     * @param string|null $serverUrl (Can be a callable)
      * @return string|Phix
      */
     public function serverUrl($serverUrl = null)
@@ -2371,7 +2376,7 @@ class Phix
     /**
      * Shortcut for triggering a 404 Not Found error.
      *
-     * @param string $msg The message (Might be a callable)
+     * @param string $msg The message (Can be a callable)
      * @return Phix
      */
     public function notFound($msg = null)
@@ -2397,7 +2402,7 @@ class Phix
      * Trigger an error and set response for the requested format.
      *
      * @param integer $status The HTTP status code
-     * @param string $msg The message (Might be a callable)
+     * @param string $msg The message (Can be a callable)
      * @return Phix
      */
     public function error($status, $msg = null)
