@@ -2335,4 +2335,134 @@ class PhixTest extends PHPUnit_Framework_TestCase
         $this->assertEquals('http://bar.baz', $phix->serverUrl());
         $this->assertEquals($ret, $phix);
     }
+
+    /**
+     * @covers Phix::notFound
+     */
+    public function testNotFoundWithHook()
+    {
+        $called = false;
+
+        $phix = new Phix();
+        $phix
+            ->autoFlush(false)
+            ->hook('not_found', function() use(&$called) {
+                $called = true;
+                return false;
+            })
+            ->notFound();
+
+        $this->assertTrue($called);
+        $this->assertNotEquals(404, $phix->status());
+        $this->assertFalse($phix->stopped());
+    }
+
+    /**
+     * @covers Phix::notFound
+     */
+    public function testNotFoundSetsStatusAndMessage()
+    {
+        $phix = new Phix();
+        $phix
+            ->autoFlush(false)
+            ->requestUri('/foo');
+
+        $phix->notFound();
+
+        $this->assertEquals(404, $phix->status());
+        $this->assertTrue($phix->stopped());
+
+        $phix->reset();
+
+        $ret = $phix->notFound(function($phix) {
+            return 'Foo message';
+        });
+        $this->assertRegExp('/Foo message/', $phix->output());
+        $this->assertEquals($ret, $phix);
+    }
+
+    /**
+     * @covers Phix::error
+     */
+    public function testErrorWithHook()
+    {
+        $called = false;
+
+        $phix = new Phix();
+        $phix
+            ->autoFlush(false)
+            ->hook('error', function($phix, $params) use(&$called) {
+                $called = true;
+                $params['status'] = 501;
+                return false;
+            })
+            ->error(500);
+
+        $this->assertTrue($called);
+        $this->assertNotEquals(501, $phix->status());
+        $this->assertFalse($phix->stopped());
+    }
+
+    /**
+     * @covers Phix::error
+     */
+    public function testErrorWithHookManipulatesParams()
+    {
+        $phix = new Phix();
+        $phix
+            ->autoFlush(false)
+            ->hook('error', function($phix, $params) use(&$called) {
+                $params['status'] = 501;
+                $params['msg'] = 'Nope, not implemented';
+            })
+            ->error(500);
+
+        $this->assertEquals(501, $phix->status());
+        $this->assertRegExp('/Nope, not implemented/', $phix->output());
+    }
+
+    /**
+     * @covers Phix::error
+     */
+    public function testErrorWithCallbacks()
+    {
+        $phix = new Phix();
+        $phix
+            ->autoFlush(false)
+            ->error(function() {
+                return 501;
+            }, function() {
+                return 'Nope, not implemented';
+            });
+
+        $this->assertEquals(501, $phix->status());
+        $this->assertRegExp('/Nope, not implemented/', $phix->output());
+    }
+
+    /**
+     * @covers Phix::error
+     */
+    public function testErrorResetsStatusTo500ForInvalidStatus()
+    {
+        $phix = new Phix();
+        $phix
+            ->autoFlush(false)
+            ->error(-1);
+
+        $this->assertEquals(500, $phix->status());
+    }
+
+    /**
+     * @covers Phix::error
+     */
+    public function testErrorResetsFormatToHtmlForInvalidFormat()
+    {
+        $phix = new Phix();
+        $phix
+            ->autoFlush(false)
+            ->param('format', 'pdf')
+            ->error(500);
+
+        $this->assertRegExp('/<html>/', $phix->output());
+    }
 }

@@ -2379,7 +2379,7 @@ class Phix
     public function notFound($msg = null)
     {
         if (false === $this->trigger('not_found')) {
-            return;
+            return $this;
         }
 
         if (is_callable($msg)) {
@@ -2405,7 +2405,7 @@ class Phix
     public function error($status, $msg = null)
     {
         if (false === $this->trigger('error', array('status' => &$status, 'msg' => &$msg))) {
-            return;
+            return $this;
         }
 
         if (is_callable($status)) {
