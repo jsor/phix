@@ -146,7 +146,43 @@ class Phix
      * Available formats.
      * @var array
      */
-    private $_formats = array();
+    private $_formats = array(
+        'html' => array(
+            'view' => array(
+                'layout'    => null,
+                'extension' => array('.html.php', '.html.phtml', '.html', '.php', '.phtml')
+            ),
+            'contenttype' => array(
+                'request'  => array('text/html', 'application/xhtml+xml'),
+                'response' => 'text/html'
+            ),
+            'error' => array('Phix', 'defaultFormatHtmlError')
+        ),
+        'json' => array(
+            'view' => array(
+                'layout'    => false,
+                'extension' => array('.json.php', '.json.phtml', '.json')
+            ),
+            'contenttype' => array(
+                'request'  => array('application/json'),
+                'response' => 'application/json'
+            ),
+            'error' => array('Phix', 'defaultFormatJsonError'),
+            'unserialize' => array('Phix', 'defaultFormatJsonUnserialize')
+        ),
+        'xml' => array(
+            'view' => array(
+                'layout'    => false,
+                'extension' => array('.xml.php', '.xml.phtml', '.xml')
+            ),
+            'contenttype' => array(
+                'request'  => array('text/xml', 'application/xml'),
+                'response' => 'text/xml'
+            ),
+            'error' => array('Phix', 'defaultFormatXmlError'),
+            'unserialize' => array('Phix', 'defaultFormatXmlUnserialize')
+        )
+    );
 
     /**
      * Request headers.
@@ -276,44 +312,6 @@ class Phix
      */
     public function __construct($config = null)
     {
-        $this->_formats = array(
-            'html' => array(
-                'view' => array(
-                    'layout'    => null,
-                    'extension' => array('.html.php', '.html.phtml', '.html', '.php', '.phtml')
-                ),
-                'contenttype' => array(
-                    'request'  => array('text/html', 'application/xhtml+xml'),
-                    'response' => 'text/html'
-                ),
-                'error' => array('Phix', 'defaultFormatHtmlError')
-            ),
-            'json' => array(
-                'view' => array(
-                    'layout'    => false,
-                    'extension' => array('.json.php', '.json.phtml', '.json')
-                ),
-                'contenttype' => array(
-                    'request'  => array('application/json'),
-                    'response' => 'application/json'
-                ),
-                'error' => array('Phix', 'defaultFormatJsonError'),
-                'unserialize' => array('Phix', 'defaultFormatJsonUnserialize')
-            ),
-            'xml' => array(
-                'view' => array(
-                    'layout'    => false,
-                    'extension' => array('.xml.php', '.xml.phtml', '.xml')
-                ),
-                'contenttype' => array(
-                    'request'  => array('text/xml', 'application/xml'),
-                    'response' => 'text/xml'
-                ),
-                'error' => array('Phix', 'defaultFormatXmlError'),
-                'unserialize' => array('Phix', 'defaultFormatXmlUnserialize')
-            )
-        );
-
         if (null !== $config) {
             $this->configure($config);
         }
