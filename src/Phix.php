@@ -505,24 +505,36 @@ class Phix
 
         // Process Accept-Header
         if (false !== ($accept = $this->requestHeader('Accept'))) {
-            $defaultFormat = $this->defaultFormat();
+            $defaultFormat = $this->format($this->defaultFormat());
+            $contentTypes = $defaultFormat['contenttype']['request'];
 
-            foreach ($this->formats() as $format => $options) {
-                if ($format == $defaultFormat) {
-                    continue;
+            if (!is_array($contentTypes)) {
+                $contentTypes = array($contentTypes);
+            }
+
+            $found = false;
+
+            foreach ($contentTypes as $contentType) {
+                if (strstr($accept, $contentType)) {
+                    $found = true;
+                    break;
                 }
+            }
 
-                $contentTypes = $options['contenttype']['request'];
+            if (!$found) {
+                foreach ($this->formats() as $format => $options) {
+                    $contentTypes = $options['contenttype']['request'];
 
-                if (!is_array($contentTypes)) {
-                    $contentTypes = array($contentTypes);
-                }
+                    if (!is_array($contentTypes)) {
+                        $contentTypes = array($contentTypes);
+                    }
 
-                foreach ($contentTypes as $contentType) {
-                    if (strstr($accept, $contentType)) {
-                        $this->param('format', $format);
-                        $vary[] = 'Accept';
-                        break 2;
+                    foreach ($contentTypes as $contentType) {
+                        if (strstr($accept, $contentType)) {
+                            $this->param('format', $format);
+                            $vary[] = 'Accept';
+                            break 2;
+                        }
                     }
                 }
             }
