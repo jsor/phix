@@ -41,6 +41,12 @@ class Phix
     private $_restoreErrorHandler = false;
 
     /**
+     * Flag indicating whether session was started by Phix and should be closed in _shutdown().
+     * @var boolean
+     */
+    private $_sessionStarted = false;
+
+    /**
      * Flag wether to flush automatically.
      * @var boolean
      */
@@ -668,9 +674,11 @@ class Phix
             return;
         }
 
-        if (defined('SID')) {
+        if ($this->_sessionStarted && defined('SID')) {
             session_write_close();
         }
+
+        $this->_sessionStarted = false;
 
         if ($this->_restoreErrorHandler) {
             restore_error_handler();
@@ -1294,6 +1302,7 @@ class Phix
             if (!session_start()) {
                 throw new Exception("An error occured while trying to start the session");
             }
+            $this->_sessionStarted = true;
         }
 
         if (func_num_args() == 1) {
