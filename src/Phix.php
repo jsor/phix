@@ -35,6 +35,12 @@ class Phix
     private $_stopped = false;
 
     /**
+     * Flag indicating whether to restore error handler in _shutdown().
+     * @var boolean
+     */
+    private $_restoreErrorHandler = false;
+
+    /**
      * Flag wether to flush automatically.
      * @var boolean
      */
@@ -469,6 +475,7 @@ class Phix
         }
 
         set_error_handler(array($this, 'errorHandler'));
+        $this->_restoreErrorHandler = true;
 
         $this->trigger('startup_end');
     }
@@ -665,7 +672,11 @@ class Phix
             session_write_close();
         }
 
-        restore_error_handler();
+        if ($this->_restoreErrorHandler) {
+            restore_error_handler();
+        }
+
+        $this->_restoreErrorHandler = false;
 
         $this->trigger('shutdown_end');
     }
