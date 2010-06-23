@@ -1992,7 +1992,7 @@ class Phix
         $response = json_encode(array('status' => $statusString, 'data' => $data));
 
         // Handle JSONP callbacks
-        if (!empty($_GET['callback']) && preg_match('/[a-zA-Z_$][0-9a-zA-Z_$]*/', $_GET['callback'])) {
+        if (!empty($_GET['callback']) && preg_match('/^[a-zA-Z_$][0-9a-zA-Z_$]*$/', $_GET['callback'])) {
             $response = $_GET['callback'] . '(' . $response . ')';
         }
 
