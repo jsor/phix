@@ -180,6 +180,7 @@ class Phix
                 'response' => 'application/json'
             ),
             'error' => array('Phix', 'defaultFormatJsonError'),
+            'response' => array('Phix', 'defaultFormatJsonResponse'),
             'unserialize' => array('Phix', 'defaultFormatJsonUnserialize')
         ),
         'xml' => array(
@@ -192,6 +193,7 @@ class Phix
                 'response' => 'text/xml'
             ),
             'error' => array('Phix', 'defaultFormatXmlError'),
+            'response' => array('Phix', 'defaultFormatXmlResponse'),
             'unserialize' => array('Phix', 'defaultFormatXmlUnserialize')
         )
     );
@@ -798,6 +800,14 @@ class Phix
 
         $contentType = $formats[$format]['contenttype']['response'];
         $this->header('Content-Type: ' . $contentType . ';charset=' . strtolower($this->encoding()));
+
+        if (is_callable($output)) {
+            $output = call_user_func($output, $this);
+        }
+
+        if (!is_string($output) && isset($formats[$format]['response'])) {
+            $output = call_user_func($formats[$format]['response'], $this, $this->status(), $output);
+        }
 
         $this->output($output);
 
@@ -1945,6 +1955,70 @@ class Phix
                  '<status>error</status>' .
                  '<message>' . $phix->escape($msg) . '</message>' .
                '</response>';
+    }
+
+    /**
+     * Default JSON response callback.
+     *
+     * @param Phix $phix The Phix instance
+     * @param integer $status The HTTP status code
+     * @param array $data The data
+     * @return string
+     */
+    public static function defaultFormatJsonResponse($phix, $status, $data)
+    {
+        $statusString = 20 <= $status && 206 >= $status ? 'success' : 'fail';
+        return json_encode(array('status' => $statusString, 'data' => $data));
+    }
+
+    /**
+     * Default XML response callback.
+     *
+     * @param Phix $phix The Phix instance
+     * @param integer $status The HTTP status code
+     * @param array $data The data
+     * @return string
+     */
+    public static function defaultFormatXmlResponse($phix, $status, $data)
+    {
+        $statusString = 20 <= $status && 206 >= $status ? 'success' : 'fail';
+        return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' .
+               '<response>' .
+                 '<status>' . $statusString . '</status>' .
+                 self::_arrayToXml($data, 'data') .
+               '</response>';
+    }
+
+    /**
+     * Returns a xml representaion from an array.
+     *
+     * @param  array $array The array
+     * @param  string $root The root
+     * @param  string $element The element
+     * @return array|string
+     */
+    protected static function _arrayToXml(array $array, $root)
+    {
+        $xml = '';
+        $surroundRoot = true;
+        foreach ($array as $key => $value) {
+            if (is_array($value)) {
+                $xml .= self::_arrayToXml($value, $key);
+            } else {
+                if (is_numeric($key)) {
+                    $surroundRoot = false;
+                    $xml .= '<' . $root . '>' . htmlspecialchars($value, ENT_COMPAT, 'UTF-8') . '</' . $root . '>';
+                } else {
+                    $xml .= '<' . $key . '>' . htmlspecialchars($value, ENT_COMPAT, 'UTF-8') . '</' . $key . '>';
+                }
+            }
+        }
+
+        if ($surroundRoot) {
+            $xml = '<' . $root . '>' . $xml . '</' . $root . '>';
+        }
+
+        return $xml;
     }
 
     /**

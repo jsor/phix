@@ -777,9 +777,31 @@ class PhixTest extends PHPUnit_Framework_TestCase
         $this->assertEquals('{}', $phix->output());
 
         $phix = new Phix();
+        $phix->status(412);
+        $phix->response(array('foo' => 'bar'), 'json');
+        $this->assertTrue(in_array('Content-Type: application/json;charset=utf-8', $phix->headers()));
+        $this->assertEquals('{"status":"fail","data":{"foo":"bar"}}', $phix->output());
+
+        $phix = new Phix();
+        $phix->response(array('foo' => 'bar'), 'json');
+        $this->assertTrue(in_array('Content-Type: application/json;charset=utf-8', $phix->headers()));
+        $this->assertEquals('{"status":"success","data":{"foo":"bar"}}', $phix->output());
+
+        $phix = new Phix();
         $phix->response('<xml/>', 'xml');
         $this->assertTrue(in_array('Content-Type: text/xml;charset=utf-8', $phix->headers()));
         $this->assertEquals('<xml/>', $phix->output());
+
+        $phix = new Phix();
+        $phix->response(array('foo' => 'bar'), 'xml');
+        $this->assertTrue(in_array('Content-Type: text/xml;charset=utf-8', $phix->headers()));
+        $this->assertEquals('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><response><status>success</status><data><foo>bar</foo></data></response>', $phix->output());
+
+        $phix = new Phix();
+        $phix->status(412);
+        $phix->response(array('foo' => 'bar'), 'xml');
+        $this->assertTrue(in_array('Content-Type: text/xml;charset=utf-8', $phix->headers()));
+        $this->assertEquals('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><response><status>fail</status><data><foo>bar</foo></data></response>', $phix->output());
     }
 
     /**
@@ -2029,6 +2051,30 @@ class PhixTest extends PHPUnit_Framework_TestCase
     {
         $error = Phix::defaultFormatXmlError(new Phix(), 404, 'foo');
         $this->assertEquals('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><response><status>error</status><message>foo</message></response>', $error);
+    }
+
+    /**
+     * @covers Phix::defaultFormatJsonResponse
+     */
+    public function testDefaultFormatJsonResponse()
+    {
+        $response = Phix::defaultFormatJsonResponse(new Phix(), 200, array('foo' => 'bar', 'bar' => array('key1' => 'val1'), 'baz' => array('val2', 'val3')));
+        $this->assertEquals('{"status":"success","data":{"foo":"bar","bar":{"key1":"val1"},"baz":["val2","val3"]}}', $response);
+
+        $response = Phix::defaultFormatJsonResponse(new Phix(), 412, array('foo' => 'bar', 'bar' => array('key1' => 'val1'), 'baz' => array('val2', 'val3')));
+        $this->assertEquals('{"status":"fail","data":{"foo":"bar","bar":{"key1":"val1"},"baz":["val2","val3"]}}', $response);
+    }
+
+    /**
+     * @covers Phix::defaultFormatXmlResponse
+     */
+    public function testDefaultFormatXmlResponse()
+    {
+        $response = Phix::defaultFormatXmlResponse(new Phix(), 200, array('foo' => 'bar', 'bar' => array('key1' => 'val1'), 'baz' => array('val2', 'val3')));
+        $this->assertEquals('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><response><status>success</status><data><foo>bar</foo><bar><key1>val1</key1></bar><baz>val2</baz><baz>val3</baz></data></response>', $response);
+
+        $response = Phix::defaultFormatXmlResponse(new Phix(), 412, array('foo' => 'bar', 'bar' => array('key1' => 'val1'), 'baz' => array('val2', 'val3')));
+        $this->assertEquals('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><response><status>fail</status><data><foo>bar</foo><bar><key1>val1</key1></bar><baz>val2</baz><baz>val3</baz></data></response>', $response);
     }
 
     /**
