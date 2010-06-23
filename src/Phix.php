@@ -785,18 +785,22 @@ class Phix
      */
     public function response($output, $format = null)
     {
-        if (null === $format) {
-            $format = $this->defaultFormat();
-        }
-
-        if (is_callable($format)) {
-            $format = call_user_func($format, $this);
-        }
-
         $formats = $this->formats();
 
-        if (!isset($formats[$format])) {
-            throw new Exception('Invalid format "' . $format . '"');
+        if (null === $format) {
+            $format = $this->param('format');
+
+            if (null === $format || !isset($formats[$format])) {
+                $format = $this->defaultFormat();
+            }
+        } else {
+            if (is_callable($format)) {
+                $format = call_user_func($format, $this);
+            }
+
+            if (!isset($formats[$format])) {
+                throw new Exception('Invalid format "' . $format . '"');
+            }
         }
 
         $contentType = $formats[$format]['contenttype']['response'];
@@ -1742,24 +1746,28 @@ class Phix
      *
      * @param string $view The view
      * @param array $vars The vars to pass to the view
-     * @param string $format The format to render
+     * @param string $format The format to render (Can be a callable)
      * @param string $layout The layout to use
      * @return Phix
      */
     public function render($view, array $vars = array(), $format = null, $layout = null)
     {
-        if (null === $format) {
-            $format = $this->param('format');
-        }
-
-        if (null === $format) {
-            $format = $this->defaultFormat();
-        }
-
         $formats = $this->formats();
 
-        if (!isset($formats[$format])) {
-            throw new Exception('Invalid format "' . $format . '"');
+        if (null === $format) {
+            $format = $this->param('format');
+
+            if (null === $format || !isset($formats[$format])) {
+                $format = $this->defaultFormat();
+            }
+        } else {
+            if (is_callable($format)) {
+                $format = call_user_func($format, $this);
+            }
+
+            if (!isset($formats[$format])) {
+                throw new Exception('Invalid format "' . $format . '"');
+            }
         }
 
         $content = call_user_func($this->renderer(), $this, $view, $vars, $format);
@@ -2563,11 +2571,12 @@ class Phix
      *
      * @param integer $status The HTTP status code
      * @param string $msg The message (Can be a callable)
+     * @param string $format The format (Can be a callable)
      * @return Phix
      */
-    public function error($status, $msg = null)
+    public function error($status, $msg = null, $format = null)
     {
-        if (false === $this->trigger('error', array('status' => &$status, 'msg' => &$msg))) {
+        if (false === $this->trigger('error', array('status' => &$status, 'msg' => &$msg, 'format' => &$format))) {
             return $this;
         }
 
@@ -2589,16 +2598,22 @@ class Phix
             $msg = 'The server encountered an internal error and was unable to complete your request.';
         }
 
-        $format = $this->param('format');
-
-        if (null === $format) {
-            $format = $this->defaultFormat();
-        }
-
         $formats = $this->formats();
 
-        if (!isset($formats[$format])) {
-            $format = 'html';
+        if (null === $format) {
+            $format = $this->param('format');
+
+            if (null === $format || !isset($formats[$format])) {
+                $format = $this->defaultFormat();
+            }
+        } else {
+            if (is_callable($format)) {
+                $format = call_user_func($format, $this);
+            }
+
+            if (!isset($formats[$format])) {
+                throw new Exception('Invalid format "' . $format . '"');
+            }
         }
 
         $error = $formats[$format]['error'];
