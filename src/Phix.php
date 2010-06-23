@@ -168,7 +168,8 @@ class Phix
                 'request'  => array('text/html', 'application/xhtml+xml'),
                 'response' => 'text/html'
             ),
-            'error' => array('Phix', 'defaultFormatHtmlError')
+            'error' => array('Phix', 'defaultFormatHtmlError'),
+            'response' => array('Phix', 'defaultFormatHtmlResponse'),
         ),
         'json' => array(
             'view' => array(
@@ -1955,6 +1956,26 @@ class Phix
                  '<status>error</status>' .
                  '<message>' . $phix->escape($msg) . '</message>' .
                '</response>';
+    }
+
+    /**
+     * Default HTML response callback.
+     *
+     * @param Phix $phix The Phix instance
+     * @param integer $status The HTTP status code
+     * @param array $data The data
+     * @return string
+     */
+    public static function defaultFormatHtmlResponse($phix, $status, $data)
+    {
+        return '<!DOCTYPE html>' .
+               '<html>' .
+                 '<head></head>' .
+                 '<body>' .
+                   '<h1>' . $phix->statusPhrase($status) . '</h1>' .
+                   '<pre>' . $phix->escape(print_r($data, true)) . '</pre>' .
+                 '</body>' .
+               '</html>';
     }
 
     /**

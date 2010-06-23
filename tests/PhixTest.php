@@ -2054,6 +2054,50 @@ class PhixTest extends PHPUnit_Framework_TestCase
     }
 
     /**
+     * @covers Phix::defaultFormatHtmlResponse
+     */
+    public function testDefaultFormatHtmlResponse()
+    {
+        $response = Phix::defaultFormatHtmlResponse(new Phix(), 200, array('foo' => 'bar', 'bar' => array('key1' => 'val1'), 'baz' => array('val2', 'val3')));
+        $expected = '<!DOCTYPE html><html><head></head><body><h1>OK</h1><pre>Array
+(
+    [foo] =&gt; bar
+    [bar] =&gt; Array
+        (
+            [key1] =&gt; val1
+        )
+
+    [baz] =&gt; Array
+        (
+            [0] =&gt; val2
+            [1] =&gt; val3
+        )
+
+)
+</pre></body></html>';
+        $this->assertEquals(str_replace(array("\r\n", "\t"), array("\n", "    "), $expected), $response);
+
+        $response = Phix::defaultFormatHtmlResponse(new Phix(), 412, array('foo' => 'bar', 'bar' => array('key1' => 'val1'), 'baz' => array('val2', 'val3')));
+        $expected = '<!DOCTYPE html><html><head></head><body><h1>Precondition Failed</h1><pre>Array
+(
+    [foo] =&gt; bar
+    [bar] =&gt; Array
+        (
+            [key1] =&gt; val1
+        )
+
+    [baz] =&gt; Array
+        (
+            [0] =&gt; val2
+            [1] =&gt; val3
+        )
+
+)
+</pre></body></html>';
+        $this->assertEquals(str_replace(array("\r\n", "\t"), array("\n", "    "), $expected), $response);
+    }
+
+    /**
      * @covers Phix::defaultFormatJsonResponse
      */
     public function testDefaultFormatJsonResponse()
