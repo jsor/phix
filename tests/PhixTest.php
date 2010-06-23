@@ -1371,6 +1371,98 @@ class PhixTest extends PHPUnit_Framework_TestCase
     }
 
     /**
+     * @covers Phix::get
+     * @covers Phix::route
+     * @covers Phix::_route
+     * @covers Phix::defaultRouter
+     * @covers Phix::_dispatch
+     */
+    public function testRouteSetsDefaults()
+    {
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+
+        $called = false;
+
+        $phix = new Phix();
+        $phix
+            ->autoFlush(false)
+            ->get(array('^/test/((\d+)/)?foo', array('', 'bar')), function() use(&$called) {
+                $called = true;
+            }, array('bar' => 'baz'))
+            ->requestUri('/test/foo')
+            ->run();
+
+        $this->assertTrue($called);
+        $this->assertEquals('baz', $phix->param('bar'));
+
+        $phix->reset();
+
+        $phix
+            ->requestUri('/test/1234/foo')
+            ->pathInfo(null)
+            ->run();
+
+        $this->assertEquals('1234', $phix->param('bar'));
+    }
+
+    /**
+     * @covers Phix::get
+     * @covers Phix::route
+     * @covers Phix::_route
+     * @covers Phix::defaultRouter
+     * @covers Phix::_dispatch
+     */
+    public function testRouteRouteCallbackReturningFalseDontMatchRoute()
+    {
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+
+        $called = false;
+
+        $phix = new Phix();
+        $phix
+            ->autoFlush(false)
+            ->get('/test', function() use(&$called) {
+                $called = true;
+            }, array(), function() {
+                return false;
+            })
+            ->requestUri('/test')
+            ->run();
+
+        $this->assertFalse($called);
+        $this->assertEquals(404, $phix->status());
+    }
+
+    /**
+     * @covers Phix::get
+     * @covers Phix::route
+     * @covers Phix::_route
+     * @covers Phix::defaultRouter
+     * @covers Phix::_dispatch
+     * @group 123
+     */
+    public function testRouteRouteCallbackReturningArrayPopulatesToParams()
+    {
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+
+        $called = false;
+
+        $phix = new Phix();
+        $phix
+            ->autoFlush(false)
+            ->get('/test', function() use(&$called) {
+                $called = true;
+            }, array(), function() {
+                return array('foo' => 'bar');
+            })
+            ->requestUri('/test')
+            ->run();
+
+        $this->assertTrue($called);
+        $this->assertEquals('bar', $phix->param('foo'));
+    }
+
+    /**
      * @covers Phix::routes
      */
     public function testRoutes()

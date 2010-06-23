@@ -450,7 +450,7 @@ class Phix
     public function reset()
     {
         if (false === $this->trigger('reset')) {
-            return;
+            return $this;
         }
 
         $this->_status     = 200;
@@ -989,11 +989,13 @@ class Phix
      *
      * @param string $pattern The pattern
      * @param mixed $controller The controller
+     * @param array $defaults The default params
+     * @param mixed $callback The callback
      * @return Phix
      */
-    public function get($pattern, $controller)
+    public function get($pattern, $controller, array $defaults = array(), $callback = null)
     {
-        return $this->route(array('HEAD', 'GET'), $pattern, $controller);
+        return $this->route(array('HEAD', 'GET'), $pattern, $controller, $defaults, $callback);
     }
 
     /**
@@ -1001,11 +1003,13 @@ class Phix
      *
      * @param string $pattern The pattern
      * @param mixed $controller The controller
+     * @param array $defaults The default params
+     * @param mixed $callback The callback
      * @return Phix
      */
-    public function post($pattern, $controller)
+    public function post($pattern, $controller, array $defaults = array(), $callback = null)
     {
-        return $this->route('POST', $pattern, $controller);
+        return $this->route('POST', $pattern, $controller, $defaults, $callback);
     }
 
     /**
@@ -1013,11 +1017,13 @@ class Phix
      *
      * @param string $pattern The pattern
      * @param mixed $controller The controller
+     * @param array $defaults The default params
+     * @param mixed $callback The callback
      * @return Phix
      */
-    public function put($pattern, $controller)
+    public function put($pattern, $controller, array $defaults = array(), $callback = null)
     {
-        return $this->route('PUT', $pattern, $controller);
+        return $this->route('PUT', $pattern, $controller, $defaults, $callback);
     }
 
     /**
@@ -1025,11 +1031,13 @@ class Phix
      *
      * @param string $pattern The pattern
      * @param mixed $controller The controller
+     * @param array $defaults The default params
+     * @param mixed $callback The callback
      * @return Phix
      */
-    public function delete($pattern, $controller)
+    public function delete($pattern, $controller, array $defaults = array(), $callback = null)
     {
-        return $this->route('DELETE', $pattern, $controller);
+        return $this->route('DELETE', $pattern, $controller, $defaults, $callback);
     }
 
     /**
@@ -1037,11 +1045,13 @@ class Phix
      *
      * @param string $pattern The pattern
      * @param mixed $controller The controller
+     * @param array $defaults The default params
+     * @param mixed $callback The callback
      * @return Phix
      */
-    public function head($pattern, $controller)
+    public function head($pattern, $controller, array $defaults = array(), $callback = null)
     {
-        return $this->route('HEAD', $pattern, $controller);
+        return $this->route('HEAD', $pattern, $controller, $defaults, $callback);
     }
 
     /**
@@ -1051,9 +1061,11 @@ class Phix
      * @param string|array $methods The request method(s)
      * @param string $pattern The pattern
      * @param mixed $controller The controller
+     * @param array $defaults The default params
+     * @param mixed $callback The callback
      * @return Phix
      */
-    public function route($methods, $patternOrArray, $controller)
+    public function route($methods, $patternOrArray, $controller, array $defaults = array(), $callback = null)
     {
         if (is_array($patternOrArray)) {
             $pattern = array_shift($patternOrArray);
@@ -1142,7 +1154,9 @@ class Phix
                 'method'     => $method,
                 'pattern'    => $pattern,
                 'names'      => $names,
-                'controller' => $controller
+                'controller' => $controller,
+                'defaults'   => $defaults,
+                'callback'   => $callback
             );
         }
 
@@ -1226,7 +1240,7 @@ class Phix
 
         foreach ($routes[$requestMethod] as $route) {
             if (preg_match($route['pattern'], $pathInfo, $matches)) {
-                $params = array();
+                $params = $route['defaults'];
 
                 if (count($matches) > 1) {
                     array_shift($matches);
@@ -1242,7 +1256,19 @@ class Phix
                         $names = range($numNames, $numMatches - 1);
                     }
 
-                    $params = array_combine($names, $matches);
+                    $params = array_combine($names, $matches) + $params;
+                }
+
+                if (is_callable($route['callback'])) {
+                    $ret = call_user_func($route['callback'], $phix);
+
+                    if (false === $ret) {
+                        continue;
+                    }
+
+                    if (is_array($ret)) {
+                        $params = $ret + $params;
+                    }
                 }
 
                 $route['params'] = $params;
