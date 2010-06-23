@@ -168,7 +168,7 @@ class Phix
                 'request'  => array('text/html', 'application/xhtml+xml'),
                 'response' => 'text/html'
             ),
-            'error' => array('Phix', 'defaultFormatHtmlError'),
+            'error'    => array('Phix', 'defaultFormatHtmlError'),
             'response' => array('Phix', 'defaultFormatHtmlResponse'),
         ),
         'json' => array(
@@ -180,8 +180,8 @@ class Phix
                 'request'  => array('application/json'),
                 'response' => 'application/json'
             ),
-            'error' => array('Phix', 'defaultFormatJsonError'),
-            'response' => array('Phix', 'defaultFormatJsonResponse'),
+            'error'       => array('Phix', 'defaultFormatJsonError'),
+            'response'    => array('Phix', 'defaultFormatJsonResponse'),
             'unserialize' => array('Phix', 'defaultFormatJsonUnserialize')
         ),
         'xml' => array(
@@ -193,8 +193,8 @@ class Phix
                 'request'  => array('text/xml', 'application/xml'),
                 'response' => 'text/xml'
             ),
-            'error' => array('Phix', 'defaultFormatXmlError'),
-            'response' => array('Phix', 'defaultFormatXmlResponse'),
+            'error'       => array('Phix', 'defaultFormatXmlError'),
+            'response'    => array('Phix', 'defaultFormatXmlResponse'),
             'unserialize' => array('Phix', 'defaultFormatXmlUnserialize')
         )
     );
@@ -1989,7 +1989,14 @@ class Phix
     public static function defaultFormatJsonResponse($phix, $status, $data)
     {
         $statusString = 200 <= $status && 206 >= $status ? 'success' : 'fail';
-        return json_encode(array('status' => $statusString, 'data' => $data));
+        $response = json_encode(array('status' => $statusString, 'data' => $data));
+
+        // Handle JSONP callbacks
+        if (!empty($_GET['callback']) && preg_match('/[a-zA-Z_$][0-9a-zA-Z_$]*/', $_GET['callback'])) {
+            $response = $_GET['callback'] . '(' . $response . ')';
+        }
+
+        return $response;
     }
 
     /**

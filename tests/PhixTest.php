@@ -2110,6 +2110,30 @@ class PhixTest extends PHPUnit_Framework_TestCase
     }
 
     /**
+     * @covers Phix::defaultFormatJsonResponse
+     */
+    public function testDefaultFormatJsonResponseHandlesJSONPCallback()
+    {
+        $_GET = array(
+            'callback' => 'jsonp1234'
+        );
+        $response = Phix::defaultFormatJsonResponse(new Phix(), 412, array('foo' => 'bar', 'bar' => array('key1' => 'val1'), 'baz' => array('val2', 'val3')));
+        $this->assertEquals('jsonp1234({"status":"fail","data":{"foo":"bar","bar":{"key1":"val1"},"baz":["val2","val3"]}})', $response);
+    }
+
+    /**
+     * @covers Phix::defaultFormatJsonResponse
+     */
+    public function testDefaultFormatJsonResponseIgnoresInvalidJSONPCallback()
+    {
+        $_GET = array(
+            'callback' => '1234'
+        );
+        $response = Phix::defaultFormatJsonResponse(new Phix(), 412, array('foo' => 'bar', 'bar' => array('key1' => 'val1'), 'baz' => array('val2', 'val3')));
+        $this->assertEquals('{"status":"fail","data":{"foo":"bar","bar":{"key1":"val1"},"baz":["val2","val3"]}}', $response);
+    }
+
+    /**
      * @covers Phix::defaultFormatXmlResponse
      */
     public function testDefaultFormatXmlResponse()
