@@ -1967,7 +1967,7 @@ class Phix
      */
     public static function defaultFormatJsonResponse($phix, $status, $data)
     {
-        $statusString = 20 <= $status && 206 >= $status ? 'success' : 'fail';
+        $statusString = 200 <= $status && 206 >= $status ? 'success' : 'fail';
         return json_encode(array('status' => $statusString, 'data' => $data));
     }
 
