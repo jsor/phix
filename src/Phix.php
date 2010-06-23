@@ -913,10 +913,10 @@ class Phix
     {
         if (func_num_args() == 0) {
             if (null === $this->_env) {
-                if (getenv('PHIX_ENV')) {
-                    $this->_env = getenv('PHIX_ENV');
-                } elseif (isset($_SERVER['PHIX_ENV'])) {
+                if (isset($_SERVER['PHIX_ENV'])) {
                     $this->_env = $_SERVER['PHIX_ENV'];
+                } elseif (getenv('PHIX_ENV')) {
+                    $this->_env = getenv('PHIX_ENV');
                 } else {
                     $this->_env = self::ENV_PRODUCTION;
                 }
