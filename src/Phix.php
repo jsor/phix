@@ -1746,7 +1746,7 @@ class Phix
     }
 
     /**
-     * Render a view at set as response.
+     * Render a view and set as response.
      *
      * @param string $view The view
      * @param array $vars The vars to pass to the view
