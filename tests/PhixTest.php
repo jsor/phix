@@ -2024,6 +2024,16 @@ class PhixTest extends PHPUnit_Framework_TestCase
     }
 
     /**
+     * @covers Phix::format
+     */
+    public function testFormatThrowsExceptionIfDefaultFormatIsRemoved()
+    {
+        $this->setExpectedException('Exception', 'Removing the default format is not allowed');
+        $phix = new Phix();
+        $phix->format('html', null);
+    }
+
+    /**
      * @covers Phix::formats
      */
     public function testFormats()

@@ -1899,6 +1899,10 @@ class Phix
         }
 
         if (null === $config) {
+            if ($format == $this->defaultFormat()) {
+                throw new Exception('Removing the default format is not allowed');
+            }
+
             unset($this->_formats[$format]);
         } else {
             $this->_formats[$format] = $config;
