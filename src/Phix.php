@@ -1898,7 +1898,11 @@ class Phix
             $config = call_user_func($config, $this);
         }
 
-        $this->_formats[$format] = $config;
+        if (null === $config) {
+            unset($this->_formats[$format]);
+        } else {
+            $this->_formats[$format] = $config;
+        }
 
         return $this;
     }

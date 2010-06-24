@@ -2011,11 +2011,15 @@ class PhixTest extends PHPUnit_Framework_TestCase
 
         $phix = new Phix();
 
-        $ret = $phix->format('foo', function() use ($foo) {
+        $phix->format('foo', function() use ($foo) {
             return $foo;
         });
 
         $this->assertSame($foo, $phix->format('foo'));
+
+
+        $ret = $phix->format('foo', null);
+        $this->assertArrayNotHasKey('foo', $phix->formats());
         $this->assertEquals($ret, $phix);
     }
 
