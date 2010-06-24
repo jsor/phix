@@ -788,11 +788,7 @@ class Phix
         $formats = $this->formats();
 
         if (null === $format) {
-            $format = $this->param('format');
-
-            if (null === $format || !isset($formats[$format])) {
-                $format = $this->defaultFormat();
-            }
+            $format = $this->currentFormat();
         } else {
             if (is_callable($format)) {
                 $format = call_user_func($format, $this);
@@ -1759,11 +1755,7 @@ class Phix
         $formats = $this->formats();
 
         if (null === $format) {
-            $format = $this->param('format');
-
-            if (null === $format || !isset($formats[$format])) {
-                $format = $this->defaultFormat();
-            }
+            $format = $this->currentFormat();
         } else {
             if (is_callable($format)) {
                 $format = call_user_func($format, $this);
@@ -1845,6 +1837,23 @@ class Phix
         }
 
         return false;
+    }
+
+    /**
+     * Get the current format.
+     *
+     * @return string
+     */
+    public function currentFormat()
+    {
+        if (null !== ($format = $this->param('format'))) {
+            $formats = $this->formats();
+            if (isset($formats[$format])) {
+                return $format;
+            }
+        }
+
+        return $this->defaultFormat();
     }
 
     /**
@@ -2605,11 +2614,7 @@ class Phix
         $formats = $this->formats();
 
         if (null === $format) {
-            $format = $this->param('format');
-
-            if (null === $format || !isset($formats[$format])) {
-                $format = $this->defaultFormat();
-            }
+            $format = $this->currentFormat();
         } else {
             if (is_callable($format)) {
                 $format = call_user_func($format, $this);

@@ -1944,6 +1944,19 @@ class PhixTest extends PHPUnit_Framework_TestCase
     }
 
     /**
+     * @covers Phix::currentFormat
+     */
+    public function testCurrentFormat()
+    {
+        $phix = new Phix();
+        $this->assertEquals('html', $phix->currentFormat());
+        $phix->param('format', 'json');
+        $this->assertSame('json', $phix->currentFormat());
+        $phix->param('format', 'invalid');
+        $this->assertSame('html', $phix->currentFormat());
+    }
+
+    /**
      * @covers Phix::defaultFormat
      */
     public function testDefaultFormat()
