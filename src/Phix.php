@@ -1770,12 +1770,12 @@ class Phix
 
         if (false !== $layout) {
             if (false !== $formats[$format]['view']['layout']) {
-                if (null !== $formats[$format]['view']['layout']) {
-                    $layout = $formats[$format]['view']['layout'];
-                }
-
                 if (null === $layout) {
                     $layout = $this->layout();
+                }
+
+                if (null !== $formats[$format]['view']['layout']) {
+                    $layout = $formats[$format]['view']['layout'];
                 }
 
                 if (null !== $layout) {
