@@ -1999,7 +1999,7 @@ class Phix
     {
         return '<!DOCTYPE html>' .
                '<html>' .
-                 '<head></head>' .
+                 '<head><title>' . $phix->statusPhrase($status) . '</title></head>' .
                  '<body>' .
                    '<h1>' . $phix->statusPhrase($status) . '</h1>' .
                    '<pre>' . $phix->escape(print_r($data, true)) . '</pre>' .
