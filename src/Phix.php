@@ -1303,7 +1303,7 @@ class Phix
      */
     private function _dispatch($route)
     {
-        $this->params($route['params'] + $_GET);
+        $this->params(array_merge($route['params'], $_GET));
         call_user_func($this->dispatcher(), $this, $route['controller']);
     }
 
