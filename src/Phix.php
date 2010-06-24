@@ -1010,7 +1010,7 @@ class Phix
      */
     public function get($pattern, $controller, array $defaults = array(), $callback = null)
     {
-        return $this->route(array('HEAD', 'GET'), $pattern, $controller, $defaults, $callback);
+        return $this->route('GET', $pattern, $controller, $defaults, $callback);
     }
 
     /**
@@ -1162,9 +1162,13 @@ class Phix
             $methods = array($methods);
         }
 
-        foreach ($methods as $method) {
-            $method = strtoupper($method);
+        $methods = array_map('strtoupper', $methods);
 
+        if (in_array('GET', $methods) && !in_array('HEAD', $methods)) {
+            $methods[] = 'HEAD';
+        }
+
+        foreach ($methods as $method) {
             $this->_routes[$method][] = array(
                 'method'     => $method,
                 'pattern'    => $pattern,

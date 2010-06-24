@@ -1021,6 +1021,20 @@ class PhixTest extends PHPUnit_Framework_TestCase
         $phix = new Phix();
         $phix
             ->autoFlush(false)
+            ->route('GET', '/test', function() use(&$called) {
+                $called = true;
+            })
+            ->requestUri('/test')
+            ->requestMethod('HEAD')
+            ->run();
+
+        $this->assertTrue($called);
+
+        $called = false;
+
+        $phix = new Phix();
+        $phix
+            ->autoFlush(false)
             ->get('/test', function() use(&$called) {
                 $called = true;
             })
