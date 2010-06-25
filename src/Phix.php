@@ -1253,7 +1253,7 @@ class Phix
             return false;
         }
 
-        foreach ($routes[$requestMethod] as $route) {
+        foreach (array_reverse($routes[$requestMethod]) as $route) {
             if (preg_match($route['pattern'], $pathInfo, $matches)) {
                 $params = $route['defaults'];
 
