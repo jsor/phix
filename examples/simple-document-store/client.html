@@ -11,19 +11,181 @@
     }
     #container {
       margin: 0 auto;
-      width: 700px;
+      width: 900px;
     }
     h1 { font-size: 3.0em; color: #333; margin-bottom: 3px; }
-    h2 { font-size: 1.5em; color: #333; }
+    h2 { font-size: 1.5em; color: #333; margin-top: 0; }
     a { color: #333; }
-    pre { background: #000; color: #fff; padding: 15px; }
+    table { border: 1px solid #ccc; font-size: 12px; width: 100%; margin-bottom: 20px; }
+    th { text-align: left; padding: 5px 10px; }
+    td { text-align: left; padding: 5px 10px; border-top: 1px dotted #ccc; font-family:'Bitstream Vera Sans Mono','Courier',monospace; }
+    td textarea { width: 98%; height: 100px; border: 1px solid #999; padding: 5px; font-family:'Bitstream Vera Sans Mono','Courier',monospace; font-size: 12px; }
+    #list td { display: block; }
     </style>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+    <script type="text/javascript" src="json2.js"></script>
+    <script type="text/javascript">
+    $(function() {
+        var saveDoc = function(doc, success) {
+            if (doc._id === undefined) {
+                var method = "POST";
+                var uri = './';
+            } else {
+                var method = "PUT";
+                var uri = './' + encodeURIComponent(doc._id);
+            }
+
+            $.ajax({
+                type: method,
+                url: uri,
+                data: JSON.stringify(doc),
+                contentType: "application/json",
+                dataType: "json",
+                complete: function(req) {
+                    var resp = $.httpData(req, "json");
+                    if (req.status == 201) {
+                        doc._id = resp.id;
+                        if (success)
+                            success(doc);
+                    } else {
+                        alert("Error: " + resp.reason);
+                    }
+                }
+            });
+        };
+
+
+        var delDoc = function(doc, success) {
+            $.ajax({
+                type: 'DELETE',
+                url: './' + encodeURIComponent(doc._id),
+                contentType: "application/json",
+                dataType: "json",
+                complete: function(req) {
+                    var resp = $.httpData(req, "json");
+                    if (req.status == 200) {
+                        if (success)
+                            success(doc);
+                    } else {
+                        alert("Error: " + resp.reason);
+                    }
+                }
+            });
+        };
+
+        var addRow = function(doc, animate) {
+            var r = $('<tr><td><textarea>' + JSON.stringify(doc, null, 4) + '</textarea><input class="update" type="button" value="Update"><input class="delete" type="button" value="Delete"></td></tr>');
+
+            if (animate)
+                r.hide();
+
+            $('#list tr:eq(0)').after(r);
+
+            if (animate)
+                r.fadeIn();
+
+            r
+            .data('_id', doc._id)
+            .find('input.update')
+            .click(function() {
+                var tr = $(this).parents('tr');
+                saveDoc(JSON.parse(tr.find('textarea').val()), function() {
+                    alert('Document saved!');
+                });
+            })
+            .end()
+            .find('input.delete')
+            .click(function() {
+                var tr = $(this).parents('tr');
+                delDoc(JSON.parse(tr.find('textarea').val()), function() {
+                    alert('Document deleted!');
+                    tr.fadeOut(function() {
+                        $(this).remove();
+                    })
+                });
+            });
+        };
+
+        $.ajax({
+            url: './',
+            success: function(data) {
+                for (i = 0; i < data.length; i++) {
+                    addRow(data[i]);
+                }
+            }
+        });
+
+        $('#new input').click(function() {
+            saveDoc(JSON.parse($(this).prev().val()), function(doc) {
+                alert('Document saved!');
+                addRow(doc, true);
+            });
+        });
+    });
+    </script>
   </head>
   <body>
     <div id="container">
+      <a href="http://github.com/jsor/phix"><img style="position: absolute; top: 0; right: 0; border: 0;" src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub" /></a>
+
       <h1>Simple Document Store</h1>
       <p>This example shows a simple document store with a RESTful interface.</p>
       <p>Documents are stored in the JSON format. The API is similar to the CouchDB API but does not support databases.</p>
+
+      <h2>API</h2>
+
+      <table>
+          <tr>
+              <th>Method</th>
+              <th>URL</th>
+              <th>Description</th>
+              <th>Example</th>
+          </tr>
+          <tr>
+              <td>GET</td>
+              <td>/</td>
+              <td>List all documents</td>
+              <td>curl -X GET http://simple-document-store/</td>
+          </tr>
+          <tr>
+              <td>GET</td>
+              <td>/:id</td>
+              <td>Read a document with the ID :id</td>
+              <td>curl -X GET http://simple-document-store/6e1295ed6c29495e54cc05947f18c8af</td>
+          </tr>
+          <tr>
+              <td>PUT</td>
+              <td>/:id</td>
+              <td>Create/Update a document with the ID :id</td>
+              <td>curl -X PUT http://simple-document-store/6e1295ed6c29495e54cc05947f18c8af -d '{"title":"There is Nothing Left to Lose","artist":"Foo Fighters"}'</td>
+          </tr>
+          <tr>
+              <td>POST</td>
+              <td>/</td>
+              <td>Create a document with an auto-generated ID</td>
+              <td>curl -X POST http://localhost -d '{"title":"There is Nothing Left to Lose","artist":"Foo Fighters"}'</td>
+          </tr>
+          <tr>
+              <td>DELETE</td>
+              <td>/:id</td>
+              <td>Delete a document with the ID :id</td>
+              <td>curl -X DELETE http://simple-document-store/6e1295ed6c29495e54cc05947f18c8af</td>
+          </tr>
+      </table>
+
+      <h2>Demo</h2>
+
+      <table id="new">
+          <tr><th>New Document</th></tr>
+          <tr><td><textarea>{
+    "key": "val"
+}</textarea><input type="button" value="Create"></td></tr>
+      </table>
+
+      <table id="list">
+          <tr><th>Saved Documents</th></tr>
+      </table>
+
     </div>
   </body>
 </html>

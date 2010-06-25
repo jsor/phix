@@ -1,6 +1,8 @@
+DirectoryIndex server.php
+
 RewriteEngine on
 RewriteCond %{REQUEST_FILENAME} -s [OR]
 RewriteCond %{REQUEST_FILENAME} -l [OR]
 RewriteCond %{REQUEST_FILENAME} -d
 RewriteRule ^.*$ - [QSA,NC,L]
-RewriteRule ^.*$ index.php [QSA,NC,L]
+RewriteRule ^.*$ server.php [QSA,NC,L]
