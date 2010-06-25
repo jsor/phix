@@ -77,10 +77,10 @@ class Phix
     private $_params = array();
 
     /**
-     * Assigned options.
+     * Regitry.
      * @var array
      */
-    private $_options = array();
+    private $_registry = array();
 
     /**
      * Bound hooks.
@@ -1422,17 +1422,17 @@ class Phix
     }
 
     /**
-     * Set/Get options.
+     * Set/Get to registry.
      *
      * @param string $key The key
      * @param string $value The value (Can be a callable)
      * @return mixed|Phix
      */
-    public function option($key, $value = null)
+    public function reg($key, $value = null)
     {
         if (func_num_args() == 1) {
-            if (isset($this->_options[$key])) {
-                return $this->_options[$key];
+            if (isset($this->_registry[$key])) {
+                return $this->_registry[$key];
             }
 
             return null;
@@ -1442,30 +1442,30 @@ class Phix
             $value = call_user_func($value, $this);
         }
 
-        $this->_options[$key] = $value;
+        $this->_registry[$key] = $value;
 
         return $this;
     }
 
     /**
-     * Set/Get multiple options.
+     * Set/Get multiple to registry.
      *
-     * @param array $options The options
-     * @param boolean $reset Whether to reset existing options
+     * @param array $regs The regs
+     * @param boolean $reset Whether to reset existing registry
      * @return mixed|Phix
      */
-    public function options(array $options = array(), $reset = false)
+    public function regs(array $regs = array(), $reset = false)
     {
         if (func_num_args() == 0) {
-            return $this->_options;
+            return $this->_registry;
         }
 
         if ($reset) {
-            $this->_options = array();
+            $this->_registry = array();
         }
 
-        foreach ($options as $key => $val) {
-            $this->option($key, $val);
+        foreach ($regs as $key => $val) {
+            $this->reg($key, $val);
         }
 
         return $this;

@@ -1604,39 +1604,39 @@ class PhixTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @covers Phix::option
+     * @covers Phix::reg
      */
-    public function testOption()
+    public function testReg()
     {
         $phix = new Phix();
-        $this->assertNull($phix->option('foo'));
-        $phix->option('foo', 'bar');
-        $this->assertEquals('bar', $phix->option('foo'));
-        $ret = $phix->option('foo', function() {
+        $this->assertNull($phix->reg('foo'));
+        $phix->reg('foo', 'bar');
+        $this->assertEquals('bar', $phix->reg('foo'));
+        $ret = $phix->reg('foo', function() {
             return 'baz';
         });
-        $this->assertEquals('baz', $phix->option('foo'));
+        $this->assertEquals('baz', $phix->reg('foo'));
         $this->assertEquals($ret, $phix);
     }
 
     /**
-     * @covers Phix::options
+     * @covers Phix::regs
      */
-    public function testOptions()
+    public function testRegs()
     {
-        $options = array(
+        $regs = array(
             'foo' => 'bar',
             'bar' => 'baz',
         );
 
         $phix = new Phix();
-        $this->assertSame(array(), $phix->options());
-        $phix->options($options);
-        $this->assertEquals($options, $phix->options());
-        $phix->option('ping', 'pong');
-        $this->assertEquals($options + array('ping' => 'pong'), $phix->options());
-        $ret = $phix->options($options, true);
-        $this->assertEquals($options, $phix->options());
+        $this->assertSame(array(), $phix->regs());
+        $phix->regs($regs);
+        $this->assertEquals($regs, $phix->regs());
+        $phix->reg('ping', 'pong');
+        $this->assertEquals($regs + array('ping' => 'pong'), $phix->regs());
+        $ret = $phix->regs($regs, true);
+        $this->assertEquals($regs, $phix->regs());
         $this->assertEquals($ret, $phix);
     }
 
@@ -2100,7 +2100,7 @@ class PhixTest extends PHPUnit_Framework_TestCase
     public function testDefaultFormatHtmlResponse()
     {
         $response = Phix::defaultFormatHtmlResponse(new Phix(), 200, array('foo' => 'bar', 'bar' => array('key1' => 'val1'), 'baz' => array('val2', 'val3')));
-        $expected = '<!DOCTYPE html><html><head></head><body><h1>OK</h1><pre>Array
+        $expected = '<!DOCTYPE html><html><head><title>OK</title></head><body><h1>OK</h1><pre>Array
 (
     [foo] =&gt; bar
     [bar] =&gt; Array
@@ -2119,7 +2119,7 @@ class PhixTest extends PHPUnit_Framework_TestCase
         $this->assertEquals(str_replace(array("\r\n", "\t"), array("\n", "    "), $expected), $response);
 
         $response = Phix::defaultFormatHtmlResponse(new Phix(), 412, array('foo' => 'bar', 'bar' => array('key1' => 'val1'), 'baz' => array('val2', 'val3')));
-        $expected = '<!DOCTYPE html><html><head></head><body><h1>Precondition Failed</h1><pre>Array
+        $expected = '<!DOCTYPE html><html><head><title>Precondition Failed</title></head><body><h1>Precondition Failed</h1><pre>Array
 (
     [foo] =&gt; bar
     [bar] =&gt; Array
