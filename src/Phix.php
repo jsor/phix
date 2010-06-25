@@ -571,7 +571,10 @@ class Phix
                 foreach ($contentTypes as $contentType) {
                     if (strstr($requestContentType, $contentType)) {
                         if (isset($options['unserialize']) && is_callable($options['unserialize'])) {
-                            $_POST = array_merge($_POST, call_user_func($options['unserialize'], $this, $rawBody));
+                            $unserialized = call_user_func($options['unserialize'], $this, $rawBody);
+                            if (is_array($unserialized)) {
+                                $_POST = array_merge($_POST, $unserialized);
+                            }
                             $processed = true;
                             break 2;
                         }
