@@ -13,10 +13,7 @@ Phix::instance()
 
     // Set default format to JSON
     ->defaultFormat('json')
-    // Remove HTML format
-    ->format('html', null)
-    // Remove XML format
-    ->format('xml', null)
+
     // Manipulate JSON response and error callbacks
     ->format('json', function($phix) {
         $curr = $phix->format('json');
@@ -34,6 +31,7 @@ Phix::instance()
         };
         return $curr;
     })
+
     // Fake request header in case it was not set (we only accept JSON)
     ->requestHeader('Content-type', 'application/json')
 
@@ -64,6 +62,7 @@ Phix::instance()
             $phix->response(json_decode(file_get_contents($file)));
         }
     })
+
     // Create/Update a document
     ->put('/:id', function($phix) {
         $id = $phix->param('id');
@@ -83,6 +82,7 @@ Phix::instance()
             $phix->response(array('ok' => true, 'id' => $id));
         }
     })
+
     // Delete a document
     ->delete('/:id', function($phix) {
         $id = $phix->param('id');
@@ -98,6 +98,7 @@ Phix::instance()
             $phix->response(array('ok' => true, 'id' => $id));
         }
     })
+
     // Create a document (with auto-generated id)
     ->post('/', function($phix) {
         $id = md5(uniqid(mt_rand(), true));
@@ -106,6 +107,7 @@ Phix::instance()
         $phix->status(201);
         $phix->response(array('ok' => true, 'id' => $id));
     })
+
     // List all documents
     ->get('/', function($phix) {
         $docs = array();
@@ -121,3 +123,4 @@ Phix::instance()
 
     // Run application
     ->run();
+
