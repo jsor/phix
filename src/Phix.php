@@ -2042,6 +2042,9 @@ class Phix
     public static function defaultFormatXmlResponse($phix, $status, $data)
     {
         $statusString = 20 <= $status && 206 >= $status ? 'success' : 'fail';
+        if (is_object($data)) {
+            $data = get_object_vars($data);
+        }
         return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' .
                '<response>' .
                  '<status>' . $statusString . '</status>' .
@@ -2062,7 +2065,14 @@ class Phix
         $xml = '';
         $surroundRoot = true;
         foreach ($array as $key => $value) {
+            if (is_object($value)) {
+                $value = get_object_vars($value);
+            }
             if (is_array($value)) {
+                if (is_numeric($key)) {
+                    $key = $root;
+                    $surroundRoot = false;
+                }
                 $xml .= self::_arrayToXml($value, $key);
             } else {
                 if (is_numeric($key)) {
