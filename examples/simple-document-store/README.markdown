@@ -19,31 +19,31 @@ API
         <td>GET</td>
         <td>/</td>
         <td>List all documents</td>
-        <td>`curl -X GET http://simple-document-store/`</td>
+        <td>curl -X GET http://simple-document-store/</td>
     </tr>
     <tr>
         <td>GET</td>
         <td>/:id</td>
         <td>Read a document with the ID :id</td>
-        <td>`curl -X GET http://simple-document-store/6e1295ed6c29495e54cc05947f18c8af`</td>
+        <td>curl -X GET http://simple-document-store/6e1295ed6c29495e54cc05947f18c8af</td>
     </tr>
     <tr>
         <td>PUT</td>
         <td>/:id</td>
         <td>Create/Update a document with the ID :id</td>
-        <td>`curl -X PUT http://simple-document-store/6e1295ed6c29495e54cc05947f18c8af -d '{"title":"There is Nothing Left to Lose","artist":"Foo Fighters"}'`</td>
+        <td>curl -X PUT http://simple-document-store/6e1295ed6c29495e54cc05947f18c8af -d '{"title":"There is Nothing Left to Lose","artist":"Foo Fighters"}'</td>
     </tr>
     <tr>
         <td>POST</td>
         <td>/</td>
         <td>Create a document with an auto-generated ID</td>
-        <td>`curl -X POST http://localhost -d '{"title":"There is Nothing Left to Lose","artist":"Foo Fighters"}'`</td>
+        <td>curl -X POST http://localhost -d '{"title":"There is Nothing Left to Lose","artist":"Foo Fighters"}'</td>
     </tr>
     <tr>
         <td>DELETE</td>
         <td>/:id</td>
         <td>Delete a document with the ID :id</td>
-        <td>`curl -X DELETE http://simple-document-store/6e1295ed6c29495e54cc05947f18c8af`</td>
+        <td>curl -X DELETE http://simple-document-store/6e1295ed6c29495e54cc05947f18c8af</td>
     </tr>
 </table>
 
