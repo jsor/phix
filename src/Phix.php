@@ -2062,21 +2062,21 @@ class Phix
      */
     protected static function _arrayToXml(array $array, $root)
     {
-        $xml = '';
-        $surroundRoot = true;
+        $xml  = '';
+        $wrap = true;
         foreach ($array as $key => $value) {
             if (is_object($value)) {
                 $value = get_object_vars($value);
             }
             if (is_array($value)) {
                 if (is_numeric($key)) {
-                    $key = $root;
-                    $surroundRoot = false;
+                    $key  = $root;
+                    $wrap = false;
                 }
                 $xml .= self::_arrayToXml($value, $key);
             } else {
                 if (is_numeric($key)) {
-                    $surroundRoot = false;
+                    $wrap = false;
                     $xml .= '<' . $root . '>' . htmlspecialchars($value, ENT_COMPAT, 'UTF-8') . '</' . $root . '>';
                 } else {
                     $xml .= '<' . $key . '>' . htmlspecialchars($value, ENT_COMPAT, 'UTF-8') . '</' . $key . '>';
@@ -2084,7 +2084,7 @@ class Phix
             }
         }
 
-        if ($surroundRoot) {
+        if ($wrap) {
             $xml = '<' . $root . '>' . $xml . '</' . $root . '>';
         }
 
