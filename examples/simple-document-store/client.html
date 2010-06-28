@@ -47,8 +47,10 @@
                         doc._id = resp.id;
                         if (success)
                             success(doc);
-                    } else {
+                    } else if (resp && resp.reason) {
                         alert("Error: " + resp.reason);
+                    } else {
+                        alert("Error: Did you run this example from a webserver?");
                     }
                 }
             });
@@ -66,8 +68,10 @@
                     if (req.status == 200) {
                         if (success)
                             success(doc);
-                    } else {
+                    } else if (resp && resp.reason) {
                         alert("Error: " + resp.reason);
+                    } else {
+                        alert("Error: Did you run this example from a webserver?");
                     }
                 }
             });
@@ -129,51 +133,7 @@
       <a href="http://github.com/jsor/phix"><img style="position: absolute; top: 0; right: 0; border: 0;" src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub" /></a>
 
       <h1>Simple Document Store</h1>
-      <p>This example shows a simple document store with a RESTful interface.</p>
-      <p>Documents are stored in the JSON format. The API is similar to the CouchDB API but does not support databases.</p>
-
-      <h2>API</h2>
-
-      <table>
-          <tr>
-              <th>Method</th>
-              <th>URL</th>
-              <th>Description</th>
-              <th>Example</th>
-          </tr>
-          <tr>
-              <td>GET</td>
-              <td>/</td>
-              <td>List all documents</td>
-              <td>curl -X GET http://simple-document-store/</td>
-          </tr>
-          <tr>
-              <td>GET</td>
-              <td>/:id</td>
-              <td>Read a document with the ID :id</td>
-              <td>curl -X GET http://simple-document-store/6e1295ed6c29495e54cc05947f18c8af</td>
-          </tr>
-          <tr>
-              <td>PUT</td>
-              <td>/:id</td>
-              <td>Create/Update a document with the ID :id</td>
-              <td>curl -X PUT http://simple-document-store/6e1295ed6c29495e54cc05947f18c8af -d '{"title":"There is Nothing Left to Lose","artist":"Foo Fighters"}'</td>
-          </tr>
-          <tr>
-              <td>POST</td>
-              <td>/</td>
-              <td>Create a document with an auto-generated ID</td>
-              <td>curl -X POST http://localhost -d '{"title":"There is Nothing Left to Lose","artist":"Foo Fighters"}'</td>
-          </tr>
-          <tr>
-              <td>DELETE</td>
-              <td>/:id</td>
-              <td>Delete a document with the ID :id</td>
-              <td>curl -X DELETE http://simple-document-store/6e1295ed6c29495e54cc05947f18c8af</td>
-          </tr>
-      </table>
-
-      <h2>Demo</h2>
+      <p>A simple client for the document store.</p>
 
       <table id="new">
           <tr><th>New Document</th></tr>

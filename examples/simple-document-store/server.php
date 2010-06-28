@@ -2,6 +2,8 @@
 
 include __DIR__ . '/../../src/Phix.php';
 
+clearstatcache();
+
 Phix::instance()
 
     // -----------------------
@@ -33,6 +35,12 @@ Phix::instance()
             return $response;
         };
         $curr['error'] = function($phix, $status, $msg) {
+            if (is_string($msg)) {
+                $msg = array(
+                    'error'  => 'internal',
+                    'reason' => $msg
+                );
+            }
             return json_encode($msg);
         };
         return $curr;
