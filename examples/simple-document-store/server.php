@@ -14,6 +14,12 @@ Phix::instance()
     // Set default format to JSON
     ->defaultFormat('json')
 
+    // Remove HTML format
+    ->format('html', null)
+
+    // Remove XML format
+    ->format('xml', null)
+
     // Manipulate JSON response and error callbacks
     ->format('json', function($phix) {
         $curr = $phix->format('json');
