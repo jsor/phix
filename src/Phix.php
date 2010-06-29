@@ -2556,6 +2556,8 @@ class Phix
 
         $this->error(404, $msg);
 
+        $this->trigger('not_found_end');
+
         return $this;
     }
 
@@ -2610,6 +2612,8 @@ class Phix
 
         $this->_shutdown();
 
+        $this->trigger('error_end');
+
         return $this;
     }
 
@@ -2634,6 +2638,8 @@ class Phix
         }
 
         $this->error(500, $msg);
+
+        $this->trigger('exception_handler_end');
 
         return false;
     }
