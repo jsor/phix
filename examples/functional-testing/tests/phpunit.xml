@@ -3,9 +3,4 @@
     <testsuite name="Phix Test Suite">
         <directory suffix="Test.php">./</directory>
     </testsuite>
-    <filter>
-        <whitelist>
-            <directory suffix=".php">../app/</directory>
-        </whitelist>
-    </filter>
 </phpunit>

@@ -1,11 +1,5 @@
 <?php
 
-// Define filters for clover report
-PHPUnit_Util_Filter::addDirectoryToWhitelist(__DIR__ . '/../app');
-
-PHPUnit_Util_Filter::addDirectoryToFilter(__DIR__);
-PHPUnit_Util_Filter::addDirectoryToFilter(__DIR__ . '/../../../src');
-
 set_include_path(implode(PATH_SEPARATOR, array(
     __DIR__ . '/../app',
     __DIR__ . '/../../../src',
