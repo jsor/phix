@@ -14,6 +14,8 @@
  * @license    http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
+namespace Phix;
+
 /**
  * @package    Phix
  * @subpackage UnitTests
@@ -21,11 +23,11 @@
  * @copyright  Copyright (c) 2010-Present Jan Sorgalla
  * @license    http://opensource.org/licenses/bsd-license.php The BSD License
  */
-class PhixTestCaseTest extends PHPUnit_Framework_TestCase
+class AppTestCaseTest extends \PHPUnit_Framework_TestCase
 {
     public function setUp()
     {
-        $phixConfig = array(
+        $appConfig = array(
             'requestUri' => array(
                 '/'
             ),
@@ -43,37 +45,37 @@ class PhixTestCaseTest extends PHPUnit_Framework_TestCase
                     array(
                         'GET',
                         '/',
-                        function($phix) {
-                            $phix->render('view', array('controller' => 'index'));
+                        function($app) {
+                            $app->render('view', array('controller' => 'index'));
                         }
                     ),
                     array(
                         array('GET', 'POST'),
                         '/foo',
-                        function($phix) {
-                            $phix->render('view', array('controller' => 'foo'));
+                        function($app) {
+                            $app->render('view', array('controller' => 'foo'));
                         }
                     ),
                     array(
                         'GET',
                         '/bar',
-                        function($phix) {
-                            $phix->render('bar');
+                        function($app) {
+                            $app->render('bar');
                         }
                     ),
                     array(
                         'GET',
                         '/invalid-xml',
-                        function($phix) {
-                            $phix->response('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>vvdv', 'xml');
+                        function($app) {
+                            $app->response('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>vvdv', 'xml');
                         }
                     ),
                 )
             )
         );
 
-        $this->testCase = new PhixTestCase();
-        $this->testCase->setPhix(new Phix($phixConfig));
+        $this->testCase = new AppTestCase();
+        $this->testCase->setApp(new App($appConfig));
     }
 
     public function tearDown()
@@ -82,56 +84,56 @@ class PhixTestCaseTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @covers PhixTestCase::setPhix
+     * @covers \Phix\AppTestCase::setApp
      */
-    public function testSetPhixAcceptsPhixInstance()
+    public function testSetAppAcceptsAppInstance()
     {
-        $testCase = new PhixTestCase();
+        $testCase = new AppTestCase();
         
-        $phix = new Phix();
-        $testCase->setPhix(new Phix());
-        $this->assertEquals($testCase->getPhix(), $phix);
+        $app = new App();
+        $testCase->setApp(new App());
+        $this->assertEquals($testCase->getApp(), $app);
     }
 
     /**
-     * @covers PhixTestCase::getPhix
+     * @covers \Phix\AppTestCase::getApp
      */
-    public function testGetPhixReturnsDefaultInstanceIfNoneAssigned()
+    public function testGetAppReturnsDefaultInstanceIfNoneAssigned()
     {
-        $testCase = new PhixTestCase();
-        $this->assertEquals($testCase->getPhix(), new Phix());
+        $testCase = new AppTestCase();
+        $this->assertEquals($testCase->getApp(), new App());
     }
 
     /**
-     * @covers PhixTestCase::runPhix
+     * @covers \Phix\AppTestCase::runApp
      */
     public function testRunShouldDispatchSpecifiedUrlAndRequestMethod()
     {
-        $this->testCase->runPhix('/foo', 'POST');
-        $this->assertContains('foo', $this->testCase->getPhix()->output());
-        $this->assertContains('POST', $this->testCase->getPhix()->requestMethod());
+        $this->testCase->runApp('/foo', 'POST');
+        $this->assertContains('foo', $this->testCase->getApp()->output());
+        $this->assertContains('POST', $this->testCase->getApp()->requestMethod());
     }
 
     /**
-     * @covers PhixTestCase::assertXpath
-     * @covers PhixTestCase::assertXpathContentContains
+     * @covers \Phix\AppTestCase::assertXpath
+     * @covers \Phix\AppTestCase::assertXpathContentContains
      */
     public function testAssertXpathShouldDoNothingForValidResponseContent()
     {
-        $this->testCase->runPhix('/bar');
+        $this->testCase->runApp('/bar');
         $this->testCase->assertXpath("//div[@id='foo']//legend[contains(@class, 'bar')]");
         $this->testCase->assertXpath("//div[@id='foo']//legend[contains(@class, 'baz')]");
         $this->testCase->assertXpath("//div[@id='foo']//legend[contains(@class, 'bat')]");
         $this->testCase->assertXpathContentContains("//legend[contains(@class, 'bat')]", "La di da");
 
-        $this->testCase->runPhix('/bar?format=xml');
+        $this->testCase->runApp('/bar?format=xml');
         $this->testCase->assertXpath("//foo[contains(@bar, 'baz')]");
         $this->testCase->assertXpathContentContains("//foo[contains(@bar, 'baz')]", "La di da");
     }
 
     /**
-     * @covers PhixTestCase::assertXpath
-     * @covers PhixTestCase::assertXpathContentContains
+     * @covers \Phix\AppTestCase::assertXpath
+     * @covers \Phix\AppTestCase::assertXpathContentContains
      */
     public function testAssertionsShouldIncreasePhpUnitAssertionCounter()
     {
@@ -141,158 +143,158 @@ class PhixTestCaseTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @covers PhixTestCase::assertXpath
-     * @covers PhixTestCase::assertXpathContentContains
+     * @covers \Phix\AppTestCase::assertXpath
+     * @covers \Phix\AppTestCase::assertXpathContentContains
      */
     public function testAssertXpathShouldThrowExceptionsForInValidResponseContent()
     {
-        $this->testCase->runPhix('/bar');
+        $this->testCase->runApp('/bar');
 
         try {
             $this->testCase->assertXpath("//div[@id='foo']//legend[contains(@class, 'bogus')]");
             $this->fail("Invalid assertions should throw exceptions; assertion against //div[@id='foo']//legend[contains(@class, 'bogus')] failed");
-        } catch (PHPUnit_Framework_ExpectationFailedException $e) {
+        } catch (\PHPUnit_Framework_ExpectationFailedException $e) {
         }
 
         try {
             $this->testCase->assertXpathContentContains("//legend[contains(@class, 'bat')]", 'La do da');
             $this->fail("Invalid assertions should throw exceptions; assertion against //legend[contains(@class, 'bat')] failed");
-        } catch (PHPUnit_Framework_ExpectationFailedException $e) {
+        } catch (\PHPUnit_Framework_ExpectationFailedException $e) {
         }
     }
 
     /**
-     * @covers PhixTestCase::assertXpath
+     * @covers \Phix\AppTestCase::assertXpath
      */
     public function testAssertXpathShouldThrowExceptionsForInValidResponseXml()
     {
         $this->setExpectedException('Exception', 'Error parsing document (type == xml)');
-        $this->testCase->runPhix('/invalid-xml');
+        $this->testCase->runApp('/invalid-xml');
         try{
             $this->testCase->assertXpath("//div[@id='foo']//legend[contains(@class, 'bogus')]");
-        } catch (PHPUnit_Framework_ExpectationFailedException $e) {
+        } catch (\PHPUnit_Framework_ExpectationFailedException $e) {
         }
     }
 
     /**
-     * @covers PhixTestCase::assertXpathContentContains
+     * @covers \Phix\AppTestCase::assertXpathContentContains
      */
     public function testAssertXpathContentContainsShouldThrowExceptionsForInValidResponseXml()
     {
         $this->setExpectedException('Exception', 'Error parsing document (type == xml)');
-        $this->testCase->runPhix('/invalid-xml');
+        $this->testCase->runApp('/invalid-xml');
         try {
             $this->testCase->assertXpathContentContains("//legend[contains(@class, 'bat')]", 'La do da');
-        } catch (PHPUnit_Framework_ExpectationFailedException $e) {
+        } catch (\PHPUnit_Framework_ExpectationFailedException $e) {
         }
     }
 
     /**
-     * @covers PhixTestCase::assertRedirect
-     * @covers PhixTestCase::assertRedirectTo
+     * @covers \Phix\AppTestCase::assertRedirect
+     * @covers \Phix\AppTestCase::assertRedirectTo
      */
     public function testRedirectAssertionsShouldDoNothingForValidAssertions()
     {
-        $this->testCase->getPhix()->redirect('/foo');
+        $this->testCase->getApp()->redirect('/foo');
         $this->testCase->assertRedirect();
         $this->testCase->assertRedirectTo('http://localhost/foo');
     }
 
     /**
-     * @covers PhixTestCase::assertRedirect
-     * @covers PhixTestCase::assertRedirectTo
+     * @covers \Phix\AppTestCase::assertRedirect
+     * @covers \Phix\AppTestCase::assertRedirectTo
      */
     public function testRedirectAssertionShouldThrowExceptionForInvalidComparison()
     {
-        $this->testCase->getPhix()->reset();
+        $this->testCase->getApp()->reset();
 
         try {
             $this->testCase->assertRedirect();
             $this->fail();
-        } catch (PHPUnit_Framework_ExpectationFailedException $e) {
+        } catch (\PHPUnit_Framework_ExpectationFailedException $e) {
         }
 
-        $this->testCase->getPhix()->redirect('/bar');
+        $this->testCase->getApp()->redirect('/bar');
 
         try {
             $this->testCase->assertRedirectTo('http://localhost/foo');
             $this->fail();
-        } catch (PHPUnit_Framework_ExpectationFailedException $e) {
+        } catch (\PHPUnit_Framework_ExpectationFailedException $e) {
         }
     }
 
     /**
-     * @covers PhixTestCase::assertStatus
+     * @covers \Phix\AppTestCase::assertStatus
      */
     public function testStatusAssertionShouldDoNothingForValidComparison()
     {
-        $this->testCase->getPhix()->reset();
+        $this->testCase->getApp()->reset();
         $this->testCase->assertStatus(200);
-        $this->testCase->getPhix()->status(500);
+        $this->testCase->getApp()->status(500);
         $this->testCase->assertStatus(500);
     }
 
     /**
-     * @covers PhixTestCase::assertStatus
+     * @covers \Phix\AppTestCase::assertStatus
      */
     public function testStatusAssertionShouldThrowExceptionForInvalidComparison()
     {
-        $this->testCase->getPhix()->reset();
+        $this->testCase->getApp()->reset();
 
         try {
             $this->testCase->assertStatus(500);
             $this->fail();
-        } catch (PHPUnit_Framework_ExpectationFailedException $e) {
+        } catch (\PHPUnit_Framework_ExpectationFailedException $e) {
         }
 
-        $this->testCase->getPhix()->status(500);
+        $this->testCase->getApp()->status(500);
 
         try {
             $this->testCase->assertStatus(200);
             $this->fail();
-        } catch (PHPUnit_Framework_ExpectationFailedException $e) {
+        } catch (\PHPUnit_Framework_ExpectationFailedException $e) {
         }
     }
 
     /**
-     * @covers PhixTestCase::assertHeader
-     * @covers PhixTestCase::assertHeaderContains
-     * @covers PhixTestCase::assertHeaderRegex
+     * @covers \Phix\AppTestCase::assertHeader
+     * @covers \Phix\AppTestCase::assertHeaderContains
+     * @covers \Phix\AppTestCase::assertHeaderRegex
      */
     public function testHeaderAssertionShouldDoNothingForValidComparison()
     {
-        $this->testCase->getPhix()->reset();
+        $this->testCase->getApp()->reset();
 
-        $this->testCase->getPhix()->header('Content-Type: x-application/my-foo');
+        $this->testCase->getApp()->header('Content-Type: x-application/my-foo');
         $this->testCase->assertHeader('Content-Type');
         $this->testCase->assertHeaderContains('Content-Type', 'my-foo');
         $this->testCase->assertHeaderRegex('Content-Type', '#^[a-z-]+/[a-z-]+$#i');
     }
 
     /**
-     * @covers PhixTestCase::assertHeader
-     * @covers PhixTestCase::assertHeaderContains
-     * @covers PhixTestCase::assertHeaderRegex
+     * @covers \Phix\AppTestCase::assertHeader
+     * @covers \Phix\AppTestCase::assertHeaderContains
+     * @covers \Phix\AppTestCase::assertHeaderRegex
      */
     public function testHeaderAssertionShouldThrowExceptionForInvalidComparison()
     {
-        $this->testCase->getPhix()->reset();
-        $this->testCase->getPhix()->header('Content-Type: x-application/my-foo');
+        $this->testCase->getApp()->reset();
+        $this->testCase->getApp()->header('Content-Type: x-application/my-foo');
 
         try {
             $this->testCase->assertHeader('X-Bogus');
             $this->fail();
-        } catch (PHPUnit_Framework_ExpectationFailedException $e) {
+        } catch (\PHPUnit_Framework_ExpectationFailedException $e) {
         }
         try {
             $this->testCase->assertHeaderContains('Content-Type', 'my-bar');
             $this->fail();
-        } catch (PHPUnit_Framework_ExpectationFailedException $e) {
+        } catch (\PHPUnit_Framework_ExpectationFailedException $e) {
         }
         try {
             $this->testCase->assertHeaderRegex('Content-Type', '#^\d+#i');
             $this->fail();
-        } catch (PHPUnit_Framework_ExpectationFailedException $e) {
+        } catch (\PHPUnit_Framework_ExpectationFailedException $e) {
         }
     }
 }

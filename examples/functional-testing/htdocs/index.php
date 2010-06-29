@@ -1,7 +1,7 @@
 <?php
 
 set_include_path(implode(PATH_SEPARATOR, array(
-    __DIR__ . '/../app',
+    __DIR__ . '/..',
     __DIR__ . '/../../../src',
     get_include_path()
 )));
@@ -21,4 +21,4 @@ function phixClassLoader($className)
 
 spl_autoload_register('phixClassLoader', true, true);
 
-MyPhixApp::instance()->run();
+\app\MyPhixApp::instance()->run();

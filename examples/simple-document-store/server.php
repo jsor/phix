@@ -1,10 +1,10 @@
 <?php
 
-include __DIR__ . '/../../src/Phix.php';
+include __DIR__ . '/../../src/Phix/App.php';
 
 clearstatcache();
 
-Phix::instance()
+\Phix\App::instance()
 
     // -----------------------
     // -- CONFIGURATION ------
@@ -23,9 +23,9 @@ Phix::instance()
     ->format('xml', null)
 
     // Manipulate JSON response and error callbacks
-    ->format('json', function($phix) {
-        $curr = $phix->format('json');
-        $curr['response'] = function($phix, $status, $data) {
+    ->format('json', function($app) {
+        $curr = $app->format('json');
+        $curr['response'] = function($app, $status, $data) {
             $response = json_encode($data);
 
             if (!empty($_GET['callback']) && preg_match('/^[a-zA-Z_$][0-9a-zA-Z_$]*$/', $_GET['callback'])) {
@@ -34,7 +34,7 @@ Phix::instance()
 
             return $response;
         };
-        $curr['error'] = function($phix, $status, $msg) {
+        $curr['error'] = function($app, $status, $msg) {
             if (is_string($msg)) {
                 $msg = array(
                     'error'  => 'internal',
@@ -54,8 +54,8 @@ Phix::instance()
     // -----------------------
 
     // Hook flush() to send Content-Length header
-    ->hook('flush', function($phix) {
-        $phix->header('Content-Length: ' . strlen($phix->output()));
+    ->hook('flush', function($app) {
+        $app->header('Content-Length: ' . strlen($app->output()));
     })
 
     // -----------------------
@@ -63,72 +63,72 @@ Phix::instance()
     // -----------------------
 
     // Show a document
-    ->get('/:id', function($phix) {
-        $id = $phix->param('id');
-        $file = $phix->reg('data_dir') . '/' . $id;
+    ->get('/:id', function($app) {
+        $id = $app->param('id');
+        $file = $app->reg('data_dir') . '/' . $id;
         if (!file_exists($file)) {
-            $phix->error(404, array(
+            $app->error(404, array(
                 'error'  => 'not_found',
                 'reason' => 'missing'
             ));
         } else {
-            $phix->status(200);
-            $phix->response(json_decode(file_get_contents($file)));
+            $app->status(200);
+            $app->response(json_decode(file_get_contents($file)));
         }
     })
 
     // Create/Update a document
-    ->put('/:id', function($phix) {
-        $id = $phix->param('id');
+    ->put('/:id', function($app) {
+        $id = $app->param('id');
         if (!preg_match('/^[a-z0-9_]+$/', $id)) {
-            $phix->error(400, array(
+            $app->error(400, array(
                 'error'  => 'illegal_id',
                 'reason' => 'Only lowercase characters (a-z), digits (0-9) and the underscore (_) are allowed'
             ));
         } else {
-            $file = $phix->reg('data_dir') . '/' . $id;
+            $file = $app->reg('data_dir') . '/' . $id;
             if (file_exists($file)) {
                 //unlink($file);
             }
             file_put_contents($file, json_encode(array('_id' => $id) + $_POST));
 
-            $phix->status(201);
-            $phix->response(array('ok' => true, 'id' => $id));
+            $app->status(201);
+            $app->response(array('ok' => true, 'id' => $id));
         }
     })
 
     // Delete a document
-    ->delete('/:id', function($phix) {
-        $id = $phix->param('id');
-        $file = $phix->reg('data_dir') . '/' . $id;
+    ->delete('/:id', function($app) {
+        $id = $app->param('id');
+        $file = $app->reg('data_dir') . '/' . $id;
         if (!file_exists($file)) {
-            $phix->error(404, array(
+            $app->error(404, array(
                 'error'  => 'not_found',
                 'reason' => 'missing'
             ));
         } else {
             unlink($file);
-            $phix->status(200);
-            $phix->response(array('ok' => true, 'id' => $id));
+            $app->status(200);
+            $app->response(array('ok' => true, 'id' => $id));
         }
     })
 
     // Create a document (with auto-generated id)
-    ->post('/', function($phix) {
+    ->post('/', function($app) {
         $id = md5(uniqid(mt_rand(), true));
-        $file = $phix->reg('data_dir') . '/' . $id;
+        $file = $app->reg('data_dir') . '/' . $id;
         file_put_contents($file, json_encode(array('_id' => $id) + $_POST));
-        $phix->status(201);
-        $phix->response(array('ok' => true, 'id' => $id));
+        $app->status(201);
+        $app->response(array('ok' => true, 'id' => $id));
     })
 
     // List all documents
-    ->get('/', function($phix) {
+    ->get('/', function($app) {
         $docs = array();
-        foreach (glob($phix->reg('data_dir') . '/*') as $doc) {
+        foreach (glob($app->reg('data_dir') . '/*') as $doc) {
             $docs[] = json_decode(file_get_contents($doc));
         }
-        $phix->response($docs);
+        $app->response($docs);
     })
 
     // -----------------------

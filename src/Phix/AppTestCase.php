@@ -13,70 +13,72 @@
  * @license   http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
+namespace Phix;
+
 /**
  * @package   Phix
  * @author    Jan Sorgalla
  * @copyright Copyright (c) 2010-Present Jan Sorgalla
  * @license   http://opensource.org/licenses/bsd-license.php The BSD License
  */
-class PhixTestCase extends PHPUnit_Framework_TestCase
+class AppTestCase extends \PHPUnit_Framework_TestCase
 {
     /**
-     * The Phix instance.
-     * @var Phix
+     * The App instance.
+     * @var App
      */
-    protected $_phix;
+    protected $_app;
 
     /**
-     * Set Phix instance.
+     * Set App instance.
      *
-     * @param Phix $phix
+     * @param App $app
      * @return void
      */
-    public function setPhix(Phix $phix)
+    public function setApp(App $app)
     {
-        $this->_phix = $phix;
+        $this->_app = $app;
     }
 
     /**
-     * Get Phix instance.
+     * Get App instance.
      *
-     * @return Phix
+     * @return \Phix\App
      */
-    public function getPhix()
+    public function getApp()
     {
-        if (null === $this->_phix) {
-            $this->_phix = new Phix();
+        if (null === $this->_app) {
+            $this->_app = new App();
         }
 
-        return $this->_phix;
+        return $this->_app;
     }
 
     /**
-     * Run Phix.
+     * Run App.
      *
      * @param  string|null $url
      * @param  string|null $requestMethod
      * @return void
      */
-    public function runPhix($url = null, $requestMethod = null)
+    public function runApp($url = null, $requestMethod = null)
     {
-        $phix = $this->getPhix();
+        $app = $this->getApp();
 
-        $phix->reset();
+        $app->reset();
 
         if (null !== $requestMethod) {
-            $phix->requestMethod($requestMethod);
+            $app->requestMethod($requestMethod);
         }
 
         if (null !== $url) {
-            $phix
+            $app
                 ->requestUri($url)
                 ->pathInfo(null);
         }
 
-        $phix
-            ->env(Phix::ENV_TESTING)
+        $app
+            ->env(App::ENV_TESTING)
             ->autoFlush(false)
             ->run();
     }
@@ -92,11 +94,11 @@ class PhixTestCase extends PHPUnit_Framework_TestCase
     {
         $this->addToAssertionCount(1);
 
-        $output = $this->getPhix()->output();
+        $output = $this->getApp()->output();
         $isXml = '<' . '?xml' == substr(trim($output), 0, 5);
 
         libxml_use_internal_errors(true);
-        $domDoc = new DOMDocument;
+        $domDoc = new \DOMDocument;
         if ($isXml) {
             $success = $domDoc->loadXML($output);
         } else {
@@ -105,10 +107,10 @@ class PhixTestCase extends PHPUnit_Framework_TestCase
         libxml_use_internal_errors(false);
 
         if (!$success) {
-            throw new Exception(sprintf('Error parsing document (type == %s)', $isXml ? 'xml' : 'html'));
+            throw new \Exception(sprintf('Error parsing document (type == %s)', $isXml ? 'xml' : 'html'));
         }
 
-        $xpath = new DOMXPath($domDoc);
+        $xpath = new \DOMXPath($domDoc);
         $nodeList = $xpath->query($path);
 
         if (0 == $nodeList->length) {
@@ -116,7 +118,7 @@ class PhixTestCase extends PHPUnit_Framework_TestCase
             if (!empty($message)) {
                 $failure = $message . "\n" . $failure;
             }
-            throw new PHPUnit_Framework_ExpectationFailedException($failure);
+            throw new \PHPUnit_Framework_ExpectationFailedException($failure);
         }
     }
 
@@ -132,11 +134,11 @@ class PhixTestCase extends PHPUnit_Framework_TestCase
     {
         $this->addToAssertionCount(1);
 
-        $output = $this->getPhix()->output();
+        $output = $this->getApp()->output();
         $isXml = '<' . '?xml' == substr(trim($output), 0, 5);
 
         libxml_use_internal_errors(true);
-        $domDoc = new DOMDocument;
+        $domDoc = new \DOMDocument;
         if ($isXml) {
             $success = $domDoc->loadXML($output);
         } else {
@@ -145,10 +147,10 @@ class PhixTestCase extends PHPUnit_Framework_TestCase
         libxml_use_internal_errors(false);
 
         if (!$success) {
-            throw new Exception(sprintf('Error parsing document (type == %s)', $isXml ? 'xml' : 'html'));
+            throw new \Exception(sprintf('Error parsing document (type == %s)', $isXml ? 'xml' : 'html'));
         }
 
-        $xpath = new DOMXPath($domDoc);
+        $xpath = new \DOMXPath($domDoc);
         $nodeList = $xpath->query($path);
 
         $found = false;
@@ -180,7 +182,7 @@ class PhixTestCase extends PHPUnit_Framework_TestCase
             if (!empty($message)) {
                 $failure = $message . "\n" . $failure;
             }
-            throw new PHPUnit_Framework_ExpectationFailedException($failure);
+            throw new \PHPUnit_Framework_ExpectationFailedException($failure);
         }
     }
 
@@ -194,13 +196,13 @@ class PhixTestCase extends PHPUnit_Framework_TestCase
     {
         $this->addToAssertionCount(1);
 
-        $status = $this->getPhix()->status();
+        $status = $this->getApp()->status();
         if (!(300 <= $status) && (307 >= $status)) {
             $failure = 'Failed asserting response is a redirect';
             if (!empty($message)) {
                 $failure = $message . "\n" . $failure;
             }
-            throw new PHPUnit_Framework_ExpectationFailedException($failure);
+            throw new \PHPUnit_Framework_ExpectationFailedException($failure);
         }
     }
 
@@ -217,9 +219,9 @@ class PhixTestCase extends PHPUnit_Framework_TestCase
 
         $found = false;
 
-        $status = $this->getPhix()->status();
+        $status = $this->getApp()->status();
         if (300 <= $status && 307 >= $status) {
-            foreach ($this->getPhix()->headers() as $h) {
+            foreach ($this->getApp()->headers() as $h) {
                 if (stripos($h, 'Location') === 0) {
                     $contents = str_ireplace('Location: ', '', $h);
                     if ($contents == $url) {
@@ -235,7 +237,7 @@ class PhixTestCase extends PHPUnit_Framework_TestCase
             if (!empty($message)) {
                 $failure = $message . "\n" . $failure;
             }
-            throw new PHPUnit_Framework_ExpectationFailedException($failure);
+            throw new \PHPUnit_Framework_ExpectationFailedException($failure);
         }
     }
 
@@ -250,12 +252,12 @@ class PhixTestCase extends PHPUnit_Framework_TestCase
     {
         $this->addToAssertionCount(1);
 
-        if ($status != $this->getPhix()->status()) {
+        if ($status != $this->getApp()->status()) {
             $failure = sprintf('Failed asserting status code "%s"', $status);
             if (!empty($message)) {
                 $failure = $message . "\n" . $failure;
             }
-            throw new PHPUnit_Framework_ExpectationFailedException($failure);
+            throw new \PHPUnit_Framework_ExpectationFailedException($failure);
         }
     }
 
@@ -271,7 +273,7 @@ class PhixTestCase extends PHPUnit_Framework_TestCase
         $this->addToAssertionCount(1);
 
         $found = false;
-        foreach ($this->getPhix()->headers() as $h) {
+        foreach ($this->getApp()->headers() as $h) {
             if (stripos($h, $header) === 0) {
                 $found = true;
                 break;
@@ -283,7 +285,7 @@ class PhixTestCase extends PHPUnit_Framework_TestCase
             if (!empty($message)) {
                 $failure = $message . "\n" . $failure;
             }
-            throw new PHPUnit_Framework_ExpectationFailedException($failure);
+            throw new \PHPUnit_Framework_ExpectationFailedException($failure);
         }
     }
 
@@ -300,7 +302,7 @@ class PhixTestCase extends PHPUnit_Framework_TestCase
         $this->addToAssertionCount(1);
 
         $found = false;
-        foreach ($this->getPhix()->headers() as $h) {
+        foreach ($this->getApp()->headers() as $h) {
             if (stripos($h, $header) === 0) {
                 $contents = str_ireplace($header . ': ', '', $h);
                 if (strstr($contents, $match)) {
@@ -320,7 +322,7 @@ class PhixTestCase extends PHPUnit_Framework_TestCase
             if (!empty($message)) {
                 $failure = $message . "\n" . $failure;
             }
-            throw new PHPUnit_Framework_ExpectationFailedException($failure);
+            throw new \PHPUnit_Framework_ExpectationFailedException($failure);
         }
     }
 
@@ -337,7 +339,7 @@ class PhixTestCase extends PHPUnit_Framework_TestCase
         $this->addToAssertionCount(1);
 
         $found = false;
-        foreach ($this->getPhix()->headers() as $h) {
+        foreach ($this->getApp()->headers() as $h) {
             if (stripos($h, $header) === 0) {
                 $contents = str_ireplace($header . ': ', '', $h);
                 if (preg_match($pattern, $contents)) {
@@ -357,7 +359,7 @@ class PhixTestCase extends PHPUnit_Framework_TestCase
             if (!empty($message)) {
                 $failure = $message . "\n" . $failure;
             }
-            throw new PHPUnit_Framework_ExpectationFailedException($failure);
+            throw new \PHPUnit_Framework_ExpectationFailedException($failure);
         }
     }
 }

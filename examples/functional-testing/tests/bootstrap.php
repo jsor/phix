@@ -1,7 +1,7 @@
 <?php
 
 set_include_path(implode(PATH_SEPARATOR, array(
-    __DIR__ . '/../app',
+    __DIR__ . '/..',
     __DIR__ . '/../../../src',
     get_include_path()
 )));

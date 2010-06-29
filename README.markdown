@@ -9,8 +9,7 @@ Phix is released under the [BSD license](http://opensource.org/licenses/bsd-lice
 
 ## Prerequisites ##
 
-Phix requires PHP 5.2 but its recommended to use it with PHP 5.3. The test suite requires PHP 5.3 because of its usage of closures/lambdas.
-The following PHP extensions are required: dom, json, libxml, pcre, session, SimpleXML and SPL.
+Phix requires PHP 5.3.0 or higher. The following PHP extensions are required: dom, json, libxml, pcre, session, SimpleXML and SPL.
 
 ## Installation ##
 

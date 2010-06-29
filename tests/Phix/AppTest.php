@@ -1,6 +1,6 @@
 <?php
 /**
- * Phix
+ * App
  *
  * LICENSE
  *
@@ -14,6 +14,8 @@
  * @license    http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
+namespace Phix;
+
 /**
  * @package    Phix
  * @subpackage UnitTests
@@ -21,7 +23,7 @@
  * @copyright  Copyright (c) 2010-Present Jan Sorgalla
  * @license    http://opensource.org/licenses/bsd-license.php The BSD License
  */
-class PhixTest extends PHPUnit_Framework_TestCase
+class AppTest extends \PHPUnit_Framework_TestCase
 {
     protected $_serverBackup;
     protected $_getBackup;
@@ -48,110 +50,111 @@ class PhixTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @covers Phix::instance
+     * @covers \Phix\App::instance
+     * @group 123
      */
     public function testInstanceConfiguresInstance()
     {
-        $phix = Phix::instance(array('requestUri' => array('/test')));
-        $this->assertEquals($phix->requestUri(), '/test');
+        $app = App::instance(array('requestUri' => array('/test')));
+        $this->assertEquals($app->requestUri(), '/test');
     }
 
     /**
-     * @covers Phix::__construct
+     * @covers \Phix\App::__construct
      */
     public function testConstructorConfiguresInstance()
     {
-        $phix = new Phix(array('requestUri' => array('/test')));
-        $this->assertEquals($phix->requestUri(), '/test');
+        $app = new App(array('requestUri' => array('/test')));
+        $this->assertEquals($app->requestUri(), '/test');
     }
 
     /**
-     * @covers Phix::configure
+     * @covers \Phix\App::configure
      */
     public function testConfigure()
     {
-        $phix = new Phix();
-        $phix->configure(array('requestUri' => array('/test')));
-        $this->assertEquals($phix->requestUri(), '/test');
-        $ret = $phix->configure(function() {
+        $app = new App();
+        $app->configure(array('requestUri' => array('/test')));
+        $this->assertEquals($app->requestUri(), '/test');
+        $ret = $app->configure(function() {
             return array('requestUri' => array('/test'));
         });
-        $this->assertEquals($phix->requestUri(), '/test');
-        $this->assertEquals($ret, $phix);
+        $this->assertEquals($app->requestUri(), '/test');
+        $this->assertEquals($ret, $app);
     }
 
     /**
-     * @covers Phix::configure
+     * @covers \Phix\App::configure
      */
     public function testConfigureThrowsExceptionOnUnderscoredOption()
     {
-        $this->setExpectedException('Exception', 'Configuring through private methods is forbidden');
-        $phix = new Phix();
-        $phix->configure(array('_route' => array()));
+        $this->setExpectedException('\Exception', 'Configuring through private methods is forbidden');
+        $app = new App();
+        $app->configure(array('_route' => array()));
     }
 
     /**
-     * @covers Phix::configure
+     * @covers \Phix\App::configure
      */
     public function testConfigureThrowsExceptionOnForbiddenMethod()
     {
-        $this->setExpectedException('Exception', 'Configuring through method "run" is forbidden');
-        $phix = new Phix();
-        $phix->configure(array('run' => array()));
+        $this->setExpectedException('\Exception', 'Configuring through method "run" is forbidden');
+        $app = new App();
+        $app->configure(array('run' => array()));
     }
 
     /**
-     * @covers Phix::autoFlush
+     * @covers \Phix\App::autoFlush
      */
     public function testAutoflush()
     {
-        $phix = new Phix();
-        $this->assertTrue($phix->autoFlush());
-        $phix->autoFlush(false);
-        $this->assertFalse($phix->autoFlush());
-        $ret = $phix->autoFlush(function() {
+        $app = new App();
+        $this->assertTrue($app->autoFlush());
+        $app->autoFlush(false);
+        $this->assertFalse($app->autoFlush());
+        $ret = $app->autoFlush(function() {
             return true;
         });
-        $this->assertTrue($phix->autoFlush());
-        $this->assertEquals($ret, $phix);
+        $this->assertTrue($app->autoFlush());
+        $this->assertEquals($ret, $app);
     }
 
     /**
-     * @covers Phix::run
-     * @covers Phix::flush
+     * @covers \Phix\App::run
+     * @covers \Phix\App::flush
      */
     public function testRunFlushesByDefault()
     {
         ob_start();
 
-        $phix = new Phix();
-        $phix
+        $app = new App();
+        $app
             ->header('X-Foo: bar')
             ->header('X-Bar: baz')
-            ->get('/', function($phix) {
-                $phix->response('<html/>', 'html');
+            ->get('/', function($app) {
+                $app->response('<html/>', 'html');
             })
             ->requestUri('/')
             ->run();
 
         $this->assertSame('<html/>', ob_get_clean());
-        $this->assertSame(array(), $phix->headers());
-        $this->assertSame(null, $phix->output());
+        $this->assertSame(array(), $app->headers());
+        $this->assertSame(null, $app->output());
     }
 
     /**
-     * @covers Phix::run
-     * @covers Phix::flush
+     * @covers \Phix\App::run
+     * @covers \Phix\App::flush
      */
     public function testRunDoesNotFlushIfAutoFlushIsFalse()
     {
         ob_start();
 
-        $phix = new Phix();
-        $phix
+        $app = new App();
+        $app
             ->autoFlush(false)
-            ->get('/', function($phix) {
-                $phix->response('<html/>', 'html');
+            ->get('/', function($app) {
+                $app->response('<html/>', 'html');
             })
             ->requestUri('/')
             ->run();
@@ -160,37 +163,37 @@ class PhixTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @covers Phix::run
+     * @covers \Phix\App::run
      */
     public function testRunHandlesExceptionsThroughExceptionHandler()
     {
-        $e = new Exception('test');
+        $e = new \Exception('test');
 
-        $phix = new Phix();
-        $phix->autoFlush(false)
-            ->get('/', function($phix) use ($e) {
+        $app = new App();
+        $app->autoFlush(false)
+            ->get('/', function($app) use ($e) {
                 throw $e;
             })
             ->requestUri('/')
             ->run();
 
-        $this->assertSame(array($e), $phix->exceptions());
+        $this->assertSame(array($e), $app->exceptions());
     }
 
     /**
-     * @covers Phix::flush
+     * @covers \Phix\App::flush
      */
     public function testFlush()
     {
         ob_start();
 
-        $phix = new Phix();
-        $phix
+        $app = new App();
+        $app
             ->hook('flush', function() {
                 return false;
             })
-            ->get('/', function($phix) {
-                $phix->response('<html/>', 'html');
+            ->get('/', function($app) {
+                $app->response('<html/>', 'html');
             })
             ->requestUri('/')
             ->run();
@@ -199,128 +202,128 @@ class PhixTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @covers Phix::reset
+     * @covers \Phix\App::reset
      */
     public function testReset()
     {
-        $phix = new Phix();
-        $phix
+        $app = new App();
+        $app
             ->autoFlush(false)
             ->param('foo', 'bar')
-            ->get('/', function($phix) {
-                $phix->error(404);
+            ->get('/', function($app) {
+                $app->error(404);
             })
             ->requestUri('/')
             ->run();
 
-        $phix->reset();
+        $app->reset();
 
-        $this->assertSame(200, $phix->status());
-        $this->assertSame(null, $phix->output());
-        $this->assertSame(array(), $phix->params());
+        $this->assertSame(200, $app->status());
+        $this->assertSame(null, $app->output());
+        $this->assertSame(array(), $app->params());
 
-        $phix
+        $app
             ->param('foo', 'bar')
             ->hook('reset',function() {
                 return false;
             })
             ->run();
 
-        $phix->reset();
+        $app->reset();
 
-        $this->assertSame(404, $phix->status());
-        $this->assertNotSame(null, $phix->output());
-        $this->assertSame('bar', $phix->param('foo'));
+        $this->assertSame(404, $app->status());
+        $this->assertNotSame(null, $app->output());
+        $this->assertSame('bar', $app->param('foo'));
     }
 
     /**
-     * @covers Phix::_init
+     * @covers \Phix\App::_init
      */
     public function test_InitProcessesAcceptHeader()
     {
-        $phix = new Phix();
-        $phix
+        $app = new App();
+        $app
             ->autoFlush(false)
             ->requestHeader('Accept', 'application/json')
-            ->get('/', function($phix) {
+            ->get('/', function($app) {
             })
             ->requestUri('/')
             ->run();
 
-        $this->assertEquals('json', $phix->param('format'));
-        $this->assertTrue(in_array('Vary: Accept', $phix->headers()));
+        $this->assertEquals('json', $app->param('format'));
+        $this->assertTrue(in_array('Vary: Accept', $app->headers()));
 
-        $phix = new Phix();
-        $phix
+        $app = new App();
+        $app
             ->autoFlush(false)
             ->requestHeader('Accept', 'text/xml')
-            ->get('/', function($phix) {
+            ->get('/', function($app) {
             })
             ->requestUri('/')
             ->run();
 
-        $this->assertEquals('xml', $phix->param('format'));
-        $this->assertTrue(in_array('Vary: Accept', $phix->headers()));
+        $this->assertEquals('xml', $app->param('format'));
+        $this->assertTrue(in_array('Vary: Accept', $app->headers()));
 
-        $phix = new Phix();
-        $phix
+        $app = new App();
+        $app
             ->autoFlush(false)
             ->requestHeader('Accept', 'text/html')
-            ->get('/', function($phix) {
+            ->get('/', function($app) {
             })
             ->requestUri('/')
             ->run();
 
-        $this->assertNull($phix->param('format'));
+        $this->assertNull($app->param('format'));
     }
 
     /**
-     * @covers Phix::_init
+     * @covers \Phix\App::_init
      */
     public function test_InitProcessesRangeHeader()
     {
-        $phix = new Phix();
-        $phix
+        $app = new App();
+        $app
             ->autoFlush(false)
             ->requestHeader('Range', 'items=0-24')
-            ->get('/', function($phix) {
+            ->get('/', function($app) {
             })
             ->requestUri('/')
             ->run();
 
-        $this->assertEquals('items', $phix->param('range_type'));
-        $this->assertEquals(0, $phix->param('range_start'));
-        $this->assertEquals(24, $phix->param('range_end'));
-        $this->assertTrue(in_array('Vary: Range', $phix->headers()));
+        $this->assertEquals('items', $app->param('range_type'));
+        $this->assertEquals(0, $app->param('range_start'));
+        $this->assertEquals(24, $app->param('range_end'));
+        $this->assertTrue(in_array('Vary: Range', $app->headers()));
 
-        $phix = new Phix();
-        $phix
+        $app = new App();
+        $app
             ->autoFlush(false)
             ->requestHeader('Range', 'bytes=100-200')
-            ->get('/', function($phix) {
+            ->get('/', function($app) {
             })
             ->requestUri('/')
             ->run();
 
-        $this->assertEquals('bytes', $phix->param('range_type'));
-        $this->assertEquals(100, $phix->param('range_start'));
-        $this->assertEquals(200, $phix->param('range_end'));
-        $this->assertTrue(in_array('Vary: Range', $phix->headers()));
+        $this->assertEquals('bytes', $app->param('range_type'));
+        $this->assertEquals(100, $app->param('range_start'));
+        $this->assertEquals(200, $app->param('range_end'));
+        $this->assertTrue(in_array('Vary: Range', $app->headers()));
     }
 
     /**
-     * @covers Phix::_init
+     * @covers \Phix\App::_init
      */
     public function test_InitProcessesRawBody()
     {
         $_POST = array();
 
-        $phix = new Phix();
-        $phix
+        $app = new App();
+        $app
             ->autoFlush(false)
             ->requestHeader('Content-Type', 'application/json')
             ->requestRawBody(json_encode(array('foo' => 'bar', 'bar' => 'baz')))
-            ->get('/', function($phix) {
+            ->get('/', function($app) {
             })
             ->requestUri('/')
             ->run();
@@ -338,12 +341,12 @@ class PhixTest extends PHPUnit_Framework_TestCase
                    '<bar>baz</bar>' .
                    '</request>';
 
-        $phix = new Phix();
-        $phix
+        $app = new App();
+        $app
             ->autoFlush(false)
             ->requestHeader('Content-Type', 'text/xml')
             ->requestRawBody($rawBody)
-            ->get('/', function($phix) {
+            ->get('/', function($app) {
             })
             ->requestUri('/')
             ->run();
@@ -355,13 +358,13 @@ class PhixTest extends PHPUnit_Framework_TestCase
 
         $_POST = array();
 
-        $phix = new Phix();
-        $phix
+        $app = new App();
+        $app
             ->autoFlush(false)
             ->requestMethod('PUT')
             ->requestHeader('Content-Type', 'application/x-www-form-urlencoded')
             ->requestRawBody(http_build_query(array('foo' => 'bar', 'bar' => 'baz'), null, '&'))
-            ->get('/', function($phix) {
+            ->get('/', function($app) {
             })
             ->requestUri('/')
             ->run();
@@ -373,13 +376,13 @@ class PhixTest extends PHPUnit_Framework_TestCase
 
         $_FILES = array();
 
-        $phix = new Phix();
-        $phix
+        $app = new App();
+        $app
             ->autoFlush(false)
             ->requestMethod('PUT')
             ->requestHeader('Content-Type', 'text/plain')
             ->requestRawBody('Blablabla')
-            ->get('/', function($phix) {
+            ->get('/', function($app) {
             })
             ->requestUri('/')
             ->run();
@@ -399,13 +402,13 @@ class PhixTest extends PHPUnit_Framework_TestCase
 
         $_FILES = array();
 
-        $phix = new Phix();
-        $phix
+        $app = new App();
+        $app
             ->autoFlush(false)
             ->requestMethod('POST')
             ->requestHeader('Content-Type', 'text/plain')
             ->requestRawBody('Blablabla')
-            ->get('/', function($phix) {
+            ->get('/', function($app) {
             })
             ->requestUri('/')
             ->run();
@@ -425,15 +428,15 @@ class PhixTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @covers Phix::_init
-     * @covers Phix::stopped
+     * @covers \Phix\App::_init
+     * @covers \Phix\App::stopped
      */
     public function test_InitWithHook()
     {
         $called = false;
 
-        $phix = new Phix();
-        $phix
+        $app = new App();
+        $app
             ->autoFlush(false)
             ->hook('init', function() {
                 return false;
@@ -442,17 +445,17 @@ class PhixTest extends PHPUnit_Framework_TestCase
                 $called = true;
                 return false;
             })
-            ->get('/', function($phix) {
+            ->get('/', function($app) {
             })
             ->requestUri('/')
             ->run();
 
         $this->assertFalse($called);
-        $this->assertTrue($phix->stopped());
+        $this->assertTrue($app->stopped());
     }
 
     /**
-     * @covers Phix::_run
+     * @covers \Phix\App::_run
      */
     public function test_RunTriggersAllHooks()
     {
@@ -460,8 +463,8 @@ class PhixTest extends PHPUnit_Framework_TestCase
         $runDispatchCalled = false;
         $runEndCalled = false;
 
-        $phix = new Phix();
-        $phix
+        $app = new App();
+        $app
             ->autoFlush(false)
             // Hook shutdown event to prevent restoring of the error handler
             ->hook('run', function() use (&$runCalled) {
@@ -473,7 +476,7 @@ class PhixTest extends PHPUnit_Framework_TestCase
             ->hook('run_end', function() use (&$runEndCalled) {
                 $runEndCalled = true;
             })
-            ->get('/', function($phix) {
+            ->get('/', function($app) {
             })
             ->requestUri('/')
             ->run();
@@ -484,7 +487,7 @@ class PhixTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @covers Phix::_run
+     * @covers \Phix\App::_run
      */
     public function test_RunTriggersOnlyFirstHookIfFirstHookReturnsFalse()
     {
@@ -492,8 +495,8 @@ class PhixTest extends PHPUnit_Framework_TestCase
         $runDispatchCalled = false;
         $runEndCalled = false;
 
-        $phix = new Phix();
-        $phix
+        $app = new App();
+        $app
             ->autoFlush(false)
             // Hook shutdown event to prevent restoring of the error handler
             ->hook('run', function() use (&$runCalled) {
@@ -506,7 +509,7 @@ class PhixTest extends PHPUnit_Framework_TestCase
             ->hook('run_end', function() use (&$runEndCalled) {
                 $runEndCalled = true;
             })
-            ->get('/', function($phix) {
+            ->get('/', function($app) {
             })
             ->requestUri('/')
             ->run();
@@ -517,7 +520,7 @@ class PhixTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @covers Phix::_run
+     * @covers \Phix\App::_run
      */
     public function test_RunTriggersOnlyFirstAndSecondHookIfSecondHookReturnsFalse()
     {
@@ -525,8 +528,8 @@ class PhixTest extends PHPUnit_Framework_TestCase
         $runDispatchCalled = false;
         $runEndCalled = false;
 
-        $phix = new Phix();
-        $phix
+        $app = new App();
+        $app
             ->autoFlush(false)
             // Hook shutdown event to prevent restoring of the error handler
             ->hook('run', function() use (&$runCalled) {
@@ -539,7 +542,7 @@ class PhixTest extends PHPUnit_Framework_TestCase
             ->hook('run_end', function() use (&$runEndCalled) {
                 $runEndCalled = true;
             })
-            ->get('/', function($phix) {
+            ->get('/', function($app) {
             })
             ->requestUri('/')
             ->run();
@@ -550,14 +553,14 @@ class PhixTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @covers Phix::_run
+     * @covers \Phix\App::_run
      */
     public function test_RunTriggersRunNoRoute()
     {
         $runNoRouteCalled = false;
 
-        $phix = new Phix();
-        $phix
+        $app = new App();
+        $app
             ->autoFlush(false)
             // Hook shutdown event to prevent restoring of the error handler
             ->hook('run_no_route', function() use (&$runNoRouteCalled) {
@@ -570,15 +573,15 @@ class PhixTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @covers Phix::_run
+     * @covers \Phix\App::_run
      */
     public function test_RunProducesNoOutputForHead()
     {
         ob_start();
-        $phix = new Phix();
-        $phix
+        $app = new App();
+        $app
             ->autoFlush(false)
-            ->get('/', function($phix) {
+            ->get('/', function($app) {
                 echo 'foo';
             })
             ->requestUri('/')
@@ -589,15 +592,15 @@ class PhixTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @covers Phix::_shutdown
+     * @covers \Phix\App::_shutdown
      */
     public function test_ShutdownTriggersAllHooks()
     {
         $shutdownCalled = false;
         $shutdownEndCalled = false;
 
-        $phix = new Phix();
-        $phix
+        $app = new App();
+        $app
             ->autoFlush(false)
             // Hook shutdown event to prevent restoring of the error handler
             ->hook('shutdown', function() use (&$shutdownCalled) {
@@ -606,7 +609,7 @@ class PhixTest extends PHPUnit_Framework_TestCase
             ->hook('shutdown_end', function() use (&$shutdownEndCalled) {
                 $shutdownEndCalled = true;
             })
-            ->get('/', function($phix) {
+            ->get('/', function($app) {
             })
             ->requestUri('/')
             ->run();
@@ -616,15 +619,15 @@ class PhixTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @covers Phix::_shutdown
+     * @covers \Phix\App::_shutdown
      */
     public function test_ShutdownTriggersOnlyFirstHookIfFirstHookReturnsFalse()
     {
         $shutdownCalled = false;
         $shutdownEndCalled = false;
 
-        $phix = new Phix();
-        $phix
+        $app = new App();
+        $app
             ->autoFlush(false)
             // Hook shutdown event to prevent restoring of the error handler
             ->hook('shutdown', function() use (&$shutdownCalled) {
@@ -634,7 +637,7 @@ class PhixTest extends PHPUnit_Framework_TestCase
             ->hook('shutdown_end', function() use (&$shutdownEndCalled) {
                 $shutdownEndCalled = true;
             })
-            ->get('/', function($phix) {
+            ->get('/', function($app) {
             })
             ->requestUri('/')
             ->run();
@@ -644,7 +647,7 @@ class PhixTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @covers Phix::escape
+     * @covers \Phix\App::escape
      */
     public function testEscape()
     {
@@ -663,109 +666,109 @@ class PhixTest extends PHPUnit_Framework_TestCase
             '&amp;'  => '&amp;'
         );
 
-        $phix = new Phix();
+        $app = new App();
         foreach ($valuesExpected as $input => $output) {
-            $this->assertEquals($output, $phix->escape($input));
+            $this->assertEquals($output, $app->escape($input));
         }
     }
 
     /**
-     * @covers Phix::encoding
+     * @covers \Phix\App::encoding
      */
     public function testEncoding()
     {
-        $phix = new Phix();
-        $this->assertEquals('utf-8', $phix->encoding());
-        $phix->encoding('ISO-8859-1');
-        $this->assertEquals('ISO-8859-1', $phix->encoding());
-        $ret = $phix->encoding(function() {
+        $app = new App();
+        $this->assertEquals('utf-8', $app->encoding());
+        $app->encoding('ISO-8859-1');
+        $this->assertEquals('ISO-8859-1', $app->encoding());
+        $ret = $app->encoding(function() {
             return 'ISO-8859-2';
         });
-        $this->assertEquals('ISO-8859-2', $phix->encoding());
-        $this->assertEquals($ret, $phix);
+        $this->assertEquals('ISO-8859-2', $app->encoding());
+        $this->assertEquals($ret, $app);
     }
 
     /**
-     * @covers Phix::output
+     * @covers \Phix\App::output
      */
     public function testOutput()
     {
-        $phix = new Phix();
-        $this->assertNull($phix->output());
-        $phix->output('foo');
-        $this->assertEquals('foo', $phix->output());
-        $ret = $phix->output(function() {
+        $app = new App();
+        $this->assertNull($app->output());
+        $app->output('foo');
+        $this->assertEquals('foo', $app->output());
+        $ret = $app->output(function() {
             return 'bar';
         });
-        $this->assertEquals('bar', $phix->output());
-        $this->assertEquals($ret, $phix);
+        $this->assertEquals('bar', $app->output());
+        $this->assertEquals($ret, $app);
     }
 
     /**
-     * @covers Phix::response
+     * @covers \Phix\App::response
      */
     public function testResponse()
     {
-        $phix = new Phix();
-        $phix->response('<foo/>');
-        $this->assertTrue(in_array('Content-Type: text/html;charset=utf-8', $phix->headers()));
-        $this->assertEquals('<foo/>', $phix->output());
+        $app = new App();
+        $app->response('<foo/>');
+        $this->assertTrue(in_array('Content-Type: text/html;charset=utf-8', $app->headers()));
+        $this->assertEquals('<foo/>', $app->output());
 
-        $phix = new Phix();
-        $phix->response('<foo/>', 'html');
-        $this->assertTrue(in_array('Content-Type: text/html;charset=utf-8', $phix->headers()));
-        $this->assertEquals('<foo/>', $phix->output());
+        $app = new App();
+        $app->response('<foo/>', 'html');
+        $this->assertTrue(in_array('Content-Type: text/html;charset=utf-8', $app->headers()));
+        $this->assertEquals('<foo/>', $app->output());
 
-        $phix = new Phix();
-        $phix->response('{}', 'json');
-        $this->assertTrue(in_array('Content-Type: application/json;charset=utf-8', $phix->headers()));
-        $this->assertEquals('{}', $phix->output());
+        $app = new App();
+        $app->response('{}', 'json');
+        $this->assertTrue(in_array('Content-Type: application/json;charset=utf-8', $app->headers()));
+        $this->assertEquals('{}', $app->output());
 
-        $phix = new Phix();
-        $phix->status(412);
-        $phix->response(array('foo' => 'bar'), 'json');
-        $this->assertTrue(in_array('Content-Type: application/json;charset=utf-8', $phix->headers()));
-        $this->assertEquals('{"status":"fail","data":{"foo":"bar"}}', $phix->output());
+        $app = new App();
+        $app->status(412);
+        $app->response(array('foo' => 'bar'), 'json');
+        $this->assertTrue(in_array('Content-Type: application/json;charset=utf-8', $app->headers()));
+        $this->assertEquals('{"status":"fail","data":{"foo":"bar"}}', $app->output());
 
-        $phix = new Phix();
-        $phix->response(array('foo' => 'bar'), 'json');
-        $this->assertTrue(in_array('Content-Type: application/json;charset=utf-8', $phix->headers()));
-        $this->assertEquals('{"status":"success","data":{"foo":"bar"}}', $phix->output());
+        $app = new App();
+        $app->response(array('foo' => 'bar'), 'json');
+        $this->assertTrue(in_array('Content-Type: application/json;charset=utf-8', $app->headers()));
+        $this->assertEquals('{"status":"success","data":{"foo":"bar"}}', $app->output());
 
-        $phix = new Phix();
-        $phix->response('<xml/>', 'xml');
-        $this->assertTrue(in_array('Content-Type: text/xml;charset=utf-8', $phix->headers()));
-        $this->assertEquals('<xml/>', $phix->output());
+        $app = new App();
+        $app->response('<xml/>', 'xml');
+        $this->assertTrue(in_array('Content-Type: text/xml;charset=utf-8', $app->headers()));
+        $this->assertEquals('<xml/>', $app->output());
 
-        $phix = new Phix();
-        $phix->response(array('foo' => 'bar'), 'xml');
-        $this->assertTrue(in_array('Content-Type: text/xml;charset=utf-8', $phix->headers()));
-        $this->assertEquals('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><response><status>success</status><data><foo>bar</foo></data></response>', $phix->output());
+        $app = new App();
+        $app->response(array('foo' => 'bar'), 'xml');
+        $this->assertTrue(in_array('Content-Type: text/xml;charset=utf-8', $app->headers()));
+        $this->assertEquals('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><response><status>success</status><data><foo>bar</foo></data></response>', $app->output());
 
-        $phix = new Phix();
-        $phix->status(412);
-        $phix->response(function() {
+        $app = new App();
+        $app->status(412);
+        $app->response(function() {
             return array('foo' => 'bar');
         }, function() {
             return 'xml';
 
         });
-        $this->assertTrue(in_array('Content-Type: text/xml;charset=utf-8', $phix->headers()));
-        $this->assertEquals('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><response><status>fail</status><data><foo>bar</foo></data></response>', $phix->output());
+        $this->assertTrue(in_array('Content-Type: text/xml;charset=utf-8', $app->headers()));
+        $this->assertEquals('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><response><status>fail</status><data><foo>bar</foo></data></response>', $app->output());
     }
 
     /**
-     * @covers Phix::response
+     * @covers \Phix\App::response
      */
     public function testResponseThrowsExceptionOnInvalidFormat()
     {
-        $this->setExpectedException('Exception', 'Invalid format "bogus"');
-        $phix = new Phix();
-        $phix->response('123', 'bogus');
+        $this->setExpectedException('\Exception', 'Invalid format "bogus"');
+        $app = new App();
+        $app->response('123', 'bogus');
     }
 
     /**
-     * @covers Phix::hooks
+     * @covers \Phix\App::hooks
      */
     public function testHooks()
     {
@@ -774,146 +777,146 @@ class PhixTest extends PHPUnit_Framework_TestCase
             array('run', function() {})
         );
 
-        $phix = new Phix();
-        $this->assertSame(array(), $phix->hooks());
-        $phix->hooks($hooks);
-        $this->assertArrayHasKey('init', $phix->hooks());
-        $this->assertArrayHasKey('run', $phix->hooks());
-        $ret = $phix->hooks(array(), true);
-        $this->assertSame(array(), $phix->hooks());
-        $this->assertEquals($ret, $phix);
+        $app = new App();
+        $this->assertSame(array(), $app->hooks());
+        $app->hooks($hooks);
+        $this->assertArrayHasKey('init', $app->hooks());
+        $this->assertArrayHasKey('run', $app->hooks());
+        $ret = $app->hooks(array(), true);
+        $this->assertSame(array(), $app->hooks());
+        $this->assertEquals($ret, $app);
     }
 
     /**
-     * @covers Phix::hook
+     * @covers \Phix\App::hook
      */
     public function testHook()
     {
-        $phix = new Phix();
-        $phix->hook('init', 'callback1');
-        $this->assertArrayHasKey('init', $phix->hooks());
-        $this->assertSame(array('init' => array(0 => 'callback1')), $phix->hooks());
-        $ret = $phix->hook('init', 'callback2', 2);
-        $this->assertSame(array('init' => array(0 => 'callback1', 2 => 'callback2')), $phix->hooks());
-        $this->assertEquals($ret, $phix);
+        $app = new App();
+        $app->hook('init', 'callback1');
+        $this->assertArrayHasKey('init', $app->hooks());
+        $this->assertSame(array('init' => array(0 => 'callback1')), $app->hooks());
+        $ret = $app->hook('init', 'callback2', 2);
+        $this->assertSame(array('init' => array(0 => 'callback1', 2 => 'callback2')), $app->hooks());
+        $this->assertEquals($ret, $app);
     }
 
     /**
-     * @covers Phix::hook
+     * @covers \Phix\App::hook
      */
     public function testHookThrowsExceptionOnDuplicateIndex()
     {
-        $this->setExpectedException('Exception', 'There is already a hook registered at index "2"');
-        $phix = new Phix();
-        $phix->hook('init', 'callback1', 2);
-        $phix->hook('init', 'callback2', 2);
+        $this->setExpectedException('\Exception', 'There is already a hook registered at index "2"');
+        $app = new App();
+        $app->hook('init', 'callback1', 2);
+        $app->hook('init', 'callback2', 2);
     }
 
     /**
-     * @covers Phix::unhook
+     * @covers \Phix\App::unhook
      */
     public function testUnhook()
     {
-        $phix = new Phix();
-        $phix->hook('init', 'callback1');
-        $phix->unhook();
-        $this->assertSame(array(), $phix->hooks());
+        $app = new App();
+        $app->hook('init', 'callback1');
+        $app->unhook();
+        $this->assertSame(array(), $app->hooks());
         
-        $phix->hook('init', 'callback1');
-        $phix->hook('setup', 'callback2');
-        $phix->unhook('init');
-        $this->assertSame(array('setup' => array(0 => 'callback2')), $phix->hooks());
+        $app->hook('init', 'callback1');
+        $app->hook('setup', 'callback2');
+        $app->unhook('init');
+        $this->assertSame(array('setup' => array(0 => 'callback2')), $app->hooks());
 
-        $phix->hook('setup', 'callback3');
-        $ret = $phix->unhook('setup', 'callback3');
-        $this->assertSame(array('setup' => array(0 => 'callback2')), $phix->hooks());
-        $this->assertEquals($ret, $phix);
+        $app->hook('setup', 'callback3');
+        $ret = $app->unhook('setup', 'callback3');
+        $this->assertSame(array('setup' => array(0 => 'callback2')), $app->hooks());
+        $this->assertEquals($ret, $app);
     }
 
     /**
-     * @covers Phix::trigger
+     * @covers \Phix\App::trigger
      */
     public function testTrigger()
     {
         $called1 = false;
         $called2 = false;
 
-        $phix = new Phix();
+        $app = new App();
 
-        $phix->hook('init', function() use (&$called1) {
+        $app->hook('init', function() use (&$called1) {
             $called1 = true;
             return false;
         });
-        $phix->hook('setup', function() use (&$called2) {
+        $app->hook('setup', function() use (&$called2) {
             $called2 = true;
             return true;
         });
 
-        $ret = $phix->trigger('init');
+        $ret = $app->trigger('init');
 
         $this->assertTrue($called1);
         $this->assertFalse($called2);
         $this->assertFalse($ret);
 
-        $ret = $phix->trigger('setup');
+        $ret = $app->trigger('setup');
 
         $this->assertTrue($called2);
         $this->assertTrue($ret);
     }
 
     /**
-     * @covers Phix::env
+     * @covers \Phix\App::env
      */
     public function testEnv()
     {
-        $phix = new Phix();
-        $this->assertEquals(Phix::ENV_PRODUCTION, $phix->env());
-        $phix->env(null);
+        $app = new App();
+        $this->assertEquals(App::ENV_PRODUCTION, $app->env());
+        $app->env(null);
 
-        $_SERVER['PHIX_ENV'] = Phix::ENV_STAGING;
-        $this->assertEquals(Phix::ENV_STAGING, $phix->env());
+        $_SERVER['PHIX_ENV'] = App::ENV_STAGING;
+        $this->assertEquals(App::ENV_STAGING, $app->env());
         unset($_SERVER['PHIX_ENV']);
-        $phix->env(null);
+        $app->env(null);
 
-        $this->assertEquals(Phix::ENV_PRODUCTION, $phix->env());
-        $phix->env(null);
+        $this->assertEquals(App::ENV_PRODUCTION, $app->env());
+        $app->env(null);
 
-        if (function_exists('setenv') && setenv('PHIX_ENV', Phix::ENV_TESTING)) {
-            $this->assertEquals(Phix::ENV_TESTING, $phix->env());
+        if (function_exists('setenv') && setenv('PHIX_ENV', App::ENV_TESTING)) {
+            $this->assertEquals(App::ENV_TESTING, $app->env());
             setenv('PHIX_ENV', '');
-            $phix->env(null);
+            $app->env(null);
         }
 
-        $phix->env(Phix::ENV_DEVELOPMENT);
-        $this->assertEquals(Phix::ENV_DEVELOPMENT, $phix->env());
-        $phix->env(null);
+        $app->env(App::ENV_DEVELOPMENT);
+        $this->assertEquals(App::ENV_DEVELOPMENT, $app->env());
+        $app->env(null);
 
-        $ret = $phix->env(function() {
+        $ret = $app->env(function() {
             return 'callback';
         });
-        $this->assertEquals('callback', $phix->env());
-        $this->assertEquals($ret, $phix);
-        $phix->env(null);
+        $this->assertEquals('callback', $app->env());
+        $this->assertEquals($ret, $app);
+        $app->env(null);
     }
 
     /**
-     * @covers Phix::param
+     * @covers \Phix\App::param
      */
     public function testParam()
     {
-        $phix = new Phix();
-        $this->assertNull($phix->param('foo'));
-        $phix->param('foo', 'bar');
-        $this->assertEquals('bar', $phix->param('foo'));
-        $ret = $phix->param('foo', function() {
+        $app = new App();
+        $this->assertNull($app->param('foo'));
+        $app->param('foo', 'bar');
+        $this->assertEquals('bar', $app->param('foo'));
+        $ret = $app->param('foo', function() {
             return 'baz';
         });
-        $this->assertEquals('baz', $phix->param('foo'));
-        $this->assertEquals($ret, $phix);
+        $this->assertEquals('baz', $app->param('foo'));
+        $this->assertEquals($ret, $app);
     }
 
     /**
-     * @covers Phix::params
+     * @covers \Phix\App::params
      */
     public function testParams()
     {
@@ -922,22 +925,22 @@ class PhixTest extends PHPUnit_Framework_TestCase
             'bar' => 'baz',
         );
 
-        $phix = new Phix();
-        $this->assertSame(array(), $phix->params());
-        $phix->params($params);
-        $this->assertEquals($params, $phix->params());
-        $phix->param('ping', 'pong');
-        $this->assertEquals($params + array('ping' => 'pong'), $phix->params());
-        $ret = $phix->params($params, true);
-        $this->assertEquals($params, $phix->params());
-        $this->assertEquals($ret, $phix);
+        $app = new App();
+        $this->assertSame(array(), $app->params());
+        $app->params($params);
+        $this->assertEquals($params, $app->params());
+        $app->param('ping', 'pong');
+        $this->assertEquals($params + array('ping' => 'pong'), $app->params());
+        $ret = $app->params($params, true);
+        $this->assertEquals($params, $app->params());
+        $this->assertEquals($ret, $app);
     }
 
     /**
-     * @covers Phix::route
-     * @covers Phix::_route
-     * @covers Phix::defaultRouter
-     * @covers Phix::_dispatch
+     * @covers \Phix\App::route
+     * @covers \Phix\App::_route
+     * @covers \Phix\App::defaultRouter
+     * @covers \Phix\App::_dispatch
      */
     public function testRoute()
     {
@@ -945,8 +948,8 @@ class PhixTest extends PHPUnit_Framework_TestCase
 
         $called = false;
 
-        $phix = new Phix();
-        $phix
+        $app = new App();
+        $app
             ->autoFlush(false)
             ->route(array('GET'), '/test', function() use(&$called) {
                 $called = true;
@@ -958,18 +961,18 @@ class PhixTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @covers Phix::get
-     * @covers Phix::route
-     * @covers Phix::_route
-     * @covers Phix::defaultRouter
-     * @covers Phix::_dispatch
+     * @covers \Phix\App::get
+     * @covers \Phix\App::route
+     * @covers \Phix\App::_route
+     * @covers \Phix\App::defaultRouter
+     * @covers \Phix\App::_dispatch
      */
     public function testGetRouteAlsoAssignsHeadRoute()
     {
         $called = false;
 
-        $phix = new Phix();
-        $phix
+        $app = new App();
+        $app
             ->autoFlush(false)
             ->route('GET', '/test', function() use(&$called) {
                 $called = true;
@@ -982,8 +985,8 @@ class PhixTest extends PHPUnit_Framework_TestCase
 
         $called = false;
 
-        $phix = new Phix();
-        $phix
+        $app = new App();
+        $app
             ->autoFlush(false)
             ->get('/test', function() use(&$called) {
                 $called = true;
@@ -996,11 +999,11 @@ class PhixTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @covers Phix::head
-     * @covers Phix::route
-     * @covers Phix::_route
-     * @covers Phix::defaultRouter
-     * @covers Phix::_dispatch
+     * @covers \Phix\App::head
+     * @covers \Phix\App::route
+     * @covers \Phix\App::_route
+     * @covers \Phix\App::defaultRouter
+     * @covers \Phix\App::_dispatch
      */
     public function testSimpleHeadRoute()
     {
@@ -1008,8 +1011,8 @@ class PhixTest extends PHPUnit_Framework_TestCase
 
         $called = false;
 
-        $phix = new Phix();
-        $phix
+        $app = new App();
+        $app
             ->autoFlush(false)
             ->head('/test', function() use(&$called) {
                 $called = true;
@@ -1021,11 +1024,11 @@ class PhixTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @covers Phix::get
-     * @covers Phix::route
-     * @covers Phix::_route
-     * @covers Phix::defaultRouter
-     * @covers Phix::_dispatch
+     * @covers \Phix\App::get
+     * @covers \Phix\App::route
+     * @covers \Phix\App::_route
+     * @covers \Phix\App::defaultRouter
+     * @covers \Phix\App::_dispatch
      */
     public function testSimpleGetRoute()
     {
@@ -1033,8 +1036,8 @@ class PhixTest extends PHPUnit_Framework_TestCase
 
         $called = false;
 
-        $phix = new Phix();
-        $phix
+        $app = new App();
+        $app
             ->autoFlush(false)
             ->get('/test', function() use(&$called) {
                 $called = true;
@@ -1046,11 +1049,11 @@ class PhixTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @covers Phix::post
-     * @covers Phix::route
-     * @covers Phix::_route
-     * @covers Phix::defaultRouter
-     * @covers Phix::_dispatch
+     * @covers \Phix\App::post
+     * @covers \Phix\App::route
+     * @covers \Phix\App::_route
+     * @covers \Phix\App::defaultRouter
+     * @covers \Phix\App::_dispatch
      */
     public function testSimplePostRoute()
     {
@@ -1058,8 +1061,8 @@ class PhixTest extends PHPUnit_Framework_TestCase
 
         $called = false;
 
-        $phix = new Phix();
-        $phix
+        $app = new App();
+        $app
             ->autoFlush(false)
             ->post('/test', function() use(&$called) {
                 $called = true;
@@ -1072,11 +1075,11 @@ class PhixTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @covers Phix::put
-     * @covers Phix::route
-     * @covers Phix::_route
-     * @covers Phix::defaultRouter
-     * @covers Phix::_dispatch
+     * @covers \Phix\App::put
+     * @covers \Phix\App::route
+     * @covers \Phix\App::_route
+     * @covers \Phix\App::defaultRouter
+     * @covers \Phix\App::_dispatch
      */
     public function testSimplePutRoute()
     {
@@ -1084,8 +1087,8 @@ class PhixTest extends PHPUnit_Framework_TestCase
 
         $called = false;
 
-        $phix = new Phix();
-        $phix
+        $app = new App();
+        $app
             ->autoFlush(false)
             ->put('/test', function() use(&$called) {
                 $called = true;
@@ -1098,11 +1101,11 @@ class PhixTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @covers Phix::delete
-     * @covers Phix::route
-     * @covers Phix::_route
-     * @covers Phix::defaultRouter
-     * @covers Phix::_dispatch
+     * @covers \Phix\App::delete
+     * @covers \Phix\App::route
+     * @covers \Phix\App::_route
+     * @covers \Phix\App::defaultRouter
+     * @covers \Phix\App::_dispatch
      */
     public function testSimpleDeleteRoute()
     {
@@ -1110,8 +1113,8 @@ class PhixTest extends PHPUnit_Framework_TestCase
 
         $called = false;
 
-        $phix = new Phix();
-        $phix
+        $app = new App();
+        $app
             ->autoFlush(false)
             ->delete('/test', function() use(&$called) {
                 $called = true;
@@ -1124,11 +1127,11 @@ class PhixTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @covers Phix::get
-     * @covers Phix::route
-     * @covers Phix::_route
-     * @covers Phix::defaultRouter
-     * @covers Phix::_dispatch
+     * @covers \Phix\App::get
+     * @covers \Phix\App::route
+     * @covers \Phix\App::_route
+     * @covers \Phix\App::defaultRouter
+     * @covers \Phix\App::_dispatch
      */
     public function testEmptyRoute()
     {
@@ -1136,8 +1139,8 @@ class PhixTest extends PHPUnit_Framework_TestCase
 
         $called = false;
 
-        $phix = new Phix();
-        $phix
+        $app = new App();
+        $app
             ->autoFlush(false)
             ->get('', function() use(&$called) {
                 $called = true;
@@ -1149,11 +1152,11 @@ class PhixTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @covers Phix::get
-     * @covers Phix::route
-     * @covers Phix::_route
-     * @covers Phix::defaultRouter
-     * @covers Phix::_dispatch
+     * @covers \Phix\App::get
+     * @covers \Phix\App::route
+     * @covers \Phix\App::_route
+     * @covers \Phix\App::defaultRouter
+     * @covers \Phix\App::_dispatch
      */
     public function testSingleSlashRoute()
     {
@@ -1161,8 +1164,8 @@ class PhixTest extends PHPUnit_Framework_TestCase
 
         $called = false;
 
-        $phix = new Phix();
-        $phix
+        $app = new App();
+        $app
             ->autoFlush(false)
             ->get('/', function() use(&$called) {
                 $called = true;
@@ -1174,11 +1177,11 @@ class PhixTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @covers Phix::get
-     * @covers Phix::route
-     * @covers Phix::_route
-     * @covers Phix::defaultRouter
-     * @covers Phix::_dispatch
+     * @covers \Phix\App::get
+     * @covers \Phix\App::route
+     * @covers \Phix\App::_route
+     * @covers \Phix\App::defaultRouter
+     * @covers \Phix\App::_dispatch
      */
     public function testNamedParameterRoute()
     {
@@ -1186,8 +1189,8 @@ class PhixTest extends PHPUnit_Framework_TestCase
 
         $called = false;
 
-        $phix = new Phix();
-        $phix
+        $app = new App();
+        $app
             ->autoFlush(false)
             ->get('/test/:foo', function() use(&$called) {
                 $called = true;
@@ -1196,15 +1199,15 @@ class PhixTest extends PHPUnit_Framework_TestCase
             ->run();
 
         $this->assertTrue($called);
-        $this->assertEquals('bar', $phix->param('foo'));
+        $this->assertEquals('bar', $app->param('foo'));
     }
 
     /**
-     * @covers Phix::get
-     * @covers Phix::route
-     * @covers Phix::_route
-     * @covers Phix::defaultRouter
-     * @covers Phix::_dispatch
+     * @covers \Phix\App::get
+     * @covers \Phix\App::route
+     * @covers \Phix\App::_route
+     * @covers \Phix\App::defaultRouter
+     * @covers \Phix\App::_dispatch
      */
     public function testInlineWildcardRoute()
     {
@@ -1212,8 +1215,8 @@ class PhixTest extends PHPUnit_Framework_TestCase
 
         $called = false;
 
-        $phix = new Phix();
-        $phix
+        $app = new App();
+        $app
             ->autoFlush(false)
             ->get('/test/foo*baz', function() use(&$called) {
                 $called = true;
@@ -1225,11 +1228,11 @@ class PhixTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @covers Phix::get
-     * @covers Phix::route
-     * @covers Phix::_route
-     * @covers Phix::defaultRouter
-     * @covers Phix::_dispatch
+     * @covers \Phix\App::get
+     * @covers \Phix\App::route
+     * @covers \Phix\App::_route
+     * @covers \Phix\App::defaultRouter
+     * @covers \Phix\App::_dispatch
      */
     public function testWildcardRoute()
     {
@@ -1237,8 +1240,8 @@ class PhixTest extends PHPUnit_Framework_TestCase
 
         $called = false;
 
-        $phix = new Phix();
-        $phix
+        $app = new App();
+        $app
             ->autoFlush(false)
             ->get('/test/*/*', function() use(&$called) {
                 $called = true;
@@ -1247,16 +1250,16 @@ class PhixTest extends PHPUnit_Framework_TestCase
             ->run();
 
         $this->assertTrue($called);
-        $this->assertEquals('foo', $phix->param(0));
-        $this->assertEquals('bar', $phix->param(1));
+        $this->assertEquals('foo', $app->param(0));
+        $this->assertEquals('bar', $app->param(1));
     }
 
     /**
-     * @covers Phix::get
-     * @covers Phix::route
-     * @covers Phix::_route
-     * @covers Phix::defaultRouter
-     * @covers Phix::_dispatch
+     * @covers \Phix\App::get
+     * @covers \Phix\App::route
+     * @covers \Phix\App::_route
+     * @covers \Phix\App::defaultRouter
+     * @covers \Phix\App::_dispatch
      */
     public function testWildcardWithNamedParameterRoute()
     {
@@ -1264,8 +1267,8 @@ class PhixTest extends PHPUnit_Framework_TestCase
 
         $called = false;
 
-        $phix = new Phix();
-        $phix
+        $app = new App();
+        $app
             ->autoFlush(false)
             ->get(array('/test/*/*', array('param1', 'param2')), function() use(&$called) {
                 $called = true;
@@ -1274,16 +1277,16 @@ class PhixTest extends PHPUnit_Framework_TestCase
             ->run();
 
         $this->assertTrue($called);
-        $this->assertEquals('foo', $phix->param('param1'));
-        $this->assertEquals('bar', $phix->param('param2'));
+        $this->assertEquals('foo', $app->param('param1'));
+        $this->assertEquals('bar', $app->param('param2'));
     }
 
     /**
-     * @covers Phix::get
-     * @covers Phix::route
-     * @covers Phix::_route
-     * @covers Phix::defaultRouter
-     * @covers Phix::_dispatch
+     * @covers \Phix\App::get
+     * @covers \Phix\App::route
+     * @covers \Phix\App::_route
+     * @covers \Phix\App::defaultRouter
+     * @covers \Phix\App::_dispatch
      */
     public function testDoubleWildcardRoute()
     {
@@ -1291,8 +1294,8 @@ class PhixTest extends PHPUnit_Framework_TestCase
 
         $called = false;
 
-        $phix = new Phix();
-        $phix
+        $app = new App();
+        $app
             ->autoFlush(false)
             ->get('/test/**', function() use(&$called) {
                 $called = true;
@@ -1301,15 +1304,15 @@ class PhixTest extends PHPUnit_Framework_TestCase
             ->run();
 
         $this->assertTrue($called);
-        $this->assertEquals('foo/bar', $phix->param(0));
+        $this->assertEquals('foo/bar', $app->param(0));
     }
 
     /**
-     * @covers Phix::get
-     * @covers Phix::route
-     * @covers Phix::_route
-     * @covers Phix::defaultRouter
-     * @covers Phix::_dispatch
+     * @covers \Phix\App::get
+     * @covers \Phix\App::route
+     * @covers \Phix\App::_route
+     * @covers \Phix\App::defaultRouter
+     * @covers \Phix\App::_dispatch
      */
     public function testRegexpRoute()
     {
@@ -1317,8 +1320,8 @@ class PhixTest extends PHPUnit_Framework_TestCase
 
         $called = false;
 
-        $phix = new Phix();
-        $phix
+        $app = new App();
+        $app
             ->autoFlush(false)
             ->get('^/test/(\d+)/foo', function() use(&$called) {
                 $called = true;
@@ -1327,15 +1330,15 @@ class PhixTest extends PHPUnit_Framework_TestCase
             ->run();
 
         $this->assertTrue($called);
-        $this->assertEquals('123456', $phix->param(0));
+        $this->assertEquals('123456', $app->param(0));
     }
 
     /**
-     * @covers Phix::get
-     * @covers Phix::route
-     * @covers Phix::_route
-     * @covers Phix::defaultRouter
-     * @covers Phix::_dispatch
+     * @covers \Phix\App::get
+     * @covers \Phix\App::route
+     * @covers \Phix\App::_route
+     * @covers \Phix\App::defaultRouter
+     * @covers \Phix\App::_dispatch
      */
     public function testRegexpWithNamedParameterRoute()
     {
@@ -1343,8 +1346,8 @@ class PhixTest extends PHPUnit_Framework_TestCase
 
         $called = false;
 
-        $phix = new Phix();
-        $phix
+        $app = new App();
+        $app
             ->autoFlush(false)
             ->get(array('^/test/(\d+)/foo', array('bar')), function() use(&$called) {
                 $called = true;
@@ -1353,15 +1356,15 @@ class PhixTest extends PHPUnit_Framework_TestCase
             ->run();
 
         $this->assertTrue($called);
-        $this->assertEquals('123456', $phix->param('bar'));
+        $this->assertEquals('123456', $app->param('bar'));
     }
 
     /**
-     * @covers Phix::get
-     * @covers Phix::route
-     * @covers Phix::_route
-     * @covers Phix::defaultRouter
-     * @covers Phix::_dispatch
+     * @covers \Phix\App::get
+     * @covers \Phix\App::route
+     * @covers \Phix\App::_route
+     * @covers \Phix\App::defaultRouter
+     * @covers \Phix\App::_dispatch
      */
     public function testRouteSetsDefaults()
     {
@@ -1369,8 +1372,8 @@ class PhixTest extends PHPUnit_Framework_TestCase
 
         $called = false;
 
-        $phix = new Phix();
-        $phix
+        $app = new App();
+        $app
             ->autoFlush(false)
             ->get(array('^/test/((\d+)/)?foo', array('', 'bar')), function() use(&$called) {
                 $called = true;
@@ -1379,24 +1382,24 @@ class PhixTest extends PHPUnit_Framework_TestCase
             ->run();
 
         $this->assertTrue($called);
-        $this->assertEquals('baz', $phix->param('bar'));
+        $this->assertEquals('baz', $app->param('bar'));
 
-        $phix->reset();
+        $app->reset();
 
-        $phix
+        $app
             ->requestUri('/test/1234/foo')
             ->pathInfo(null)
             ->run();
 
-        $this->assertEquals('1234', $phix->param('bar'));
+        $this->assertEquals('1234', $app->param('bar'));
     }
 
     /**
-     * @covers Phix::get
-     * @covers Phix::route
-     * @covers Phix::_route
-     * @covers Phix::defaultRouter
-     * @covers Phix::_dispatch
+     * @covers \Phix\App::get
+     * @covers \Phix\App::route
+     * @covers \Phix\App::_route
+     * @covers \Phix\App::defaultRouter
+     * @covers \Phix\App::_dispatch
      */
     public function testRouteRouteCallbackReturningFalseDontMatchRoute()
     {
@@ -1404,8 +1407,8 @@ class PhixTest extends PHPUnit_Framework_TestCase
 
         $called = false;
 
-        $phix = new Phix();
-        $phix
+        $app = new App();
+        $app
             ->autoFlush(false)
             ->get('/test', function() use(&$called) {
                 $called = true;
@@ -1416,15 +1419,15 @@ class PhixTest extends PHPUnit_Framework_TestCase
             ->run();
 
         $this->assertFalse($called);
-        $this->assertEquals(404, $phix->status());
+        $this->assertEquals(404, $app->status());
     }
 
     /**
-     * @covers Phix::get
-     * @covers Phix::route
-     * @covers Phix::_route
-     * @covers Phix::defaultRouter
-     * @covers Phix::_dispatch
+     * @covers \Phix\App::get
+     * @covers \Phix\App::route
+     * @covers \Phix\App::_route
+     * @covers \Phix\App::defaultRouter
+     * @covers \Phix\App::_dispatch
      * @group 123
      */
     public function testRouteRouteCallbackReturningArrayPopulatesToParams()
@@ -1433,8 +1436,8 @@ class PhixTest extends PHPUnit_Framework_TestCase
 
         $called = false;
 
-        $phix = new Phix();
-        $phix
+        $app = new App();
+        $app
             ->autoFlush(false)
             ->get('/test', function() use(&$called) {
                 $called = true;
@@ -1445,19 +1448,19 @@ class PhixTest extends PHPUnit_Framework_TestCase
             ->run();
 
         $this->assertTrue($called);
-        $this->assertEquals('bar', $phix->param('foo'));
+        $this->assertEquals('bar', $app->param('foo'));
     }
 
     /**
-     * @covers Phix::defaultRouter
+     * @covers \Phix\App::defaultRouter
      */
     public function testDefaultRouterReturnsFalseIfNoRouteForSuppliedRequestMethod()
     {
-        $this->assertFalse(Phix::defaultRouter(new Phix(), array('GET' => array()), 'POST', '/'));
+        $this->assertFalse(App::defaultRouter(new App(), array('GET' => array()), 'POST', '/'));
     }
 
     /**
-     * @covers Phix::routes
+     * @covers \Phix\App::routes
      */
     public function testRoutes()
     {
@@ -1469,17 +1472,17 @@ class PhixTest extends PHPUnit_Framework_TestCase
             )
         );
 
-        $phix = new Phix();
-        $this->assertSame(array(), $phix->routes());
-        $phix->routes($routes);
-        $this->assertArrayHasKey('GET', $phix->routes());
-        $ret = $phix->routes(array(), true);
-        $this->assertSame(array(), $phix->routes());
-        $this->assertEquals($ret, $phix);
+        $app = new App();
+        $this->assertSame(array(), $app->routes());
+        $app->routes($routes);
+        $this->assertArrayHasKey('GET', $app->routes());
+        $ret = $app->routes(array(), true);
+        $this->assertSame(array(), $app->routes());
+        $this->assertEquals($ret, $app);
     }
 
     /**
-     * @covers Phix::router
+     * @covers \Phix\App::router
      */
     public function testRouter()
     {
@@ -1487,17 +1490,17 @@ class PhixTest extends PHPUnit_Framework_TestCase
             return null;
         };
 
-        $phix = new Phix();
-        $defaultRouter = $phix->router();
-        $this->assertEquals($defaultRouter[0], 'Phix');
+        $app = new App();
+        $defaultRouter = $app->router();
+        $this->assertEquals($defaultRouter[0], '\Phix\App');
         $this->assertEquals($defaultRouter[1], 'defaultRouter');
-        $ret = $phix->router($router);
-        $this->assertEquals($router, $phix->router());
-        $this->assertEquals($ret, $phix);
+        $ret = $app->router($router);
+        $this->assertEquals($router, $app->router());
+        $this->assertEquals($ret, $app);
     }
 
     /**
-     * @covers Phix::dispatcher
+     * @covers \Phix\App::dispatcher
      */
     public function testDispatcher()
     {
@@ -1505,80 +1508,80 @@ class PhixTest extends PHPUnit_Framework_TestCase
             return null;
         };
 
-        $phix = new Phix();
-        $defaultDispatcher = $phix->dispatcher();
-        $this->assertEquals($defaultDispatcher[0], 'Phix');
+        $app = new App();
+        $defaultDispatcher = $app->dispatcher();
+        $this->assertEquals($defaultDispatcher[0], '\Phix\App');
         $this->assertEquals($defaultDispatcher[1], 'defaultDispatcher');
-        $ret = $phix->dispatcher($dispatcher);
-        $this->assertEquals($dispatcher, $phix->dispatcher());
-        $this->assertEquals($ret, $phix);
+        $ret = $app->dispatcher($dispatcher);
+        $this->assertEquals($dispatcher, $app->dispatcher());
+        $this->assertEquals($ret, $app);
     }
 
     /**
-     * @covers Phix::defaultDispatcher
+     * @covers \Phix\App::defaultDispatcher
      */
     public function testDefaultDispatcher()
     {
-        $phix = new Phix();
-        Phix::defaultDispatcher($phix, function($phix) {
-            $phix->output('foo');
+        $app = new App();
+        App::defaultDispatcher($app, function($app) {
+            $app->output('foo');
         });
-        $this->assertEquals('foo', $phix->output());
+        $this->assertEquals('foo', $app->output());
     }
 
     /**
-     * @covers Phix::session
+     * @covers \Phix\App::session
      */
     public function testSession()
     {
-        $phix = new Phix();
-        $this->assertNull($phix->session('foo'));
-        $phix->session('foo', 'bar');
-        $this->assertSame('bar', $phix->session('foo'));
-        $phix->session('foo', null);
+        $app = new App();
+        $this->assertNull($app->session('foo'));
+        $app->session('foo', 'bar');
+        $this->assertSame('bar', $app->session('foo'));
+        $app->session('foo', null);
         $this->assertArrayNotHasKey('foo', $_SESSION);
-        $ret = $phix->session('foo', function() {
+        $ret = $app->session('foo', function() {
             return array('bar', 'baz');
         });
-        $this->assertSame(array('bar', 'baz'), $phix->session('foo'));
-        $this->assertEquals($ret, $phix);
+        $this->assertSame(array('bar', 'baz'), $app->session('foo'));
+        $this->assertEquals($ret, $app);
     }
 
     /**
-     * @covers Phix::flash
+     * @covers \Phix\App::flash
      */
     public function testFlash()
     {
-        $phix = new Phix();
-        $this->assertSame(array(), $phix->flash());
-        $phix->flash('foo');
-        $this->assertSame(array('foo'), $phix->flash());
-        $this->assertSame(array(), $phix->flash());
-        $ret = $phix->flash(function() {
+        $app = new App();
+        $this->assertSame(array(), $app->flash());
+        $app->flash('foo');
+        $this->assertSame(array('foo'), $app->flash());
+        $this->assertSame(array(), $app->flash());
+        $ret = $app->flash(function() {
             return 'bar';
         });
-        $this->assertSame(array('bar'), $phix->flash());
-        $this->assertEquals($ret, $phix);
+        $this->assertSame(array('bar'), $app->flash());
+        $this->assertEquals($ret, $app);
     }
 
     /**
-     * @covers Phix::reg
+     * @covers \Phix\App::reg
      */
     public function testReg()
     {
-        $phix = new Phix();
-        $this->assertNull($phix->reg('foo'));
-        $phix->reg('foo', 'bar');
-        $this->assertEquals('bar', $phix->reg('foo'));
-        $ret = $phix->reg('foo', function() {
+        $app = new App();
+        $this->assertNull($app->reg('foo'));
+        $app->reg('foo', 'bar');
+        $this->assertEquals('bar', $app->reg('foo'));
+        $ret = $app->reg('foo', function() {
             return 'baz';
         });
-        $this->assertEquals('baz', $phix->reg('foo'));
-        $this->assertEquals($ret, $phix);
+        $this->assertEquals('baz', $app->reg('foo'));
+        $this->assertEquals($ret, $app);
     }
 
     /**
-     * @covers Phix::regs
+     * @covers \Phix\App::regs
      */
     public function testRegs()
     {
@@ -1587,200 +1590,200 @@ class PhixTest extends PHPUnit_Framework_TestCase
             'bar' => 'baz',
         );
 
-        $phix = new Phix();
-        $this->assertSame(array(), $phix->regs());
-        $phix->regs($regs);
-        $this->assertEquals($regs, $phix->regs());
-        $phix->reg('ping', 'pong');
-        $this->assertEquals($regs + array('ping' => 'pong'), $phix->regs());
-        $ret = $phix->regs($regs, true);
-        $this->assertEquals($regs, $phix->regs());
-        $this->assertEquals($ret, $phix);
+        $app = new App();
+        $this->assertSame(array(), $app->regs());
+        $app->regs($regs);
+        $this->assertEquals($regs, $app->regs());
+        $app->reg('ping', 'pong');
+        $this->assertEquals($regs + array('ping' => 'pong'), $app->regs());
+        $ret = $app->regs($regs, true);
+        $this->assertEquals($regs, $app->regs());
+        $this->assertEquals($ret, $app);
     }
 
     /**
-     * @covers Phix::status
+     * @covers \Phix\App::status
      */
     public function testStatus()
     {
-        $phix = new Phix();
-        $this->assertSame(200, $phix->status());
-        $phix->status(500);
-        $this->assertSame(500, $phix->status());
-        $ret = $phix->status(function() {
+        $app = new App();
+        $this->assertSame(200, $app->status());
+        $app->status(500);
+        $this->assertSame(500, $app->status());
+        $ret = $app->status(function() {
             return 301;
         });
-        $this->assertSame(301, $phix->status());
-        $this->assertEquals($ret, $phix);
+        $this->assertSame(301, $app->status());
+        $this->assertEquals($ret, $app);
     }
 
     /**
-     * @covers Phix::status
+     * @covers \Phix\App::status
      */
     public function testStatusThrowsExceptionOnInvalidStatusCode()
     {
-        $this->setExpectedException('Exception', 'Invalid status code "-1"');
-        $phix = new Phix();
-        $phix->status(-1);
+        $this->setExpectedException('\Exception', 'Invalid status code "-1"');
+        $app = new App();
+        $app->status(-1);
     }
 
     /**
-     * @covers Phix::redirect
-     * @covers Phix::redirected
+     * @covers \Phix\App::redirect
+     * @covers \Phix\App::redirected
      */
     public function testRedirect()
     {
-        $phix = new Phix(array(
+        $app = new App(array(
             'baseUrl' => array('/foo'),
             'serverUrl' => array('http://example.com')
         ));
-        $this->assertFalse($phix->redirected());
+        $this->assertFalse($app->redirected());
 
-        $phix->redirect(array('bar'));
-        $this->assertSame(302, $phix->status());
-        $this->assertTrue(in_array('Location: http://example.com/foo/bar', $phix->headers()));
-        $this->assertTrue($phix->redirected());
+        $app->redirect(array('bar'));
+        $this->assertSame(302, $app->status());
+        $this->assertTrue(in_array('Location: http://example.com/foo/bar', $app->headers()));
+        $this->assertTrue($app->redirected());
         
-        $phix->reset();
-        $this->assertFalse($phix->redirected());
+        $app->reset();
+        $this->assertFalse($app->redirected());
 
-        $phix->redirect('/foo/bar', 301);
-        $this->assertSame(301, $phix->status());
-        $this->assertTrue(in_array('Location: http://example.com/foo/bar', $phix->headers()));
-        $this->assertTrue($phix->redirected());
+        $app->redirect('/foo/bar', 301);
+        $this->assertSame(301, $app->status());
+        $this->assertTrue(in_array('Location: http://example.com/foo/bar', $app->headers()));
+        $this->assertTrue($app->redirected());
 
-        $phix->redirect('/bar');
-        $this->assertTrue(in_array('Location: http://example.com/foo/bar', $phix->headers()));
-        $this->assertTrue($phix->redirected());
+        $app->redirect('/bar');
+        $this->assertTrue(in_array('Location: http://example.com/foo/bar', $app->headers()));
+        $this->assertTrue($app->redirected());
 
-        $phix->reset();
-        $this->assertFalse($phix->redirected());
+        $app->reset();
+        $this->assertFalse($app->redirected());
 
-        $ret = $phix->redirect(function() {
+        $ret = $app->redirect(function() {
             return '/foo/bar';
         });
-        $this->assertTrue(in_array('Location: http://example.com/foo/bar', $phix->headers()));
-        $this->assertTrue($phix->redirected());
-        $this->assertEquals($ret, $phix);
+        $this->assertTrue(in_array('Location: http://example.com/foo/bar', $app->headers()));
+        $this->assertTrue($app->redirected());
+        $this->assertEquals($ret, $app);
     }
 
     /**
-     * @covers Phix::url
+     * @covers \Phix\App::url
      */
     public function testUrl()
     {
-        $phix = new Phix(array(
+        $app = new App(array(
             'baseUrl' => array('/foo')
         ));
 
-        $url = $phix->url(array('bar'));
+        $url = $app->url(array('bar'));
         $this->assertEquals('/foo/bar', $url);
 
-        $phix->url(function() {
+        $app->url(function() {
             return array('bar');
         });
         $this->assertEquals('/foo/bar', $url);
     }
 
     /**
-     * @covers Phix::statusPhrase
+     * @covers \Phix\App::statusPhrase
      */
     public function testStatusPhrase()
     {
-        $phix = new Phix();
-        $this->assertNull($phix->statusPhrase(-1));
-        $this->assertEquals('OK', $phix->statusPhrase(200));
+        $app = new App();
+        $this->assertNull($app->statusPhrase(-1));
+        $this->assertEquals('OK', $app->statusPhrase(200));
 
-        $ret = $phix->statusPhrase(200, 'Foo');
-        $this->assertEquals('Foo', $phix->statusPhrase(200));
+        $ret = $app->statusPhrase(200, 'Foo');
+        $this->assertEquals('Foo', $app->statusPhrase(200));
 
-        $ret = $phix->statusPhrase(200, function() {
+        $ret = $app->statusPhrase(200, function() {
            return 'Bar';
         });
-        $this->assertEquals('Bar', $phix->statusPhrase(200));
+        $this->assertEquals('Bar', $app->statusPhrase(200));
 
-        $this->assertEquals($ret, $phix);
+        $this->assertEquals($ret, $app);
     }
 
     /**
-     * @covers Phix::header
+     * @covers \Phix\App::header
      */
     public function testHeader()
     {
-        $phix = new Phix();
+        $app = new App();
 
-        $ret = $phix->header(function($phix) {
+        $ret = $app->header(function($app) {
             return 'Location: http://example.com';
         });
-        $this->assertTrue(in_array('Location: http://example.com', $phix->headers()));
-        $this->assertEquals($ret, $phix);
+        $this->assertTrue(in_array('Location: http://example.com', $app->headers()));
+        $this->assertEquals($ret, $app);
 
-        $phix->reset();
+        $app->reset();
 
-        $phix->header('Location: http://localhost');
-        $this->assertTrue(in_array('Location: http://localhost', $phix->headers()));
+        $app->header('Location: http://localhost');
+        $this->assertTrue(in_array('Location: http://localhost', $app->headers()));
 
-        $phix->header('Location: http://127.0.0.1', true);
-        $this->assertTrue(in_array('Location: http://127.0.0.1', $phix->headers()));
-        $this->assertFalse(in_array('Location: http://localhost', $phix->headers()));
+        $app->header('Location: http://127.0.0.1', true);
+        $this->assertTrue(in_array('Location: http://127.0.0.1', $app->headers()));
+        $this->assertFalse(in_array('Location: http://localhost', $app->headers()));
     }
 
     /**
-     * @covers Phix::headers
+     * @covers \Phix\App::headers
      */
     public function testHeaders()
     {
-        $phix = new Phix();
+        $app = new App();
 
-        $phix->header('X-Foo: bar');
+        $app->header('X-Foo: bar');
 
-        $phix->headers(array(
+        $app->headers(array(
             'X-Bar: baz',
             'Location: http://localhost',
             array('Location: http://127.0.0.1', true)
         ), true);
 
-        $this->assertFalse(in_array('X-Foo: bar', $phix->headers()));
-        $this->assertTrue(in_array('X-Bar: baz', $phix->headers()));
+        $this->assertFalse(in_array('X-Foo: bar', $app->headers()));
+        $this->assertTrue(in_array('X-Bar: baz', $app->headers()));
 
-        $this->assertTrue(in_array('Location: http://127.0.0.1', $phix->headers()));
-        $this->assertFalse(in_array('Location: http://localhost', $phix->headers()));
+        $this->assertTrue(in_array('Location: http://127.0.0.1', $app->headers()));
+        $this->assertFalse(in_array('Location: http://localhost', $app->headers()));
     }
 
     /**
-     * @covers Phix::viewsDir
+     * @covers \Phix\App::viewsDir
      */
     public function testViewsDir()
     {
-        $phix = new Phix();
-        $this->assertNull($phix->viewsDir());
-        $phix->viewsDir('/foo/bar');
-        $this->assertSame('/foo/bar', $phix->viewsDir());
-        $ret = $phix->viewsDir(function() {
+        $app = new App();
+        $this->assertNull($app->viewsDir());
+        $app->viewsDir('/foo/bar');
+        $this->assertSame('/foo/bar', $app->viewsDir());
+        $ret = $app->viewsDir(function() {
             return '/bar/baz';
         });
-        $this->assertSame('/bar/baz', $phix->viewsDir());
-        $this->assertEquals($ret, $phix);
+        $this->assertSame('/bar/baz', $app->viewsDir());
+        $this->assertEquals($ret, $app);
     }
 
     /**
-     * @covers Phix::layout
+     * @covers \Phix\App::layout
      */
     public function testLayout()
     {
-        $phix = new Phix();
-        $this->assertNull($phix->layout());
-        $phix->layout('foo');
-        $this->assertSame('foo', $phix->layout());
-        $ret = $phix->layout(function() {
+        $app = new App();
+        $this->assertNull($app->layout());
+        $app->layout('foo');
+        $this->assertSame('foo', $app->layout());
+        $ret = $app->layout(function() {
             return 'bar';
         });
-        $this->assertSame('bar', $phix->layout());
-        $this->assertEquals($ret, $phix);
+        $this->assertSame('bar', $app->layout());
+        $this->assertEquals($ret, $app);
     }
 
     /**
-     * @covers Phix::renderer
+     * @covers \Phix\App::renderer
      */
     public function testRenderer()
     {
@@ -1788,165 +1791,165 @@ class PhixTest extends PHPUnit_Framework_TestCase
             return null;
         };
 
-        $phix = new Phix();
-        $defaultRenderer = $phix->renderer();
-        $this->assertEquals($defaultRenderer[0], 'Phix');
+        $app = new App();
+        $defaultRenderer = $app->renderer();
+        $this->assertEquals($defaultRenderer[0], '\Phix\App');
         $this->assertEquals($defaultRenderer[1], 'defaultRenderer');
-        $ret = $phix->renderer($renderer);
-        $this->assertEquals($renderer, $phix->renderer());
-        $this->assertEquals($ret, $phix);
+        $ret = $app->renderer($renderer);
+        $this->assertEquals($renderer, $app->renderer());
+        $this->assertEquals($ret, $app);
     }
 
     /**
-     * @covers Phix::defaultRenderer
+     * @covers \Phix\App::defaultRenderer
      */
     public function testDefaultRenderer()
     {
-        $phix = new Phix();
-        $phix->viewsDir(dirname(__FILE__) . '/_files/views');
+        $app = new App();
+        $app->viewsDir(dirname(__FILE__) . '/_files/views');
 
-        $content = Phix::defaultRenderer($phix, function($phix, array $vars, $format) {
+        $content = App::defaultRenderer($app, function($app, array $vars, $format) {
             return 'foo';
         }, array(), 'html');
         $this->assertEquals('foo', $content);
 
-        $content = Phix::defaultRenderer($phix, 'view', array('controller' => 'foo'), 'html');
+        $content = App::defaultRenderer($app, 'view', array('controller' => 'foo'), 'html');
         $this->assertEquals('foo', $content);
 
-        $content = Phix::defaultRenderer($phix, 'Just a string', array(), 'html');
+        $content = App::defaultRenderer($app, 'Just a string', array(), 'html');
         $this->assertEquals('Just a string', $content);
 
-        $content = Phix::defaultRenderer($phix, 'Just a %s', array('string'), 'html');
+        $content = App::defaultRenderer($app, 'Just a %s', array('string'), 'html');
         $this->assertEquals('Just a string', $content);
     }
 
     /**
-     * @covers Phix::render
+     * @covers \Phix\App::render
      */
     public function testRender()
     {
-        $phix = new Phix();
-        $phix->viewsDir(dirname(__FILE__) . '/_files/views');
+        $app = new App();
+        $app->viewsDir(dirname(__FILE__) . '/_files/views');
 
-        $content = $phix->render(function($phix, array $vars, $format) {
+        $content = $app->render(function($app, array $vars, $format) {
             return 'foo';
         }, array(), 'html');
-        $this->assertEquals('foo', $phix->output());
-        $this->assertTrue(in_array('Content-Type: text/html;charset=utf-8', $phix->headers()));
+        $this->assertEquals('foo', $app->output());
+        $this->assertTrue(in_array('Content-Type: text/html;charset=utf-8', $app->headers()));
 
-        $phix->reset();
+        $app->reset();
 
-        $phix->render('Just a string', array(), 'html');
-        $this->assertEquals('Just a string', $phix->output());
-        $this->assertTrue(in_array('Content-Type: text/html;charset=utf-8', $phix->headers()));
+        $app->render('Just a string', array(), 'html');
+        $this->assertEquals('Just a string', $app->output());
+        $this->assertTrue(in_array('Content-Type: text/html;charset=utf-8', $app->headers()));
 
-        $phix->reset();
+        $app->reset();
 
-        $phix->render('view', array('controller' => 'foo'), 'html');
-        $this->assertEquals('foo', $phix->output());
-        $this->assertTrue(in_array('Content-Type: text/html;charset=utf-8', $phix->headers()));
+        $app->render('view', array('controller' => 'foo'), 'html');
+        $this->assertEquals('foo', $app->output());
+        $this->assertTrue(in_array('Content-Type: text/html;charset=utf-8', $app->headers()));
 
-        $phix->reset();
+        $app->reset();
 
-        $phix->render('view', array('controller' => 'foo'));
-        $this->assertEquals('foo', $phix->output());
-        $this->assertTrue(in_array('Content-Type: text/html;charset=utf-8', $phix->headers()));
+        $app->render('view', array('controller' => 'foo'));
+        $this->assertEquals('foo', $app->output());
+        $this->assertTrue(in_array('Content-Type: text/html;charset=utf-8', $app->headers()));
 
-        $phix->reset();
+        $app->reset();
 
-        $phix->param('format', 'html');
-        $phix->render('view', array('controller' => 'foo'));
-        $this->assertEquals('foo', $phix->output());
-        $this->assertTrue(in_array('Content-Type: text/html;charset=utf-8', $phix->headers()));
+        $app->param('format', 'html');
+        $app->render('view', array('controller' => 'foo'));
+        $this->assertEquals('foo', $app->output());
+        $this->assertTrue(in_array('Content-Type: text/html;charset=utf-8', $app->headers()));
 
-        $phix->reset();
+        $app->reset();
 
-        $phix->layout('layout');
-        $phix->render('view', array('controller' => 'foo'));
-        $this->assertStringStartsWith('<!DOCTYPE html>', $phix->output());
-        $this->assertRegExp('/foo<\/body>/', $phix->output());
-        $this->assertTrue(in_array('Content-Type: text/html;charset=utf-8', $phix->headers()));
+        $app->layout('layout');
+        $app->render('view', array('controller' => 'foo'));
+        $this->assertStringStartsWith('<!DOCTYPE html>', $app->output());
+        $this->assertRegExp('/foo<\/body>/', $app->output());
+        $this->assertTrue(in_array('Content-Type: text/html;charset=utf-8', $app->headers()));
         
-        $phix->reset();
+        $app->reset();
 
-        $phix->render('view', array('controller' => 'foo'), 'json');
-        $this->assertEquals(json_encode(array('status' => 'success', 'data' => array('controller' => 'foo'))), $phix->output());
-        $this->assertTrue(in_array('Content-Type: application/json;charset=utf-8', $phix->headers()));
+        $app->render('view', array('controller' => 'foo'), 'json');
+        $this->assertEquals(json_encode(array('status' => 'success', 'data' => array('controller' => 'foo'))), $app->output());
+        $this->assertTrue(in_array('Content-Type: application/json;charset=utf-8', $app->headers()));
     }
 
     /**
-     * @covers Phix::render
+     * @covers \Phix\App::render
      */
     public function testRenderThrowsExceptionOnInvalidFormat()
     {
-        $this->setExpectedException('Exception', 'Invalid format "bogus"');
-        $phix = new Phix();
-        $phix->render('123', array(), 'bogus');
+        $this->setExpectedException('\Exception', 'Invalid format "bogus"');
+        $app = new App();
+        $app->render('123', array(), 'bogus');
     }
 
     /**
-     * @covers Phix::viewFilename
+     * @covers \Phix\App::viewFilename
      */
     public function testViewFilename()
     {
-        $phix = new Phix();
-        $phix->viewsDir(dirname(__FILE__) . '/_files/views');
+        $app = new App();
+        $app->viewsDir(dirname(__FILE__) . '/_files/views');
 
-        $this->assertFalse($phix->viewFilename('view', 'bogus'));
-        $this->assertFalse($phix->viewFilename('bogus', 'html'));
-        $this->assertEquals(dirname(__FILE__) . '/_files/views' . DIRECTORY_SEPARATOR . 'view.html.php', $phix->viewFilename('view', 'html'));
-        $this->assertEquals(dirname(__FILE__) . '/_files/views' . DIRECTORY_SEPARATOR . 'view.html.php', $phix->viewFilename('view.html.php', 'html'));
-        $this->assertEquals(dirname(__FILE__) . '/_files/views' . DIRECTORY_SEPARATOR . 'view.html.php', $phix->viewFilename('view.php', 'html'));
-        $this->assertEquals(dirname(__FILE__) . '/_files/views' . DIRECTORY_SEPARATOR . 'view.json.php', $phix->viewFilename('view', 'json'));
-        $this->assertEquals(dirname(__FILE__) . '/_files/views' . DIRECTORY_SEPARATOR . 'bar.xml.php', $phix->viewFilename('bar', 'xml'));
+        $this->assertFalse($app->viewFilename('view', 'bogus'));
+        $this->assertFalse($app->viewFilename('bogus', 'html'));
+        $this->assertEquals(dirname(__FILE__) . '/_files/views' . DIRECTORY_SEPARATOR . 'view.html.php', $app->viewFilename('view', 'html'));
+        $this->assertEquals(dirname(__FILE__) . '/_files/views' . DIRECTORY_SEPARATOR . 'view.html.php', $app->viewFilename('view.html.php', 'html'));
+        $this->assertEquals(dirname(__FILE__) . '/_files/views' . DIRECTORY_SEPARATOR . 'view.html.php', $app->viewFilename('view.php', 'html'));
+        $this->assertEquals(dirname(__FILE__) . '/_files/views' . DIRECTORY_SEPARATOR . 'view.json.php', $app->viewFilename('view', 'json'));
+        $this->assertEquals(dirname(__FILE__) . '/_files/views' . DIRECTORY_SEPARATOR . 'bar.xml.php', $app->viewFilename('bar', 'xml'));
     }
 
     /**
-     * @covers Phix::currentFormat
+     * @covers \Phix\App::currentFormat
      */
     public function testCurrentFormat()
     {
-        $phix = new Phix();
-        $this->assertEquals('html', $phix->currentFormat());
-        $phix->param('format', 'json');
-        $this->assertSame('json', $phix->currentFormat());
-        $phix->param('format', 'invalid');
-        $this->assertSame('html', $phix->currentFormat());
+        $app = new App();
+        $this->assertEquals('html', $app->currentFormat());
+        $app->param('format', 'json');
+        $this->assertSame('json', $app->currentFormat());
+        $app->param('format', 'invalid');
+        $this->assertSame('html', $app->currentFormat());
     }
 
     /**
-     * @covers Phix::defaultFormat
+     * @covers \Phix\App::defaultFormat
      */
     public function testDefaultFormat()
     {
-        $phix = new Phix();
-        $this->assertEquals('html', $phix->defaultFormat());
-        $phix->defaultFormat('foo');
-        $this->assertSame('foo', $phix->defaultFormat());
-        $ret = $phix->defaultFormat(function() {
+        $app = new App();
+        $this->assertEquals('html', $app->defaultFormat());
+        $app->defaultFormat('foo');
+        $this->assertSame('foo', $app->defaultFormat());
+        $ret = $app->defaultFormat(function() {
             return 'bar';
         });
-        $this->assertSame('bar', $phix->defaultFormat());
-        $this->assertEquals($ret, $phix);
+        $this->assertSame('bar', $app->defaultFormat());
+        $this->assertEquals($ret, $app);
     }
 
     /**
-     * @covers Phix::format
+     * @covers \Phix\App::format
      */
     public function testFormat()
     {
-        $phix = new Phix();
-        $this->assertArrayHasKey('view', $phix->format('html'));
-        $this->assertArrayHasKey('contenttype', $phix->format('html'));
-        $this->assertArrayHasKey('error', $phix->format('html'));
+        $app = new App();
+        $this->assertArrayHasKey('view', $app->format('html'));
+        $this->assertArrayHasKey('contenttype', $app->format('html'));
+        $this->assertArrayHasKey('error', $app->format('html'));
 
-        $this->assertArrayHasKey('view', $phix->format('json'));
-        $this->assertArrayHasKey('contenttype', $phix->format('json'));
-        $this->assertArrayHasKey('error', $phix->format('json'));
+        $this->assertArrayHasKey('view', $app->format('json'));
+        $this->assertArrayHasKey('contenttype', $app->format('json'));
+        $this->assertArrayHasKey('error', $app->format('json'));
 
-        $this->assertArrayHasKey('view', $phix->format('xml'));
-        $this->assertArrayHasKey('contenttype', $phix->format('xml'));
-        $this->assertArrayHasKey('error', $phix->format('xml'));
+        $this->assertArrayHasKey('view', $app->format('xml'));
+        $this->assertArrayHasKey('contenttype', $app->format('xml'));
+        $this->assertArrayHasKey('error', $app->format('xml'));
 
         $foo = array(
             'view' => array(
@@ -1963,45 +1966,45 @@ class PhixTest extends PHPUnit_Framework_TestCase
         );
 
 
-        $this->assertNull($phix->format('foo'));
-        $phix->format('foo', $foo);
-        $this->assertSame($foo, $phix->format('foo'));
+        $this->assertNull($app->format('foo'));
+        $app->format('foo', $foo);
+        $this->assertSame($foo, $app->format('foo'));
 
-        $phix = new Phix();
+        $app = new App();
 
-        $phix->format('foo', function() use ($foo) {
+        $app->format('foo', function() use ($foo) {
             return $foo;
         });
 
-        $this->assertSame($foo, $phix->format('foo'));
+        $this->assertSame($foo, $app->format('foo'));
 
 
-        $ret = $phix->format('foo', null);
-        $this->assertArrayNotHasKey('foo', $phix->formats());
-        $this->assertEquals($ret, $phix);
+        $ret = $app->format('foo', null);
+        $this->assertArrayNotHasKey('foo', $app->formats());
+        $this->assertEquals($ret, $app);
     }
 
     /**
-     * @covers Phix::format
+     * @covers \Phix\App::format
      */
     public function testFormatThrowsExceptionIfDefaultFormatIsRemoved()
     {
-        $this->setExpectedException('Exception', 'Removing the default format is not allowed');
-        $phix = new Phix();
-        $phix->format('html', null);
+        $this->setExpectedException('\Exception', 'Removing the default format is not allowed');
+        $app = new App();
+        $app->format('html', null);
     }
 
     /**
-     * @covers Phix::formats
+     * @covers \Phix\App::formats
      */
     public function testFormats()
     {
-        $phix = new Phix();
-        $this->assertArrayHasKey('html', $phix->formats());
-        $this->assertArrayHasKey('json', $phix->formats());
-        $this->assertArrayHasKey('xml', $phix->formats());
+        $app = new App();
+        $this->assertArrayHasKey('html', $app->formats());
+        $this->assertArrayHasKey('json', $app->formats());
+        $this->assertArrayHasKey('xml', $app->formats());
 
-        $current = $phix->formats();
+        $current = $app->formats();
         $formats = array(
             'foo' => array(
                 'view' => array(
@@ -2018,46 +2021,46 @@ class PhixTest extends PHPUnit_Framework_TestCase
             )
         );
 
-        $phix->formats($formats);
-        $this->assertEquals($current + $formats, $phix->formats());
-        $ret = $phix->formats($formats, true);
-        $this->assertEquals($formats, $phix->formats());
-        $this->assertEquals($ret, $phix);
+        $app->formats($formats);
+        $this->assertEquals($current + $formats, $app->formats());
+        $ret = $app->formats($formats, true);
+        $this->assertEquals($formats, $app->formats());
+        $this->assertEquals($ret, $app);
     }
 
     /**
-     * @covers Phix::defaultFormatHtmlError
+     * @covers \Phix\App::defaultFormatHtmlError
      */
     public function testDefaultFormatHtmlError()
     {
-        $error = Phix::defaultFormatHtmlError(new Phix(), 404, 'foo');
+        $error = App::defaultFormatHtmlError(new App(), 404, 'foo');
         $this->assertEquals('<!DOCTYPE html><html><head></head><body><h1>Not Found</h1><p>foo</p></body></html>', $error);
     }
 
     /**
-     * @covers Phix::defaultFormatJsonError
+     * @covers \Phix\App::defaultFormatJsonError
      */
     public function testDefaultFormatJsonError()
     {
-        $error = Phix::defaultFormatJsonError(new Phix(), 404, 'foo');
+        $error = App::defaultFormatJsonError(new App(), 404, 'foo');
         $this->assertEquals('{"status":"error","message":"foo"}', $error);
     }
 
     /**
-     * @covers Phix::defaultFormatXmlError
+     * @covers \Phix\App::defaultFormatXmlError
      */
     public function testDefaultFormatXmlError()
     {
-        $error = Phix::defaultFormatXmlError(new Phix(), 404, 'foo');
+        $error = App::defaultFormatXmlError(new App(), 404, 'foo');
         $this->assertEquals('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><response><status>error</status><message>foo</message></response>', $error);
     }
 
     /**
-     * @covers Phix::defaultFormatHtmlResponse
+     * @covers \Phix\App::defaultFormatHtmlResponse
      */
     public function testDefaultFormatHtmlResponse()
     {
-        $response = Phix::defaultFormatHtmlResponse(new Phix(), 200, array('foo' => 'bar', 'bar' => array('key1' => 'val1'), 'baz' => array('val2', 'val3')));
+        $response = App::defaultFormatHtmlResponse(new App(), 200, array('foo' => 'bar', 'bar' => array('key1' => 'val1'), 'baz' => array('val2', 'val3')));
         $expected = '<!DOCTYPE html><html><head><title>OK</title></head><body><h1>OK</h1><pre>Array
 (
     [foo] =&gt; bar
@@ -2076,7 +2079,7 @@ class PhixTest extends PHPUnit_Framework_TestCase
 </pre></body></html>';
         $this->assertEquals(str_replace(array("\r\n", "\t"), array("\n", "    "), $expected), $response);
 
-        $response = Phix::defaultFormatHtmlResponse(new Phix(), 412, array('foo' => 'bar', 'bar' => array('key1' => 'val1'), 'baz' => array('val2', 'val3')));
+        $response = App::defaultFormatHtmlResponse(new App(), 412, array('foo' => 'bar', 'bar' => array('key1' => 'val1'), 'baz' => array('val2', 'val3')));
         $expected = '<!DOCTYPE html><html><head><title>Precondition Failed</title></head><body><h1>Precondition Failed</h1><pre>Array
 (
     [foo] =&gt; bar
@@ -2097,75 +2100,75 @@ class PhixTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @covers Phix::defaultFormatJsonResponse
+     * @covers \Phix\App::defaultFormatJsonResponse
      */
     public function testDefaultFormatJsonResponse()
     {
-        $response = Phix::defaultFormatJsonResponse(new Phix(), 200, array('foo' => 'bar', 'bar' => array('key1' => 'val1'), 'baz' => array('val2', 'val3')));
+        $response = App::defaultFormatJsonResponse(new App(), 200, array('foo' => 'bar', 'bar' => array('key1' => 'val1'), 'baz' => array('val2', 'val3')));
         $this->assertEquals('{"status":"success","data":{"foo":"bar","bar":{"key1":"val1"},"baz":["val2","val3"]}}', $response);
 
-        $response = Phix::defaultFormatJsonResponse(new Phix(), 412, array('foo' => 'bar', 'bar' => array('key1' => 'val1'), 'baz' => array('val2', 'val3')));
+        $response = App::defaultFormatJsonResponse(new App(), 412, array('foo' => 'bar', 'bar' => array('key1' => 'val1'), 'baz' => array('val2', 'val3')));
         $this->assertEquals('{"status":"fail","data":{"foo":"bar","bar":{"key1":"val1"},"baz":["val2","val3"]}}', $response);
     }
 
     /**
-     * @covers Phix::defaultFormatJsonResponse
+     * @covers \Phix\App::defaultFormatJsonResponse
      */
     public function testDefaultFormatJsonResponseHandlesJSONPCallback()
     {
         $_GET = array(
             'callback' => 'jsonp1234'
         );
-        $response = Phix::defaultFormatJsonResponse(new Phix(), 412, array('foo' => 'bar', 'bar' => array('key1' => 'val1'), 'baz' => array('val2', 'val3')));
+        $response = App::defaultFormatJsonResponse(new App(), 412, array('foo' => 'bar', 'bar' => array('key1' => 'val1'), 'baz' => array('val2', 'val3')));
         $this->assertEquals('jsonp1234({"status":"fail","data":{"foo":"bar","bar":{"key1":"val1"},"baz":["val2","val3"]}})', $response);
     }
 
     /**
-     * @covers Phix::defaultFormatJsonResponse
+     * @covers \Phix\App::defaultFormatJsonResponse
      */
     public function testDefaultFormatJsonResponseIgnoresInvalidJSONPCallback()
     {
         $_GET = array(
             'callback' => '1234'
         );
-        $response = Phix::defaultFormatJsonResponse(new Phix(), 412, array('foo' => 'bar', 'bar' => array('key1' => 'val1'), 'baz' => array('val2', 'val3')));
+        $response = App::defaultFormatJsonResponse(new App(), 412, array('foo' => 'bar', 'bar' => array('key1' => 'val1'), 'baz' => array('val2', 'val3')));
         $this->assertEquals('{"status":"fail","data":{"foo":"bar","bar":{"key1":"val1"},"baz":["val2","val3"]}}', $response);
     }
 
     /**
-     * @covers Phix::defaultFormatXmlResponse
-     * @covers Phix::_arrayToXml
+     * @covers \Phix\App::defaultFormatXmlResponse
+     * @covers \Phix\App::_arrayToXml
      */
     public function testDefaultFormatXmlResponse()
     {
-        $response = Phix::defaultFormatXmlResponse(new Phix(), 200, array('foo' => 'bar', 'bar' => array('key1' => 'val1'), 'baz' => array('val2', 'val3')));
+        $response = App::defaultFormatXmlResponse(new App(), 200, array('foo' => 'bar', 'bar' => array('key1' => 'val1'), 'baz' => array('val2', 'val3')));
         $this->assertEquals('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><response><status>success</status><data><foo>bar</foo><bar><key1>val1</key1></bar><baz>val2</baz><baz>val3</baz></data></response>', $response);
 
-        $response = Phix::defaultFormatXmlResponse(new Phix(), 412, array('foo' => 'bar', 'bar' => array('key1' => 'val1'), 'baz' => array('val2', 'val3')));
+        $response = App::defaultFormatXmlResponse(new App(), 412, array('foo' => 'bar', 'bar' => array('key1' => 'val1'), 'baz' => array('val2', 'val3')));
         $this->assertEquals('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><response><status>fail</status><data><foo>bar</foo><bar><key1>val1</key1></bar><baz>val2</baz><baz>val3</baz></data></response>', $response);
 
-        $response = Phix::defaultFormatXmlResponse(new Phix(), 200, (object) array('foo' => 'bar', 'bar' => (object) array('key1' => 'val1'), 'baz' => array('val2', 'val3')));
+        $response = App::defaultFormatXmlResponse(new App(), 200, (object) array('foo' => 'bar', 'bar' => (object) array('key1' => 'val1'), 'baz' => array('val2', 'val3')));
         $this->assertEquals('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><response><status>success</status><data><foo>bar</foo><bar><key1>val1</key1></bar><baz>val2</baz><baz>val3</baz></data></response>', $response);
     }
 
     /**
-     * @covers Phix::defaultFormatJsonUnserialize
+     * @covers \Phix\App::defaultFormatJsonUnserialize
      */
     public function testDefaultFormatJsonUnserialize()
     {
-        $obj = new stdClass();
+        $obj = new \stdClass();
         $obj->bar = array('baz', 'test');
         $json = json_encode(array('foo' => 'bar', 'obj' => $obj));
 
-        $arr = Phix::defaultFormatJsonUnserialize(new Phix(), $json);
+        $arr = App::defaultFormatJsonUnserialize(new App(), $json);
 
         $expected = array('foo' => 'bar', 'obj' => array('bar' =>  array('baz', 'test')));
         $this->assertSame($expected, $arr);
     }
 
     /**
-     * @covers Phix::defaultFormatXmlUnserialize
-     * @covers Phix::_xmlToArray
+     * @covers \Phix\App::defaultFormatXmlUnserialize
+     * @covers \Phix\App::_xmlToArray
      */
     public function testDefaultFormatXmlUnserialize()
     {
@@ -2175,148 +2178,148 @@ class PhixTest extends PHPUnit_Framework_TestCase
                '<obj><bar>baz</bar><bar>test</bar></obj>' .
                '</data>';
 
-        $arr = Phix::defaultFormatXmlUnserialize(new Phix(), $xml);
+        $arr = App::defaultFormatXmlUnserialize(new App(), $xml);
 
         $expected = array('foo' => 'bar', 'obj' => array('bar' => array('baz', 'test')));
         $this->assertSame($expected, $arr);
     }
 
     /**
-     * @covers Phix::requestHeader
+     * @covers \Phix\App::requestHeader
      */
     public function testRequestHeader()
     {
         $_SERVER['HTTP_ACCEPT_ENCODING'] = 'UTF-8';
         $_SERVER['HTTP_CONTENT_TYPE'] = 'text/json';
 
-        $phix = new Phix();
-        $this->assertEquals('UTF-8', $phix->requestHeader('Accept-Encoding'));
-        $this->assertEquals('text/json', $phix->requestHeader('Content-Type'));
+        $app = new App();
+        $this->assertEquals('UTF-8', $app->requestHeader('Accept-Encoding'));
+        $this->assertEquals('text/json', $app->requestHeader('Content-Type'));
 
-        $this->assertFalse($phix->requestHeader('X-No-Such-Thing'));
+        $this->assertFalse($app->requestHeader('X-No-Such-Thing'));
 
-        $phix->requestHeader('X-Foo', 'bar');
-        $this->assertEquals('bar', $phix->requestHeader('X-Foo'));
+        $app->requestHeader('X-Foo', 'bar');
+        $this->assertEquals('bar', $app->requestHeader('X-Foo'));
 
-        $ret = $phix->requestHeader('X-Bar', function() {
+        $ret = $app->requestHeader('X-Bar', function() {
             return 'baz';
         });
-        $this->assertEquals('baz', $phix->requestHeader('X-Bar'));
-        $this->assertEquals($ret, $phix);
+        $this->assertEquals('baz', $app->requestHeader('X-Bar'));
+        $this->assertEquals($ret, $app);
     }
 
     /**
-     * @covers Phix::requestRawBody
+     * @covers \Phix\App::requestRawBody
      */
     public function testRequestRawBody()
     {
-        $phix = new Phix();
-        $this->assertFalse($phix->requestRawBody());
-        $phix->requestRawBody('foo');
-        $this->assertSame('foo', $phix->requestRawBody());
-        $ret = $phix->requestRawBody(function() {
+        $app = new App();
+        $this->assertFalse($app->requestRawBody());
+        $app->requestRawBody('foo');
+        $this->assertSame('foo', $app->requestRawBody());
+        $ret = $app->requestRawBody(function() {
             return 'bar';
         });
-        $this->assertSame('bar', $phix->requestRawBody());
-        $this->assertEquals($ret, $phix);
+        $this->assertSame('bar', $app->requestRawBody());
+        $this->assertEquals($ret, $app);
     }
 
     /**
-     * @covers Phix::requestRawBody
+     * @covers \Phix\App::requestRawBody
      */
     public function testRequestRawBodyReturnsFalseOnEmptyString()
     {
-        $phix = new Phix();
-        $phix->requestRawBody('');
-        $this->assertFalse($phix->requestRawBody());
+        $app = new App();
+        $app->requestRawBody('');
+        $this->assertFalse($app->requestRawBody());
     }
 
     /**
-     * @covers Phix::requestMethod
+     * @covers \Phix\App::requestMethod
      */
     public function testRequestMethod()
     {
-        $phix = new Phix();
+        $app = new App();
 
         $_SERVER['REQUEST_METHOD'] = 'HEAD';
-        $this->assertEquals('HEAD', $phix->requestMethod());
+        $this->assertEquals('HEAD', $app->requestMethod());
 
-        $phix = new Phix();
+        $app = new App();
 
         $_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'] = 'POST';
-        $this->assertEquals('POST', $phix->requestMethod());
+        $this->assertEquals('POST', $app->requestMethod());
 
-        $phix = new Phix();
+        $app = new App();
 
         $_POST['_method'] = 'PUT';
-        $this->assertEquals('PUT', $phix->requestMethod());
+        $this->assertEquals('PUT', $app->requestMethod());
 
-        $ret = $phix->requestMethod(function() {
+        $ret = $app->requestMethod(function() {
             return 'DELETE';
         });
-        $this->assertEquals('DELETE', $phix->requestMethod());
-        $this->assertEquals($ret, $phix);
+        $this->assertEquals('DELETE', $app->requestMethod());
+        $this->assertEquals($ret, $app);
     }
 
     /**
-     * @covers Phix::requestUri
+     * @covers \Phix\App::requestUri
      */
     public function testRequestUri()
     {
         $_SERVER['HTTP_HOST'] = 'localhost';
         $_SERVER['REQUEST_URI'] = '/mycontroller/myaction?foo=bar';
 
-        $phix = new Phix();
-        $this->assertEquals('/mycontroller/myaction?foo=bar', $phix->requestUri());
-        $phix->requestUri('/archives/past/4?set=this&unset=that');
-        $this->assertEquals('/archives/past/4?set=this&unset=that', $phix->requestUri());
+        $app = new App();
+        $this->assertEquals('/mycontroller/myaction?foo=bar', $app->requestUri());
+        $app->requestUri('/archives/past/4?set=this&unset=that');
+        $this->assertEquals('/archives/past/4?set=this&unset=that', $app->requestUri());
         $this->assertArrayHasKey('set', $_GET);
         $this->assertArrayHasKey('unset', $_GET);
         $this->assertEquals('this', $_GET['set']);
         $this->assertEquals('that', $_GET['unset']);
 
-        $ret = $phix->requestUri(function() {
+        $ret = $app->requestUri(function() {
             return '/archives/past/4?set=this&unset=that';
         });
-        $this->assertEquals('/archives/past/4?set=this&unset=that', $phix->requestUri());
-        $this->assertEquals($ret, $phix);
+        $this->assertEquals('/archives/past/4?set=this&unset=that', $app->requestUri());
+        $this->assertEquals($ret, $app);
     }
 
     /**
-     * @covers Phix::requestUri
+     * @covers \Phix\App::requestUri
      */
     public function testRequestUriDoesNotPassUriThroughUrldecode()
     {
-        $phix = new Phix();
-        $phix->requestUri('/foo/bar?foo=bar%20baz');
-        $requestUri = $phix->requestUri();
+        $app = new App();
+        $app->requestUri('/foo/bar?foo=bar%20baz');
+        $requestUri = $app->requestUri();
         $this->assertNotEquals('/foo/bar?foo=bar baz', $requestUri);
         $this->assertEquals('/foo/bar?foo=bar%20baz', $requestUri);
     }
 
     /**
-     * @covers Phix::baseUrl
+     * @covers \Phix\App::baseUrl
      */
     public function testBaseUrl()
     {
         $_SERVER['HTTP_HOST'] = 'localhost';
         $_SERVER['REQUEST_URI'] = '/mycontroller/myaction?foo=bar';
 
-        $phix = new Phix();
-        $this->assertEquals('', $phix->baseUrl());
+        $app = new App();
+        $this->assertEquals('', $app->baseUrl());
 
-        $phix->baseUrl('/foo');
-        $this->assertEquals('/foo', $phix->baseUrl());
+        $app->baseUrl('/foo');
+        $this->assertEquals('/foo', $app->baseUrl());
 
-        $ret = $phix->baseUrl(function() {
+        $ret = $app->baseUrl(function() {
             return '/bar';
         });
-        $this->assertEquals('/bar', $phix->baseUrl());
-        $this->assertEquals($ret, $phix);
+        $this->assertEquals('/bar', $app->baseUrl());
+        $this->assertEquals($ret, $app);
     }
 
     /**
-     * @covers Phix::baseUrl
+     * @covers \Phix\App::baseUrl
      */
     public function testSetBaseUrlUsingPhpSelf()
     {
@@ -2330,12 +2333,12 @@ class PhixTest extends PHPUnit_Framework_TestCase
             'var2' => 'val2'
         );
 
-        $phix = new Phix();
-        $this->assertEquals('/index.php', $phix->baseUrl());
+        $app = new App();
+        $this->assertEquals('/index.php', $app->baseUrl());
     }
 
     /**
-     * @covers Phix::baseUrl
+     * @covers \Phix\App::baseUrl
      */
     public function testSetBaseUrlUsingOrigScriptName()
     {
@@ -2350,12 +2353,12 @@ class PhixTest extends PHPUnit_Framework_TestCase
             'var2' => 'val2'
         );
 
-        $phix = new Phix();
-        $this->assertEquals('/index.php', $phix->baseUrl());
+        $app = new App();
+        $this->assertEquals('/index.php', $app->baseUrl());
     }
 
     /**
-     * @covers Phix::baseUrl
+     * @covers \Phix\App::baseUrl
      */
     public function testSetBaseUrlAutoDiscoveryUsingRequestUri()
     {
@@ -2368,12 +2371,12 @@ class PhixTest extends PHPUnit_Framework_TestCase
             'var2' => 'val2'
         );
 
-        $phix = new Phix();
-        $this->assertEquals('/index.php', $phix->baseUrl());
+        $app = new App();
+        $this->assertEquals('/index.php', $app->baseUrl());
     }
 
     /**
-     * @covers Phix::baseUrl
+     * @covers \Phix\App::baseUrl
      */
     public function testSetBaseUrlAutoDiscoveryUsingXRewriteUrl()
     {
@@ -2387,12 +2390,12 @@ class PhixTest extends PHPUnit_Framework_TestCase
             'var2' => 'val2'
         );
 
-        $phix = new Phix();
-        $this->assertEquals('/index.php', $phix->baseUrl());
+        $app = new App();
+        $this->assertEquals('/index.php', $app->baseUrl());
     }
 
     /**
-     * @covers Phix::baseUrl
+     * @covers \Phix\App::baseUrl
      */
     public function testSetBaseUrlAutoDiscoveryUsingOrigPathInfo()
     {
@@ -2407,13 +2410,13 @@ class PhixTest extends PHPUnit_Framework_TestCase
             'var2' => 'val2'
         );
 
-        $phix = new Phix();
-        $this->assertEquals('/index.php', $phix->baseUrl());
+        $app = new App();
+        $this->assertEquals('/index.php', $app->baseUrl());
 
     }
 
     /**
-     * @covers Phix::baseUrl
+     * @covers \Phix\App::baseUrl
      */
     public function testSetBaseUrlWithScriptNameAsGetParam()
     {
@@ -2422,34 +2425,34 @@ class PhixTest extends PHPUnit_Framework_TestCase
         $_SERVER['QUERY_STRING'] = 'foo=index.php';
         $_SERVER['SCRIPT_FILENAME'] = '/var/www/tests/index.php';
 
-        $phix = new Phix();
-        $this->assertEquals('', $phix->baseUrl());
-        $this->assertEquals('/article/archive', $phix->pathInfo());
+        $app = new App();
+        $this->assertEquals('', $app->baseUrl());
+        $this->assertEquals('/article/archive', $app->pathInfo());
     }
     
     /**
-     * @covers Phix::basePath
+     * @covers \Phix\App::basePath
      */
     public function testGetBasePathIsEmptyStringIfNoneSet()
     {
         $_SERVER['HTTP_HOST'] = 'localhost';
         $_SERVER['REQUEST_URI'] = '/test';
 
-        $phix = new Phix();
-        $this->assertEquals('', $phix->basePath());
+        $app = new App();
+        $this->assertEquals('', $app->basePath());
 
-        $phix->basePath('/foo');
-        $this->assertEquals('/foo', $phix->basePath());
+        $app->basePath('/foo');
+        $this->assertEquals('/foo', $app->basePath());
 
-        $ret = $phix->basePath(function() {
+        $ret = $app->basePath(function() {
             return '/bar';
         });
-        $this->assertEquals('/bar', $phix->basePath());
-        $this->assertEquals($ret, $phix);
+        $this->assertEquals('/bar', $app->basePath());
+        $this->assertEquals($ret, $app);
     }
 
     /**
-     * @covers Phix::basePath
+     * @covers \Phix\App::basePath
      */
     public function testBasePathAutoDiscovery()
     {
@@ -2462,12 +2465,12 @@ class PhixTest extends PHPUnit_Framework_TestCase
             'var2' => 'val2'
         );
 
-        $phix = new Phix();
-        $this->assertEquals('/html', $phix->basePath(), $phix->basePath());
+        $app = new App();
+        $this->assertEquals('/html', $app->basePath(), $app->basePath());
     }
 
     /**
-     * @covers Phix::basePath
+     * @covers \Phix\App::basePath
      */
     public function testBasePathAutoDiscoveryWithPhpFile()
     {
@@ -2476,94 +2479,94 @@ class PhixTest extends PHPUnit_Framework_TestCase
         $_SERVER['PHP_SELF'] = '/dir/index.php';
         $_SERVER['SCRIPT_FILENAME'] = '/var/web/dir/index.php';
 
-        $phix = new Phix();
-        $this->assertEquals('/dir', $phix->basePath(), $phix->basePath());
+        $app = new App();
+        $this->assertEquals('/dir', $app->basePath(), $app->basePath());
     }
 
     /**
-     * @covers Phix::pathInfo
+     * @covers \Phix\App::pathInfo
      */
     public function testPathInfo()
     {
         $_SERVER['HTTP_HOST'] = 'localhost';
         $_SERVER['REQUEST_URI'] = '/mycontroller/myaction?foo=bar';
 
-        $phix = new Phix();
-        $this->assertEquals('/mycontroller/myaction', $phix->pathInfo());
+        $app = new App();
+        $this->assertEquals('/mycontroller/myaction', $app->pathInfo());
 
-        $phix->pathInfo('foo');
-        $this->assertEquals('foo', $phix->pathInfo());
+        $app->pathInfo('foo');
+        $this->assertEquals('foo', $app->pathInfo());
 
-        $ret = $phix->pathInfo(function() {
+        $ret = $app->pathInfo(function() {
             return 'bar';
         });
-        $this->assertEquals('bar', $phix->pathInfo());
-        $this->assertEquals($ret, $phix);
+        $this->assertEquals('bar', $app->pathInfo());
+        $this->assertEquals($ret, $app);
     }
 
     /**
-     * @covers Phix::pathInfo
+     * @covers \Phix\App::pathInfo
      */
     public function testPathInfoNeedingBaseUrl()
     {
         $_SERVER['HTTP_HOST'] = 'localhost';
         $_SERVER['REQUEST_URI'] = '/test/index.php/ctrl-name/act-name';
 
-        $phix = new Phix();
-        $this->assertEquals('/test/index.php/ctrl-name/act-name', $phix->requestUri());
-        $phix->baseUrl('/test/index.php');
-        $this->assertEquals('/test/index.php', $phix->baseUrl());
+        $app = new App();
+        $this->assertEquals('/test/index.php/ctrl-name/act-name', $app->requestUri());
+        $app->baseUrl('/test/index.php');
+        $this->assertEquals('/test/index.php', $app->baseUrl());
 
-        $requestUri = $phix->requestUri();
-        $baseUrl = $phix->baseUrl();
+        $requestUri = $app->requestUri();
+        $baseUrl = $app->baseUrl();
         $pathInfo = substr($requestUri, strlen($baseUrl));
         $this->assertTrue($pathInfo ? true : false);
 
-        $this->assertEquals('/ctrl-name/act-name', $phix->pathInfo(), "Expected $pathInfo;");
+        $this->assertEquals('/ctrl-name/act-name', $app->pathInfo(), "Expected $pathInfo;");
     }
 
     /**
-     * @covers Phix::serverUrl
+     * @covers \Phix\App::serverUrl
      */
     public function testServerUrl()
     {
         $_SERVER['HTTPS'] = 'on';
         $_SERVER['HTTP_HOST'] = 'localhost';
 
-        $phix = new Phix();
-        $this->assertEquals('https://localhost', $phix->serverUrl());
+        $app = new App();
+        $this->assertEquals('https://localhost', $app->serverUrl());
 
         unset($_SERVER['HTTPS'], $_SERVER['HTTP_HOST']);
         $_SERVER['SERVER_NAME'] = 'example.com';
         $_SERVER['SERVER_PORT'] = 80;
 
-        $phix = new Phix();
-        $this->assertEquals('http://example.com', $phix->serverUrl());
+        $app = new App();
+        $this->assertEquals('http://example.com', $app->serverUrl());
 
         $_SERVER['SERVER_PORT'] = 123;
-        $phix = new Phix();
-        $this->assertEquals('http://example.com:123', $phix->serverUrl());
+        $app = new App();
+        $this->assertEquals('http://example.com:123', $app->serverUrl());
 
-        $phix = new Phix();
-        $phix->serverUrl('http://foo.bar');
-        $this->assertEquals('http://foo.bar', $phix->serverUrl());
+        $app = new App();
+        $app->serverUrl('http://foo.bar');
+        $this->assertEquals('http://foo.bar', $app->serverUrl());
 
-        $ret = $phix->serverUrl(function() {
+        $ret = $app->serverUrl(function() {
             return 'http://bar.baz';
         });
-        $this->assertEquals('http://bar.baz', $phix->serverUrl());
-        $this->assertEquals($ret, $phix);
+        $this->assertEquals('http://bar.baz', $app->serverUrl());
+        $this->assertEquals($ret, $app);
     }
 
     /**
-     * @covers Phix::notFound
+     * @covers \Phix\App::notFound
      */
     public function testNotFoundWithHook()
     {
         $called = false;
 
-        $phix = new Phix();
-        $phix
+        $app = new App();
+        $app
             ->autoFlush(false)
             ->hook('not_found', function() use(&$called) {
                 $called = true;
@@ -2572,45 +2575,45 @@ class PhixTest extends PHPUnit_Framework_TestCase
             ->notFound();
 
         $this->assertTrue($called);
-        $this->assertNotEquals(404, $phix->status());
-        $this->assertFalse($phix->stopped());
+        $this->assertNotEquals(404, $app->status());
+        $this->assertFalse($app->stopped());
     }
 
     /**
-     * @covers Phix::notFound
+     * @covers \Phix\App::notFound
      */
     public function testNotFoundSetsStatusAndMessage()
     {
-        $phix = new Phix();
-        $phix
+        $app = new App();
+        $app
             ->autoFlush(false)
             ->requestUri('/foo');
 
-        $phix->notFound();
+        $app->notFound();
 
-        $this->assertEquals(404, $phix->status());
-        $this->assertTrue($phix->stopped());
+        $this->assertEquals(404, $app->status());
+        $this->assertTrue($app->stopped());
 
-        $phix->reset();
+        $app->reset();
 
-        $ret = $phix->notFound(function($phix) {
+        $ret = $app->notFound(function($app) {
             return 'Foo message';
         });
-        $this->assertRegExp('/Foo message/', $phix->output());
-        $this->assertEquals($ret, $phix);
+        $this->assertRegExp('/Foo message/', $app->output());
+        $this->assertEquals($ret, $app);
     }
 
     /**
-     * @covers Phix::error
+     * @covers \Phix\App::error
      */
     public function testErrorWithHook()
     {
         $called = false;
 
-        $phix = new Phix();
-        $phix
+        $app = new App();
+        $app
             ->autoFlush(false)
-            ->hook('error', function($phix, $params) use(&$called) {
+            ->hook('error', function($app, $params) use(&$called) {
                 $called = true;
                 $params['status'] = 501;
                 return false;
@@ -2618,35 +2621,35 @@ class PhixTest extends PHPUnit_Framework_TestCase
             ->error(500);
 
         $this->assertTrue($called);
-        $this->assertNotEquals(501, $phix->status());
-        $this->assertFalse($phix->stopped());
+        $this->assertNotEquals(501, $app->status());
+        $this->assertFalse($app->stopped());
     }
 
     /**
-     * @covers Phix::error
+     * @covers \Phix\App::error
      */
     public function testErrorWithHookManipulatesParams()
     {
-        $phix = new Phix();
-        $phix
+        $app = new App();
+        $app
             ->autoFlush(false)
-            ->hook('error', function($phix, $params) use(&$called) {
+            ->hook('error', function($app, $params) use(&$called) {
                 $params['status'] = 501;
                 $params['msg'] = 'Nope, not implemented';
             })
             ->error(500);
 
-        $this->assertEquals(501, $phix->status());
-        $this->assertRegExp('/Nope, not implemented/', $phix->output());
+        $this->assertEquals(501, $app->status());
+        $this->assertRegExp('/Nope, not implemented/', $app->output());
     }
 
     /**
-     * @covers Phix::error
+     * @covers \Phix\App::error
      */
     public function testErrorWithCallbacks()
     {
-        $phix = new Phix();
-        $phix
+        $app = new App();
+        $app
             ->autoFlush(false)
             ->error(function() {
                 return 501;
@@ -2656,60 +2659,60 @@ class PhixTest extends PHPUnit_Framework_TestCase
                 return 'html';
             });
 
-        $this->assertEquals(501, $phix->status());
-        $this->assertRegExp('/Nope, not implemented/', $phix->output());
-        $this->assertTrue(in_array('Content-Type: text/html;charset=utf-8', $phix->headers()));
+        $this->assertEquals(501, $app->status());
+        $this->assertRegExp('/Nope, not implemented/', $app->output());
+        $this->assertTrue(in_array('Content-Type: text/html;charset=utf-8', $app->headers()));
     }
 
     /**
-     * @covers Phix::error
+     * @covers \Phix\App::error
      */
     public function testErrorResetsStatusTo500ForInvalidStatus()
     {
-        $phix = new Phix();
-        $phix
+        $app = new App();
+        $app
             ->autoFlush(false)
             ->error(-1);
 
-        $this->assertEquals(500, $phix->status());
+        $this->assertEquals(500, $app->status());
     }
 
     /**
-     * @covers Phix::error
+     * @covers \Phix\App::error
      */
     public function testErrorResetsFormatToHtmlForInvalidFormat()
     {
-        $phix = new Phix();
-        $phix
+        $app = new App();
+        $app
             ->autoFlush(false)
             ->param('format', 'pdf')
             ->error(500);
 
-        $this->assertRegExp('/<html>/', $phix->output());
+        $this->assertRegExp('/<html>/', $app->output());
     }
 
     /**
-     * @covers Phix::error
+     * @covers \Phix\App::error
      */
     public function testErrorThrowsExceptionForInvalidPassedFormat()
     {
-        $this->setExpectedException('Exception', 'Invalid format "pdf"');
-        $phix = new Phix();
-        $phix
+        $this->setExpectedException('\Exception', 'Invalid format "pdf"');
+        $app = new App();
+        $app
             ->autoFlush(false)
             ->error(500, null, 'pdf');
     }
 
     /**
-     * @covers Phix::exceptionHandler
-     * @covers Phix::exceptions
+     * @covers \Phix\App::exceptionHandler
+     * @covers \Phix\App::exceptions
      */
     public function testExceptionHandler()
     {
-        $exception = new Exception('Test-Exception');
+        $exception = new \Exception('Test-Exception');
 
-        $phix = new Phix();
-        $phix
+        $app = new App();
+        $app
             ->autoFlush(false)
             ->get('/', function() use($exception) {
                 throw $exception;
@@ -2717,32 +2720,32 @@ class PhixTest extends PHPUnit_Framework_TestCase
             ->requestUri('/')
             ->run();
 
-        $this->assertTrue(in_array($exception, $phix->exceptions(), true));
-        $this->assertEquals(500, $phix->status());
-        $this->assertNotRegexp('/Test-Exception/', $phix->output());
+        $this->assertTrue(in_array($exception, $app->exceptions(), true));
+        $this->assertEquals(500, $app->status());
+        $this->assertNotRegexp('/Test-Exception/', $app->output());
 
-        $phix
+        $app
             ->reset()
-            ->env(Phix::ENV_DEVELOPMENT)
+            ->env(App::ENV_DEVELOPMENT)
             ->run();
 
-        $this->assertRegexp('/Test-Exception/', $phix->output());
+        $this->assertRegexp('/Test-Exception/', $app->output());
     }
 
     /**
-     * @covers Phix::exceptionHandler
-     * @covers Phix::exceptions
+     * @covers \Phix\App::exceptionHandler
+     * @covers \Phix\App::exceptions
      */
     public function testExceptionHandlerWithHooks()
     {
         $called1 = false;
         $called2 = false;
 
-        $phix = new Phix();
-        $phix
+        $app = new App();
+        $app
             ->autoFlush(false)
             ->get('/', function() {
-                throw new Exception('Test-Exception');
+                throw new \Exception('Test-Exception');
             })
             ->hook('exception_handler', function() use(&$called1) {
                 $called1 = true;

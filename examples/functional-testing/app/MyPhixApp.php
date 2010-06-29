@@ -1,6 +1,8 @@
 <?php
 
-class MyPhixApp extends Phix
+namespace app;
+
+class MyPhixApp extends \Phix\App
 {
     public function __construct($config = null)
     {
@@ -8,14 +10,14 @@ class MyPhixApp extends Phix
             ->viewsDir(__DIR__ . '/views')
             ->layout('layout')
             ->reg('site_title', 'My Application')
-            ->get('/', function($phix) {
-                $phix->render('home');
+            ->get('/', function($app) {
+                $app->render('home');
             })
-            ->get('/unreachable', function($phix) {
-                $phix->redirect('/');
+            ->get('/unreachable', function($app) {
+                $app->redirect('/');
             })
-            ->get('/notfound', function($phix) {
-                $phix->notFound('Ooops. The URL ' . $phix->escape($phix->requestUri()) . ' is not there.');
+            ->get('/notfound', function($app) {
+                $app->notFound('Ooops. The URL ' . $app->escape($app->requestUri()) . ' is not there.');
             });
 
         parent::__construct($config);

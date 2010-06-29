@@ -13,13 +13,15 @@
  * @license   http://opensource.org/licenses/bsd-license.php The BSD License
  */
 
+namespace Phix;
+
 /**
  * @package   Phix
  * @author    Jan Sorgalla
  * @copyright Copyright (c) 2010-Present Jan Sorgalla
  * @license   http://opensource.org/licenses/bsd-license.php The BSD License
  */
-class Phix
+class App
 {
     const ENV_PRODUCTION  = 'production';
     const ENV_TESTING     = 'testing';
@@ -35,7 +37,7 @@ class Phix
     private $_stopped = false;
 
     /**
-     * Flag indicating whether session was started by Phix and should be closed in _shutdown().
+     * Flag indicating whether session was started by App and should be closed in _shutdown().
      * @var boolean
      */
     private $_sessionStarted = false;
@@ -156,8 +158,8 @@ class Phix
                 'request'  => array('text/html', 'application/xhtml+xml'),
                 'response' => 'text/html'
             ),
-            'error'    => array('Phix', 'defaultFormatHtmlError'),
-            'response' => array('Phix', 'defaultFormatHtmlResponse'),
+            'error'    => array('\Phix\App', 'defaultFormatHtmlError'),
+            'response' => array('\Phix\App', 'defaultFormatHtmlResponse'),
         ),
         'json' => array(
             'view' => array(
@@ -168,9 +170,9 @@ class Phix
                 'request'  => array('application/json'),
                 'response' => 'application/json'
             ),
-            'error'       => array('Phix', 'defaultFormatJsonError'),
-            'response'    => array('Phix', 'defaultFormatJsonResponse'),
-            'unserialize' => array('Phix', 'defaultFormatJsonUnserialize')
+            'error'       => array('\Phix\App', 'defaultFormatJsonError'),
+            'response'    => array('\Phix\App', 'defaultFormatJsonResponse'),
+            'unserialize' => array('\Phix\App', 'defaultFormatJsonUnserialize')
         ),
         'xml' => array(
             'view' => array(
@@ -181,9 +183,9 @@ class Phix
                 'request'  => array('text/xml', 'application/xml'),
                 'response' => 'text/xml'
             ),
-            'error'       => array('Phix', 'defaultFormatXmlError'),
-            'response'    => array('Phix', 'defaultFormatXmlResponse'),
-            'unserialize' => array('Phix', 'defaultFormatXmlUnserialize')
+            'error'       => array('\Phix\App', 'defaultFormatXmlError'),
+            'response'    => array('\Phix\App', 'defaultFormatXmlResponse'),
+            'unserialize' => array('\Phix\App', 'defaultFormatXmlUnserialize')
         )
     );
 
@@ -298,10 +300,10 @@ class Phix
     );
 
     /**
-     * Create Phix instance.
+     * Create App instance.
      *
      * @param array $config (Can be a callable)
-     * @return Phix
+     * @return \Phix\App
      */
     public static function instance($config = null)
     {
@@ -322,10 +324,10 @@ class Phix
     }
 
     /**
-     * Configure Phix.
+     * Configure App.
      *
      * @param array $config (Can be a callable)
-     * @return Phix
+     * @return \Phix\App
      */
     public function configure($config)
     {
@@ -340,11 +342,11 @@ class Phix
 
         foreach ($config as $method => $args) {
             if ($method[0] == '_') {
-                throw new Exception('Configuring through private methods is forbidden');
+                throw new \Exception('Configuring through private methods is forbidden');
             }
 
             if (in_array($method, $forbidden)) {
-                throw new Exception('Configuring through method "' . $method . '" is forbidden');
+                throw new \Exception('Configuring through method "' . $method . '" is forbidden');
             }
 
             call_user_func_array(array($this, $method), $args);
@@ -357,7 +359,7 @@ class Phix
      * Set/Get whether to flush automatically.
      *
      * @param boolean $bool (Can be a callable)
-     * @return boolean|Phix
+     * @return boolean|\Phix\App
      */
     public function autoFlush($autoFlush = true)
     {
@@ -377,7 +379,7 @@ class Phix
     /**
      * Run application.
      *
-     * @return Phix
+     * @return \Phix\App
      */
     public function run()
     {
@@ -387,7 +389,7 @@ class Phix
             $this->_init();
             $this->_run();
             $this->_shutdown();
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $this->exceptionHandler($e);
         }
 
@@ -401,7 +403,7 @@ class Phix
     /**
      * Flush headers and output.
      *
-     * @return Phix
+     * @return \Phix\App
      */
     public function flush()
     {
@@ -438,7 +440,7 @@ class Phix
     /**
      * Reset state.
      *
-     * @return Phix
+     * @return \Phix\App
      */
     public function reset()
     {
@@ -701,7 +703,7 @@ class Phix
      * Set/Get encoding used through the application.
      *
      * @param string $encoding The encoding (Can be a callable)
-     * @return string|Phix
+     * @return string|\Phix\App
      */
     public function encoding($encoding = null)
     {
@@ -722,7 +724,7 @@ class Phix
      * Set/Get output.
      *
      * @param string $output The output (Can be a callable)
-     * @return string|Phix
+     * @return string|\Phix\App
      */
     public function output($output = null)
     {
@@ -744,7 +746,7 @@ class Phix
      *
      * @param string $output The output (Can be a callable)
      * @param string $format The format (Can be a callable)
-     * @return string|Phix
+     * @return string|\Phix\App
      */
     public function response($output, $format = null)
     {
@@ -758,7 +760,7 @@ class Phix
             }
 
             if (!isset($formats[$format])) {
-                throw new Exception('Invalid format "' . $format . '"');
+                throw new \Exception('Invalid format "' . $format . '"');
             }
         }
 
@@ -783,7 +785,7 @@ class Phix
      *
      * @param string $hooks The hooks
      * @param boolean $reset Whether to reset existing hooks
-     * @return array|Phix
+     * @return array|\Phix\App
      */
     public function hooks(array $hooks = array(), $reset = false)
     {
@@ -808,7 +810,7 @@ class Phix
      * @param string $event The event
      * @param mixed $callback The callback
      * @param mixed $index The index
-     * @return Phix
+     * @return \Phix\App
      */
     public function hook($event, $callback, $index = null)
     {
@@ -816,7 +818,7 @@ class Phix
             $this->_hooks[$event][] = $callback;
         } else {
             if (isset($this->_hooks[$event][$index])) {
-                throw new Exception('There is already a hook registered at index "' . $index . '"');
+                throw new \Exception('There is already a hook registered at index "' . $index . '"');
             }
 
             $this->_hooks[$event][$index] = $callback;
@@ -830,7 +832,7 @@ class Phix
      *
      * @param string $event The event
      * @param mixed $callback The callback
-     * @return Phix
+     * @return \Phix\App
      */
     public function unhook($event = null, $callback = null)
     {
@@ -881,7 +883,7 @@ class Phix
      * Set/Get environment.
      *
      * @param string $env The environment (Can be a callable)
-     * @return string|Phix
+     * @return string|\Phix\App
      */
     public function env($env = null)
     {
@@ -913,7 +915,7 @@ class Phix
      *
      * @param string $key The key
      * @param mixed $value The value (Can be a callable)
-     * @return string|Phix
+     * @return string|\Phix\App
      */
     public function param($key, $value = null)
     {
@@ -939,7 +941,7 @@ class Phix
      *
      * @param array $params The parameters
      * @param boolean $reset Whether to reset the existing parameters
-     * @return string|Phix
+     * @return string|\Phix\App
      */
     public function params(array $params = array(), $reset = false)
     {
@@ -965,7 +967,7 @@ class Phix
      * @param mixed $controller The controller
      * @param array $defaults The default params
      * @param mixed $callback The callback
-     * @return Phix
+     * @return \Phix\App
      */
     public function get($pattern, $controller, array $defaults = array(), $callback = null)
     {
@@ -979,7 +981,7 @@ class Phix
      * @param mixed $controller The controller
      * @param array $defaults The default params
      * @param mixed $callback The callback
-     * @return Phix
+     * @return \Phix\App
      */
     public function post($pattern, $controller, array $defaults = array(), $callback = null)
     {
@@ -993,7 +995,7 @@ class Phix
      * @param mixed $controller The controller
      * @param array $defaults The default params
      * @param mixed $callback The callback
-     * @return Phix
+     * @return \Phix\App
      */
     public function put($pattern, $controller, array $defaults = array(), $callback = null)
     {
@@ -1007,7 +1009,7 @@ class Phix
      * @param mixed $controller The controller
      * @param array $defaults The default params
      * @param mixed $callback The callback
-     * @return Phix
+     * @return \Phix\App
      */
     public function delete($pattern, $controller, array $defaults = array(), $callback = null)
     {
@@ -1021,7 +1023,7 @@ class Phix
      * @param mixed $controller The controller
      * @param array $defaults The default params
      * @param mixed $callback The callback
-     * @return Phix
+     * @return \Phix\App
      */
     public function head($pattern, $controller, array $defaults = array(), $callback = null)
     {
@@ -1037,7 +1039,7 @@ class Phix
      * @param mixed $controller The controller
      * @param array $defaults The default params
      * @param mixed $callback The callback
-     * @return Phix
+     * @return \Phix\App
      */
     public function route($methods, $patternOrArray, $controller, array $defaults = array(), $callback = null)
     {
@@ -1146,7 +1148,7 @@ class Phix
      *
      * @param array $routes The routes
      * @param boolean $reset Whether to reset existing routes
-     * @return Phix
+     * @return \Phix\App
      */
     public function routes(array $routes = array(), $reset = false)
     {
@@ -1181,13 +1183,13 @@ class Phix
      * Get/Set the router.
      *
      * @param mixed $router The router callback
-     * @return mixed|Phix
+     * @return mixed|\Phix\App
      */
     public function router($router = null)
     {
         if (func_num_args() == 0) {
             if (null === $this->_router) {
-                $this->_router = array('Phix', 'defaultRouter');
+                $this->_router = array('\Phix\App', 'defaultRouter');
             }
 
             return $this->_router;
@@ -1202,13 +1204,13 @@ class Phix
      * The default router callback.
      *
      * @author Fabrice Luraine
-     * @param Phix $phix The Phix instance
+     * @param \Phix\App $app The App instance
      * @param array $routes The routes
      * @param string $requestMethod The request method
      * @param string $pathInfo The pathinfo
      * @return array|false
      */
-    public static function defaultRouter($phix, $routes, $requestMethod, $pathInfo)
+    public static function defaultRouter($app, $routes, $requestMethod, $pathInfo)
     {
         $requestMethod = strtoupper($requestMethod);
 
@@ -1238,7 +1240,7 @@ class Phix
                 }
 
                 if (is_callable($route['callback'])) {
-                    $ret = call_user_func($route['callback'], $phix);
+                    $ret = call_user_func($route['callback'], $app);
 
                     if (false === $ret) {
                         continue;
@@ -1274,13 +1276,13 @@ class Phix
      * Get/Set the dispatcher.
      *
      * @param mixed $dispatcher The dispatcher callback
-     * @return mixed|Phix
+     * @return mixed|\Phix\App
      */
     public function dispatcher($dispatcher = null)
     {
         if (func_num_args() == 0) {
             if (null === $this->_dispatcher) {
-                $this->_dispatcher = array('Phix', 'defaultDispatcher');
+                $this->_dispatcher = array('\Phix\App', 'defaultDispatcher');
             }
 
             return $this->_dispatcher;
@@ -1294,13 +1296,13 @@ class Phix
     /**
      * The default dispatcher callback.
      *
-     * @param Phix $phix The Phix instance
+     * @param \Phix\App $app The App instance
      * @param mixed $controller The controller
      * @return void
      */
-    public static function defaultDispatcher($phix, $controller)
+    public static function defaultDispatcher($app, $controller)
     {
-        call_user_func($controller, $phix);
+        call_user_func($controller, $app);
     }
 
     /**
@@ -1310,13 +1312,13 @@ class Phix
      *
      * @param string $key The key
      * @param mixed $value The value (Can be a callable)
-     * @return mixed|Phix
+     * @return mixed|\Phix\App
      */
     public function session($key, $value = null)
     {
         if (!defined('SID')) {
             if (!session_start()) {
-                throw new Exception("An error occured while trying to start the session");
+                throw new \Exception("An error occured while trying to start the session");
             }
             $this->_sessionStarted = true;
         }
@@ -1348,7 +1350,7 @@ class Phix
      * Set/Get flash messages.
      *
      * @param mixed $message The message (Can be a callable)
-     * @return mixed|Phix
+     * @return mixed|\Phix\App
      */
     public function flash($message = null)
     {
@@ -1386,7 +1388,7 @@ class Phix
      *
      * @param string $key The key
      * @param string $value The value (Can be a callable)
-     * @return mixed|Phix
+     * @return mixed|\Phix\App
      */
     public function reg($key, $value = null)
     {
@@ -1412,7 +1414,7 @@ class Phix
      *
      * @param array $regs The regs
      * @param boolean $reset Whether to reset existing registry
-     * @return mixed|Phix
+     * @return mixed|\Phix\App
      */
     public function regs(array $regs = array(), $reset = false)
     {
@@ -1435,7 +1437,7 @@ class Phix
      * Set/Get the HTTP response status code.
      *
      * @param integer $status The status (Can be a callable)
-     * @return integer|Phix
+     * @return integer|\Phix\App
      */
     public function status($status = null)
     {
@@ -1448,7 +1450,7 @@ class Phix
         }
 
         if (!isset($this->_statusPhrases[$status])) {
-            throw new Exception('Invalid status code "' . $status . '"');
+            throw new \Exception('Invalid status code "' . $status . '"');
         }
 
         $this->_status = $status;
@@ -1477,7 +1479,7 @@ class Phix
      *
      * @param string $url The url (Can be a callable)
      * @param integer $status The status (Can be a callable)
-     * @return integer|Phix
+     * @return integer|\Phix\App
      */
     public function redirect($url, $status = 302)
     {
@@ -1534,7 +1536,7 @@ class Phix
      *
      * @param integer $status The status
      * @param string $phrase The phrase (Can be a callable)
-     * @return string|Phix
+     * @return string|\Phix\App
      */
     public function statusPhrase($status, $phrase = null)
     {
@@ -1560,7 +1562,7 @@ class Phix
      *
      * @param string $header The header (Can be a callable)
      * @param boolean $replace Whether to replace exiting headers
-     * @return Phix
+     * @return \Phix\App
      */
     public function header($header, $replace = true)
     {
@@ -1590,7 +1592,7 @@ class Phix
      *
      * @param array $headers The headers
      * @param boolean $reset Whether to reset existing headers
-     * @return array|Phix
+     * @return array|\Phix\App
      */
     public function headers(array $headers = array(), $reset = false)
     {
@@ -1617,7 +1619,7 @@ class Phix
      * Set/Get directory where views are located.
      *
      * @param string $viewsDir The views directory (Can be a callable)
-     * @return string|Phix
+     * @return string|\Phix\App
      */
     public function viewsDir($viewsDir = null)
     {
@@ -1638,7 +1640,7 @@ class Phix
      * Set/Get the layout view.
      *
      * @param string $layout The layout (Can be a callable)
-     * @return string|Phix
+     * @return string|\Phix\App
      */
     public function layout($layout = null)
     {
@@ -1659,13 +1661,13 @@ class Phix
      * Set/Get the view renderer.
      *
      * @param mixed $renderer The renderer callback
-     * @return mixed|Phix
+     * @return mixed|\Phix\App
      */
     public function renderer($renderer = null)
     {
         if (func_num_args() == 0) {
             if (null === $this->_renderer) {
-                $this->_renderer = array('Phix', 'defaultRenderer');
+                $this->_renderer = array('\Phix\App', 'defaultRenderer');
             }
 
             return $this->_renderer;
@@ -1679,16 +1681,16 @@ class Phix
     /**
      * Default renderer implementation.
      *
-     * @param Phix $phix The Phix instance
+     * @param \Phix\App $app The App instance
      * @param string $view The view to render
      * @param array $vars The vars to pass to the view
      * @return string
      */
-    public static function defaultRenderer($phix, $view, array $vars, $format)
+    public static function defaultRenderer($app, $view, array $vars, $format)
     {
         if (is_callable($view)) {
-            $content = call_user_func($view, $phix, $vars, $format);
-        } elseif (false !== ($viewFilename = $phix->viewFilename($view, $format))) {
+            $content = call_user_func($view, $app, $vars, $format);
+        } elseif (false !== ($viewFilename = $app->viewFilename($view, $format))) {
             ob_start();
             extract($vars);
             include $viewFilename;
@@ -1711,7 +1713,7 @@ class Phix
      * @param array $vars The vars to pass to the view
      * @param string $format The format to render (Can be a callable)
      * @param string $layout The layout to use
-     * @return Phix
+     * @return \Phix\App
      */
     public function render($view, array $vars = array(), $format = null, $layout = null)
     {
@@ -1725,7 +1727,7 @@ class Phix
             }
 
             if (!isset($formats[$format])) {
-                throw new Exception('Invalid format "' . $format . '"');
+                throw new \Exception('Invalid format "' . $format . '"');
             }
         }
 
@@ -1823,7 +1825,7 @@ class Phix
      * Set/Get the default format.
      *
      * @param string $defaultFormat The default format (Can be a callable)
-     * @return string|Phix
+     * @return string|\Phix\App
      */
     public function defaultFormat($defaultFormat = null)
     {
@@ -1845,7 +1847,7 @@ class Phix
      *
      * @param string $format The format
      * @param array $config The configuration (Can be a callable)
-     * @return array|Phix
+     * @return array|\Phix\App
      */
     public function format($format, $config = null)
     {
@@ -1863,7 +1865,7 @@ class Phix
 
         if (null === $config) {
             if ($format == $this->defaultFormat()) {
-                throw new Exception('Removing the default format is not allowed');
+                throw new \Exception('Removing the default format is not allowed');
             }
 
             unset($this->_formats[$format]);
@@ -1879,7 +1881,7 @@ class Phix
      *
      * @param array $formats The formats
      * @param bool $reset Whether to reset existing formats
-     * @return array|Phix
+     * @return array|\Phix\App
      */
     public function formats(array $formats = array(), $reset = false)
     {
@@ -1903,19 +1905,19 @@ class Phix
     /**
      * Default HTML error callback.
      *
-     * @param Phix $phix The Phix instance
+     * @param \Phix\App $app The App instance
      * @param integer $status The HTTP status code
      * @param string $msg The error message
      * @return string
      */
-    public static function defaultFormatHtmlError($phix, $status, $msg)
+    public static function defaultFormatHtmlError($app, $status, $msg)
     {
         return '<!DOCTYPE html>' .
                '<html>' .
                  '<head></head>' .
                  '<body>' .
-                   '<h1>' . $phix->statusPhrase($status) . '</h1>' .
-                   '<p>' . $phix->escape($msg) . '</p>' .
+                   '<h1>' . $app->statusPhrase($status) . '</h1>' .
+                   '<p>' . $app->escape($msg) . '</p>' .
                  '</body>' .
                '</html>';
     }
@@ -1923,12 +1925,12 @@ class Phix
     /**
      * Default JSON error callback.
      *
-     * @param Phix $phix The Phix instance
+     * @param \Phix\App $app The App instance
      * @param integer $status The HTTP status code
      * @param string $msg The error message
      * @return string
      */
-    public static function defaultFormatJsonError($phix, $status, $msg)
+    public static function defaultFormatJsonError($app, $status, $msg)
     {
         return json_encode(array('status' => 'error', 'message' => $msg));
     }
@@ -1936,36 +1938,36 @@ class Phix
     /**
      * Default XML error callback.
      *
-     * @param Phix $phix The Phix instance
+     * @param \Phix\App $app The App instance
      * @param integer $status The HTTP status code
      * @param string $msg The error message
      * @return string
      */
-    public static function defaultFormatXmlError($phix, $status, $msg)
+    public static function defaultFormatXmlError($app, $status, $msg)
     {
         return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' .
                '<response>' .
                  '<status>error</status>' .
-                 '<message>' . $phix->escape($msg) . '</message>' .
+                 '<message>' . $app->escape($msg) . '</message>' .
                '</response>';
     }
 
     /**
      * Default HTML response callback.
      *
-     * @param Phix $phix The Phix instance
+     * @param \Phix\App $app The App instance
      * @param integer $status The HTTP status code
      * @param array $data The data
      * @return string
      */
-    public static function defaultFormatHtmlResponse($phix, $status, $data)
+    public static function defaultFormatHtmlResponse($app, $status, $data)
     {
         return '<!DOCTYPE html>' .
                '<html>' .
-                 '<head><title>' . $phix->statusPhrase($status) . '</title></head>' .
+                 '<head><title>' . $app->statusPhrase($status) . '</title></head>' .
                  '<body>' .
-                   '<h1>' . $phix->statusPhrase($status) . '</h1>' .
-                   '<pre>' . $phix->escape(print_r($data, true)) . '</pre>' .
+                   '<h1>' . $app->statusPhrase($status) . '</h1>' .
+                   '<pre>' . $app->escape(print_r($data, true)) . '</pre>' .
                  '</body>' .
                '</html>';
     }
@@ -1973,12 +1975,12 @@ class Phix
     /**
      * Default JSON response callback.
      *
-     * @param Phix $phix The Phix instance
+     * @param \Phix\App $app The App instance
      * @param integer $status The HTTP status code
      * @param array $data The data
      * @return string
      */
-    public static function defaultFormatJsonResponse($phix, $status, $data)
+    public static function defaultFormatJsonResponse($app, $status, $data)
     {
         $statusString = 200 <= $status && 206 >= $status ? 'success' : 'fail';
         $response = json_encode(array('status' => $statusString, 'data' => $data));
@@ -1994,12 +1996,12 @@ class Phix
     /**
      * Default XML response callback.
      *
-     * @param Phix $phix The Phix instance
+     * @param \Phix\App $app The App instance
      * @param integer $status The HTTP status code
      * @param array $data The data
      * @return string
      */
-    public static function defaultFormatXmlResponse($phix, $status, $data)
+    public static function defaultFormatXmlResponse($app, $status, $data)
     {
         $statusString = 20 <= $status && 206 >= $status ? 'success' : 'fail';
         if (is_object($data)) {
@@ -2054,11 +2056,11 @@ class Phix
     /**
      * Default JSON unserialize callback.
      *
-     * @param Phix $phix The Phix instance
+     * @param \Phix\App $app The App instance
      * @param string $string The string to unserialize
      * @return array
      */
-    public static function defaultFormatJsonUnserialize($phix, $string)
+    public static function defaultFormatJsonUnserialize($app, $string)
     {
         return json_decode($string, true);
     }
@@ -2066,11 +2068,11 @@ class Phix
     /**
      * Default XML unserialize callback.
      *
-     * @param Phix $phix The Phix instance
+     * @param \Phix\App $app The App instance
      * @param string $string The string to unserialize
      * @return array
      */
-    public static function defaultFormatXmlUnserialize($phix, $string)
+    public static function defaultFormatXmlUnserialize($app, $string)
     {
         return self::_xmlToArray(simplexml_load_string($string));
     }
@@ -2082,7 +2084,7 @@ class Phix
      * @param  SimpleXMLElement $xmlObject Convert a SimpleXMLElement into an array
      * @return array|string
      */
-    protected static function _xmlToArray(SimpleXMLElement $xmlObject)
+    protected static function _xmlToArray(\SimpleXMLElement $xmlObject)
     {
         $config = array();
 
@@ -2121,7 +2123,7 @@ class Phix
      *
      * @param string $name HTTP header name
      * @param string $value HTTP header value (Can be a callable)
-     * @return string|false|Phix
+     * @return string|false|\Phix\App
      */
     public function requestHeader($name, $value = null)
     {
@@ -2198,7 +2200,7 @@ class Phix
      * Get/Set the method by which the request was made.
      *
      * @param string $requestMethod The request method (Can be a callable)
-     * @return string|Phix
+     * @return string|\Phix\App
      */
     public function requestMethod($requestMethod = null)
     {
@@ -2238,7 +2240,7 @@ class Phix
      * $_SERVER['HTTP_X_REWRITE_URL'], or $_SERVER['ORIG_PATH_INFO'] + $_SERVER['QUERY_STRING'].
      *
      * @param string|null $requestUri (Can be a callable)
-     * @return string|Phix
+     * @return string|\Phix\App
      */
     public function requestUri($requestUri = null)
     {
@@ -2268,7 +2270,7 @@ class Phix
                         $requestUri .= '?' . $_SERVER['QUERY_STRING'];
                     }
                 } else {
-                    throw new Exception('Could not detect request uri');
+                    throw new \Exception('Could not detect request uri');
                 }
 
                 $this->_requestUri = $requestUri;
@@ -2315,7 +2317,7 @@ class Phix
      * ORIG_SCRIPT_NAME in its determination.
      *
      * @param string|null $baseUrl (Can be a callable)
-     * @return string|Phix
+     * @return string|\Phix\App
      */
     public function baseUrl($baseUrl = null)
     {
@@ -2404,7 +2406,7 @@ class Phix
      * Set the base path for the URL.
      *
      * @param string|null $basePath (Can be a callable)
-     * @return string|Phix
+     * @return string|\Phix\App
      */
     public function basePath($basePath = null)
     {
@@ -2453,7 +2455,7 @@ class Phix
      * Set/Get the PATH_INFO string.
      *
      * @param string|null $pathInfo (Can be a callable)
-     * @return string|Phix
+     * @return string|\Phix\App
      */
     public function pathInfo($pathInfo = null)
     {
@@ -2503,7 +2505,7 @@ class Phix
      * Set/Get the server url.
      *
      * @param string|null $serverUrl (Can be a callable)
-     * @return string|Phix
+     * @return string|\Phix\App
      */
     public function serverUrl($serverUrl = null)
     {
@@ -2545,7 +2547,7 @@ class Phix
      * Shortcut for triggering a 404 Not Found error.
      *
      * @param string $msg The message (Can be a callable)
-     * @return Phix
+     * @return \Phix\App
      */
     public function notFound($msg = null)
     {
@@ -2574,7 +2576,7 @@ class Phix
      * @param integer $status The HTTP status code
      * @param string $msg The message (Can be a callable)
      * @param string $format The format (Can be a callable)
-     * @return Phix
+     * @return \Phix\App
      */
     public function error($status, $msg = null, $format = null)
     {
@@ -2610,7 +2612,7 @@ class Phix
             }
 
             if (!isset($formats[$format])) {
-                throw new Exception('Invalid format "' . $format . '"');
+                throw new \Exception('Invalid format "' . $format . '"');
             }
         }
 
@@ -2627,10 +2629,10 @@ class Phix
     /**
      * Exception handler.
      *
-     * @param Exception $exception The exception
+     * @param \Exception $exception The exception
      * @return boolean
      */
-    public function exceptionHandler(Exception $exception)
+    public function exceptionHandler(\Exception $exception)
     {
         if (false === $this->trigger('exception_handler', array('exception' => $exception))) {
             return false;
