@@ -22,7 +22,7 @@
 class Phix
 {
     const ENV_PRODUCTION  = 'production';
-    const EVN_TESTING     = 'testing';
+    const ENV_TESTING     = 'testing';
     const ENV_STAGING     = 'staging';
     const ENV_DEVELOPMENT = 'develoment';
 
@@ -2512,19 +2512,21 @@ class Phix
                 $scheme = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') ? 'https' : 'http';
 
                 if (!empty($_SERVER['HTTP_HOST'])) {
-                    $host = $_SERVER['HTTP_HOST'];
-                } else {
-                    $name   = $_SERVER['SERVER_NAME'];
-                    $port   = $_SERVER['SERVER_PORT'];
+                    $this->_serverUrl = $scheme . '://' . $_SERVER['HTTP_HOST'];
+                } elseif (!empty($_SERVER['SERVER_NAME'])) {
+                    $name = $_SERVER['SERVER_NAME'];
+                    $port = isset($_SERVER['SERVER_PORT']) ? $_SERVER['SERVER_PORT'] : 80;
 
                     if (($scheme == 'http' && $port == 80) || ($scheme == 'https' && $port == 443)) {
                         $host = $name;
                     } else {
                         $host = $name . ':' . $port;
                     }
-                }
 
-                $this->_serverUrl = $scheme . '://' . $host;
+                    $this->_serverUrl = $scheme . '://' . $host;
+                } else {
+                    $this->_serverUrl = '';
+                }
             }
 
             return $this->_serverUrl;
