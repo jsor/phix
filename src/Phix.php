@@ -35,12 +35,6 @@ class Phix
     private $_stopped = false;
 
     /**
-     * Flag indicating whether to restore error handler in _shutdown().
-     * @var boolean
-     */
-    private $_restoreErrorHandler = false;
-
-    /**
      * Flag indicating whether session was started by Phix and should be closed in _shutdown().
      * @var boolean
      */
@@ -117,12 +111,6 @@ class Phix
      * @var string
      */
     private $_output;
-
-    /**
-     * Caught errors.
-     * @var array
-     */
-    private $_errors = array();
 
     /**
      * Caught exceptions.
@@ -459,8 +447,6 @@ class Phix
         $this->_status     = 200;
         $this->_headers    = array();
         $this->_output     = null;
-
-        $this->_errors     = array();
         $this->_exceptions = array();
 
         $this->params(array(), true);
@@ -482,9 +468,6 @@ class Phix
         if (false === $this->trigger('startup')) {
             return;
         }
-
-        set_error_handler(array($this, 'errorHandler'));
-        $this->_restoreErrorHandler = true;
 
         $this->trigger('startup_end');
     }
@@ -697,12 +680,6 @@ class Phix
         }
 
         $this->_sessionStarted = false;
-
-        if ($this->_restoreErrorHandler) {
-            restore_error_handler();
-        }
-
-        $this->_restoreErrorHandler = false;
 
         $this->trigger('shutdown_end');
     }
@@ -2662,7 +2639,7 @@ class Phix
      */
     public function exceptionHandler(Exception $exception)
     {
-        if (false === $this->trigger('exception_handler', array('exception' => &$exception))) {
+        if (false === $this->trigger('exception_handler', array('exception' => $exception))) {
             return false;
         }
 
@@ -2687,79 +2664,5 @@ class Phix
     public function exceptions()
     {
         return $this->_exceptions;
-    }
-
-    /**
-     * Error handler.
-     *
-     * @param integer $errno
-     * @param string $errstr
-     * @param string $errfile
-     * @param integer $errline
-     * @param array $errcontext
-     * @return boolean
-     */
-    public function errorHandler($errno, $errstr, $errfile, $errline, array $errcontext = array())
-    {
-        if (!(error_reporting() & $errno)) {
-            return false;
-        }
-
-        $error = array(
-            'errno'      => &$errno,
-            'errstr'     => &$errstr,
-            'errfile'    => &$errfile,
-            'errline'    => &$errline,
-            'errcontext' => &$errcontext
-        );
-
-        if (false === $this->trigger('error_handler', $error)) {
-            return false;
-        }
-
-        $this->_errors[] = $error;
-
-        if ($this->errorDoHalt($errno)) {
-            if (false !== $this->trigger('error_handler_fatal', $error)) {
-                if ($this->env() == self::ENV_PRODUCTION) {
-                    $msg = null;
-                } else {
-                    $msg = 'Error: ' . $errstr;
-                }
-                $this->error(500, $msg);
-            }
-
-            $this->_shutdown();
-        }
-
-        return false;
-    }
-
-    /**
-     * Return handled errors.
-     *
-     * @return array
-     */
-    public function errors()
-    {
-        return $this->_errors;
-    }
-
-    /**
-     * Whether to halt application.
-     *
-     * @param integer $errno
-     * @return boolean
-     */
-    public function errorDoHalt($errno)
-    {
-        return !($errno == E_NOTICE ||
-                 $errno == E_WARNING ||
-                 $errno == E_CORE_WARNING ||
-                 $errno == E_COMPILE_WARNING ||
-                 $errno == E_USER_WARNING ||
-                 $errno == E_USER_NOTICE ||
-                 $errno == E_DEPRECATED ||
-                 $errno == E_USER_DEPRECATED);
     }
 }
