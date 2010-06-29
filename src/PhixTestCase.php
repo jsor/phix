@@ -76,6 +76,7 @@ class PhixTestCase extends PHPUnit_Framework_TestCase
         }
 
         $phix
+            ->env(Phix::ENV_TESTING)
             ->autoFlush(false)
             ->run();
     }
