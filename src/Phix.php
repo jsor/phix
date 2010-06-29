@@ -381,7 +381,8 @@ class Phix
     public function run()
     {
         try {
-            $this->_startup();
+            $this->_stopped = false;
+
             $this->_init();
             $this->_run();
             $this->_shutdown();
@@ -444,6 +445,7 @@ class Phix
             return $this;
         }
 
+        $this->_stopped    = false;
         $this->_status     = 200;
         $this->_headers    = array();
         $this->_output     = null;
@@ -457,32 +459,12 @@ class Phix
     }
 
     /**
-     * Startup application.
-     *
-     * @return void
-     */
-    private function _startup()
-    {
-        $this->_stopped = false;
-
-        if (false === $this->trigger('startup')) {
-            return;
-        }
-
-        $this->trigger('startup_end');
-    }
-
-    /**
      * Initialize application.
      *
      * @return void
      */
     private function _init()
     {
-        if ($this->_stopped) {
-            return;
-        }
-
         if (false === $this->trigger('init')) {
             return;
         }

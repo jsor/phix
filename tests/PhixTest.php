@@ -234,53 +234,6 @@ class PhixTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @covers Phix::_startup
-     * @covers Phix::stopped
-     */
-    public function test_StartupWithoutHook()
-    {
-        $phix = new Phix();
-        $phix
-            ->autoFlush(false)
-            // Hook shutdown event to prevent restoring of the error handler
-            ->hook('shutdown', function() {
-                return false;
-            })
-            ->get('/', function($phix) {
-                $phix->response('<html/>', 'html');
-            })
-            ->requestUri('/')
-            ->run();
-
-        $this->assertTrue($phix->stopped());
-    }
-
-    /**
-     * @covers Phix::_startup
-     * @covers Phix::stopped
-     */
-    public function test_StartupWithHook()
-    {
-        $phix = new Phix();
-        $phix
-            ->autoFlush(false)
-            // Hook shutdown event to prevent restoring of the error handler
-            ->hook('shutdown', function() {
-                return false;
-            })
-            ->hook('startup', function() {
-                return false;
-            })
-            ->get('/', function($phix) {
-                $phix->response('<html/>', 'html');
-            })
-            ->requestUri('/')
-            ->run();
-
-        $this->assertTrue($phix->stopped());
-    }
-
-    /**
      * @covers Phix::_init
      */
     public function test_InitProcessesAcceptHeader()
@@ -473,6 +426,7 @@ class PhixTest extends PHPUnit_Framework_TestCase
 
     /**
      * @covers Phix::_init
+     * @covers Phix::stopped
      */
     public function test_InitWithHook()
     {
@@ -481,7 +435,6 @@ class PhixTest extends PHPUnit_Framework_TestCase
         $phix = new Phix();
         $phix
             ->autoFlush(false)
-            // Hook shutdown event to prevent restoring of the error handler
             ->hook('init', function() {
                 return false;
             })
@@ -495,6 +448,7 @@ class PhixTest extends PHPUnit_Framework_TestCase
             ->run();
 
         $this->assertFalse($called);
+        $this->assertTrue($phix->stopped());
     }
 
     /**
