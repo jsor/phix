@@ -305,7 +305,8 @@ class Phix
      */
     public static function instance($config = null)
     {
-        return new self($config);
+        $class = get_called_class();
+        return new $class($config);
     }
 
     /**
