@@ -2184,6 +2184,10 @@ class Phix
             $requestRawBody = call_user_func($requestRawBody, $this);
         }
 
+        if (null !== $requestRawBody && strlen(trim($requestRawBody)) == 0) {
+            $requestRawBody = false;
+        }
+
         $this->_requestRawBody = $requestRawBody;
 
         return $this;

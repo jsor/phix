@@ -744,7 +744,12 @@ class PhixTest extends PHPUnit_Framework_TestCase
 
         $phix = new Phix();
         $phix->status(412);
-        $phix->response(array('foo' => 'bar'), 'xml');
+        $phix->response(function() {
+            return array('foo' => 'bar');
+        }, function() {
+            return 'xml';
+
+        });
         $this->assertTrue(in_array('Content-Type: text/xml;charset=utf-8', $phix->headers()));
         $this->assertEquals('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><response><status>fail</status><data><foo>bar</foo></data></response>', $phix->output());
     }
@@ -1441,6 +1446,14 @@ class PhixTest extends PHPUnit_Framework_TestCase
 
         $this->assertTrue($called);
         $this->assertEquals('bar', $phix->param('foo'));
+    }
+
+    /**
+     * @covers Phix::defaultRouter
+     */
+    public function testDefaultRouterReturnsFalseIfNoRouteForSuppliedRequestMethod()
+    {
+        $this->assertFalse(Phix::defaultRouter(new Phix(), array('GET' => array()), 'POST', '/'));
     }
 
     /**
@@ -2206,6 +2219,16 @@ class PhixTest extends PHPUnit_Framework_TestCase
         });
         $this->assertSame('bar', $phix->requestRawBody());
         $this->assertEquals($ret, $phix);
+    }
+
+    /**
+     * @covers Phix::requestRawBody
+     */
+    public function testRequestRawBodyReturnsFalseOnEmptyString()
+    {
+        $phix = new Phix();
+        $phix->requestRawBody('');
+        $this->assertFalse($phix->requestRawBody());
     }
 
     /**
