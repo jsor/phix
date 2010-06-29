@@ -2676,4 +2676,62 @@ class PhixTest extends PHPUnit_Framework_TestCase
             ->autoFlush(false)
             ->error(500, null, 'pdf');
     }
+
+    /**
+     * @covers Phix::exceptionHandler
+     * @covers Phix::exceptions
+     */
+    public function testExceptionHandler()
+    {
+        $exception = new Exception('Test-Exception');
+
+        $phix = new Phix();
+        $phix
+            ->autoFlush(false)
+            ->get('/', function() use($exception) {
+                throw $exception;
+            })
+            ->requestUri('/')
+            ->run();
+
+        $this->assertTrue(in_array($exception, $phix->exceptions(), true));
+        $this->assertEquals(500, $phix->status());
+        $this->assertNotRegexp('/Test-Exception/', $phix->output());
+
+        $phix
+            ->reset()
+            ->env(Phix::ENV_DEVELOPMENT)
+            ->run();
+
+        $this->assertRegexp('/Test-Exception/', $phix->output());
+    }
+
+    /**
+     * @covers Phix::exceptionHandler
+     * @covers Phix::exceptions
+     */
+    public function testExceptionHandlerWithHooks()
+    {
+        $called1 = false;
+        $called2 = false;
+
+        $phix = new Phix();
+        $phix
+            ->autoFlush(false)
+            ->get('/', function() {
+                throw new Exception('Test-Exception');
+            })
+            ->hook('exception_handler', function() use(&$called1) {
+                $called1 = true;
+                return false;
+            })
+            ->hook('exception_handler_end', function() use(&$called2) {
+                $called2 = true;
+            })
+            ->requestUri('/')
+            ->run();
+
+            $this->assertTrue($called1);
+            $this->assertFalse($called2);
+    }
 }
