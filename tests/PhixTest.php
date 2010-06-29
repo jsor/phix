@@ -2121,6 +2121,7 @@ class PhixTest extends PHPUnit_Framework_TestCase
 
     /**
      * @covers Phix::defaultFormatXmlResponse
+     * @covers Phix::_arrayToXml
      */
     public function testDefaultFormatXmlResponse()
     {
@@ -2129,6 +2130,9 @@ class PhixTest extends PHPUnit_Framework_TestCase
 
         $response = Phix::defaultFormatXmlResponse(new Phix(), 412, array('foo' => 'bar', 'bar' => array('key1' => 'val1'), 'baz' => array('val2', 'val3')));
         $this->assertEquals('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><response><status>fail</status><data><foo>bar</foo><bar><key1>val1</key1></bar><baz>val2</baz><baz>val3</baz></data></response>', $response);
+
+        $response = Phix::defaultFormatXmlResponse(new Phix(), 200, (object) array('foo' => 'bar', 'bar' => (object) array('key1' => 'val1'), 'baz' => array('val2', 'val3')));
+        $this->assertEquals('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><response><status>success</status><data><foo>bar</foo><bar><key1>val1</key1></bar><baz>val2</baz><baz>val3</baz></data></response>', $response);
     }
 
     /**
@@ -2625,10 +2629,13 @@ class PhixTest extends PHPUnit_Framework_TestCase
                 return 501;
             }, function() {
                 return 'Nope, not implemented';
+            }, function() {
+                return 'html';
             });
 
         $this->assertEquals(501, $phix->status());
         $this->assertRegExp('/Nope, not implemented/', $phix->output());
+        $this->assertTrue(in_array('Content-Type: text/html;charset=utf-8', $phix->headers()));
     }
 
     /**
@@ -2656,5 +2663,17 @@ class PhixTest extends PHPUnit_Framework_TestCase
             ->error(500);
 
         $this->assertRegExp('/<html>/', $phix->output());
+    }
+
+    /**
+     * @covers Phix::error
+     */
+    public function testErrorThrowsExceptionForInvalidPassedFormat()
+    {
+        $this->setExpectedException('Exception', 'Invalid format "pdf"');
+        $phix = new Phix();
+        $phix
+            ->autoFlush(false)
+            ->error(500, null, 'pdf');
     }
 }
