@@ -939,7 +939,6 @@ class AppTest extends \PHPUnit_Framework_TestCase
     /**
      * @covers \Phix\App::route
      * @covers \Phix\App::_route
-     * @covers \Phix\App::defaultRouter
      * @covers \Phix\App::_dispatch
      */
     public function testRoute()
@@ -964,7 +963,6 @@ class AppTest extends \PHPUnit_Framework_TestCase
      * @covers \Phix\App::get
      * @covers \Phix\App::route
      * @covers \Phix\App::_route
-     * @covers \Phix\App::defaultRouter
      * @covers \Phix\App::_dispatch
      */
     public function testGetRouteAlsoAssignsHeadRoute()
@@ -1002,7 +1000,6 @@ class AppTest extends \PHPUnit_Framework_TestCase
      * @covers \Phix\App::head
      * @covers \Phix\App::route
      * @covers \Phix\App::_route
-     * @covers \Phix\App::defaultRouter
      * @covers \Phix\App::_dispatch
      */
     public function testSimpleHeadRoute()
@@ -1027,7 +1024,6 @@ class AppTest extends \PHPUnit_Framework_TestCase
      * @covers \Phix\App::get
      * @covers \Phix\App::route
      * @covers \Phix\App::_route
-     * @covers \Phix\App::defaultRouter
      * @covers \Phix\App::_dispatch
      */
     public function testSimpleGetRoute()
@@ -1052,7 +1048,6 @@ class AppTest extends \PHPUnit_Framework_TestCase
      * @covers \Phix\App::post
      * @covers \Phix\App::route
      * @covers \Phix\App::_route
-     * @covers \Phix\App::defaultRouter
      * @covers \Phix\App::_dispatch
      */
     public function testSimplePostRoute()
@@ -1078,7 +1073,6 @@ class AppTest extends \PHPUnit_Framework_TestCase
      * @covers \Phix\App::put
      * @covers \Phix\App::route
      * @covers \Phix\App::_route
-     * @covers \Phix\App::defaultRouter
      * @covers \Phix\App::_dispatch
      */
     public function testSimplePutRoute()
@@ -1104,7 +1098,6 @@ class AppTest extends \PHPUnit_Framework_TestCase
      * @covers \Phix\App::delete
      * @covers \Phix\App::route
      * @covers \Phix\App::_route
-     * @covers \Phix\App::defaultRouter
      * @covers \Phix\App::_dispatch
      */
     public function testSimpleDeleteRoute()
@@ -1130,7 +1123,6 @@ class AppTest extends \PHPUnit_Framework_TestCase
      * @covers \Phix\App::get
      * @covers \Phix\App::route
      * @covers \Phix\App::_route
-     * @covers \Phix\App::defaultRouter
      * @covers \Phix\App::_dispatch
      */
     public function testEmptyRoute()
@@ -1155,7 +1147,6 @@ class AppTest extends \PHPUnit_Framework_TestCase
      * @covers \Phix\App::get
      * @covers \Phix\App::route
      * @covers \Phix\App::_route
-     * @covers \Phix\App::defaultRouter
      * @covers \Phix\App::_dispatch
      */
     public function testSingleSlashRoute()
@@ -1180,7 +1171,6 @@ class AppTest extends \PHPUnit_Framework_TestCase
      * @covers \Phix\App::get
      * @covers \Phix\App::route
      * @covers \Phix\App::_route
-     * @covers \Phix\App::defaultRouter
      * @covers \Phix\App::_dispatch
      */
     public function testNamedParameterRoute()
@@ -1206,7 +1196,6 @@ class AppTest extends \PHPUnit_Framework_TestCase
      * @covers \Phix\App::get
      * @covers \Phix\App::route
      * @covers \Phix\App::_route
-     * @covers \Phix\App::defaultRouter
      * @covers \Phix\App::_dispatch
      */
     public function testInlineWildcardRoute()
@@ -1231,7 +1220,6 @@ class AppTest extends \PHPUnit_Framework_TestCase
      * @covers \Phix\App::get
      * @covers \Phix\App::route
      * @covers \Phix\App::_route
-     * @covers \Phix\App::defaultRouter
      * @covers \Phix\App::_dispatch
      */
     public function testWildcardRoute()
@@ -1258,7 +1246,6 @@ class AppTest extends \PHPUnit_Framework_TestCase
      * @covers \Phix\App::get
      * @covers \Phix\App::route
      * @covers \Phix\App::_route
-     * @covers \Phix\App::defaultRouter
      * @covers \Phix\App::_dispatch
      */
     public function testWildcardWithNamedParameterRoute()
@@ -1285,7 +1272,6 @@ class AppTest extends \PHPUnit_Framework_TestCase
      * @covers \Phix\App::get
      * @covers \Phix\App::route
      * @covers \Phix\App::_route
-     * @covers \Phix\App::defaultRouter
      * @covers \Phix\App::_dispatch
      */
     public function testDoubleWildcardRoute()
@@ -1311,7 +1297,6 @@ class AppTest extends \PHPUnit_Framework_TestCase
      * @covers \Phix\App::get
      * @covers \Phix\App::route
      * @covers \Phix\App::_route
-     * @covers \Phix\App::defaultRouter
      * @covers \Phix\App::_dispatch
      */
     public function testRegexpRoute()
@@ -1337,7 +1322,6 @@ class AppTest extends \PHPUnit_Framework_TestCase
      * @covers \Phix\App::get
      * @covers \Phix\App::route
      * @covers \Phix\App::_route
-     * @covers \Phix\App::defaultRouter
      * @covers \Phix\App::_dispatch
      */
     public function testRegexpWithNamedParameterRoute()
@@ -1363,7 +1347,6 @@ class AppTest extends \PHPUnit_Framework_TestCase
      * @covers \Phix\App::get
      * @covers \Phix\App::route
      * @covers \Phix\App::_route
-     * @covers \Phix\App::defaultRouter
      * @covers \Phix\App::_dispatch
      */
     public function testRouteSetsDefaults()
@@ -1398,7 +1381,6 @@ class AppTest extends \PHPUnit_Framework_TestCase
      * @covers \Phix\App::get
      * @covers \Phix\App::route
      * @covers \Phix\App::_route
-     * @covers \Phix\App::defaultRouter
      * @covers \Phix\App::_dispatch
      */
     public function testRouteRouteCallbackReturningFalseDontMatchRoute()
@@ -1426,7 +1408,6 @@ class AppTest extends \PHPUnit_Framework_TestCase
      * @covers \Phix\App::get
      * @covers \Phix\App::route
      * @covers \Phix\App::_route
-     * @covers \Phix\App::defaultRouter
      * @covers \Phix\App::_dispatch
      * @group 123
      */
@@ -1451,12 +1432,11 @@ class AppTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('bar', $app->param('foo'));
     }
 
-    /**
-     * @covers \Phix\App::defaultRouter
-     */
     public function testDefaultRouterReturnsFalseIfNoRouteForSuppliedRequestMethod()
     {
-        $this->assertFalse(App::defaultRouter(new App(), array('GET' => array()), 'POST', '/'));
+        $app = new App();
+        $callback = $app->router();
+        $this->assertFalse($callback($app, array('GET' => array()), 'POST', '/'));
     }
 
     /**
@@ -1492,8 +1472,7 @@ class AppTest extends \PHPUnit_Framework_TestCase
 
         $app = new App();
         $defaultRouter = $app->router();
-        $this->assertEquals($defaultRouter[0], '\Phix\App');
-        $this->assertEquals($defaultRouter[1], 'defaultRouter');
+        $this->assertTrue(is_callable($defaultRouter));
         $ret = $app->router($router);
         $this->assertEquals($router, $app->router());
         $this->assertEquals($ret, $app);

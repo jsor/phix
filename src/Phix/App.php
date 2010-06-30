@@ -1294,6 +1294,7 @@ class App
     /**
      * Get/Set the router.
      *
+     * @author Fabrice Luraine
      * @param mixed $router The router callback
      * @return mixed|\Phix\App
      */
@@ -1301,7 +1302,54 @@ class App
     {
         if (func_num_args() == 0) {
             if (null === $this->_router) {
-                $this->_router = array('\Phix\App', 'defaultRouter');
+                $this->_router = function($app, $routes, $requestMethod, $pathInfo) {
+                    $requestMethod = strtoupper($requestMethod);
+
+                    if (!isset($routes[$requestMethod])) {
+                        return false;
+                    }
+
+                    foreach (array_reverse($routes[$requestMethod]) as $route) {
+                        if (preg_match($route['pattern'], $pathInfo, $matches)) {
+                            $params = $route['defaults'];
+
+                            if (count($matches) > 1) {
+                                array_shift($matches);
+
+                                $numMatches = count($matches);
+                                $names = array_values($route['names']);
+                                $numNames = count($names);
+
+                                if ($numMatches < $numNames) {
+                                    $a = array_fill(0, $numNames - $numMatches, null);
+                                    $matches = array_merge($matches, $a);
+                                } elseif ($numMatches > $numNames) {
+                                    $names = range($numNames, $numMatches - 1);
+                                }
+
+                                $params = array_combine($names, $matches) + $params;
+                            }
+
+                            if (is_callable($route['callback'])) {
+                                $ret = call_user_func($route['callback'], $app);
+
+                                if (false === $ret) {
+                                    continue;
+                                }
+
+                                if (is_array($ret)) {
+                                    $params = $ret + $params;
+                                }
+                            }
+
+                            $route['params'] = $params;
+
+                            return $route;
+                        }
+                    }
+
+                    return false;
+                };
             }
 
             return $this->_router;
@@ -1310,66 +1358,6 @@ class App
         $this->_router = $router;
 
         return $this;
-    }
-
-    /**
-     * The default router callback.
-     *
-     * @author Fabrice Luraine
-     * @param \Phix\App $app The App instance
-     * @param array $routes The routes
-     * @param string $requestMethod The request method
-     * @param string $pathInfo The pathinfo
-     * @return array|false
-     */
-    public static function defaultRouter($app, $routes, $requestMethod, $pathInfo)
-    {
-        $requestMethod = strtoupper($requestMethod);
-
-        if (!isset($routes[$requestMethod])) {
-            return false;
-        }
-
-        foreach (array_reverse($routes[$requestMethod]) as $route) {
-            if (preg_match($route['pattern'], $pathInfo, $matches)) {
-                $params = $route['defaults'];
-
-                if (count($matches) > 1) {
-                    array_shift($matches);
-
-                    $numMatches = count($matches);
-                    $names = array_values($route['names']);
-                    $numNames = count($names);
-
-                    if ($numMatches < $numNames) {
-                        $a = array_fill(0, $numNames - $numMatches, null);
-                        $matches = array_merge($matches, $a);
-                    } elseif ($numMatches > $numNames) {
-                        $names = range($numNames, $numMatches - 1);
-                    }
-
-                    $params = array_combine($names, $matches) + $params;
-                }
-
-                if (is_callable($route['callback'])) {
-                    $ret = call_user_func($route['callback'], $app);
-
-                    if (false === $ret) {
-                        continue;
-                    }
-
-                    if (is_array($ret)) {
-                        $params = $ret + $params;
-                    }
-                }
-
-                $route['params'] = $params;
-
-                return $route;
-            }
-        }
-
-        return false;
     }
 
     /**
