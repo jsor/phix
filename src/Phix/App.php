@@ -1964,8 +1964,6 @@ class App
      */
     public function formats(array $formats = array(), $reset = false)
     {
-        static $default;
-
         if (func_num_args() == 0) {
             return $this->_formats;
         }
