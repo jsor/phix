@@ -447,6 +447,10 @@ class App
             $config = call_user_func($config, $this);
         }
 
+        if (!is_array($config)) {
+            return $this;
+        }
+
         $forbidden = array(
             'configure',
             'run',
