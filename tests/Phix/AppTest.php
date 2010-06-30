@@ -2028,39 +2028,40 @@ class AppTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($ret, $app);
     }
 
-    /**
-     * @covers \Phix\App::defaultFormatHtmlError
-     */
-    public function testDefaultFormatHtmlError()
+    public function testFormatHtmlErrorCallback()
     {
-        $error = App::defaultFormatHtmlError(new App(), 404, 'foo');
+        $app = new App();
+        $format = $app->format('html');
+        $callback = $format['error'];
+        $error = $callback($app, 404, 'foo');
         $this->assertEquals('<!DOCTYPE html><html><head></head><body><h1>Not Found</h1><p>foo</p></body></html>', $error);
     }
 
-    /**
-     * @covers \Phix\App::defaultFormatJsonError
-     */
-    public function testDefaultFormatJsonError()
+    public function testFormatJsonErrorCallback()
     {
-        $error = App::defaultFormatJsonError(new App(), 404, 'foo');
+        $app = new App();
+        $format = $app->format('json');
+        $callback = $format['error'];
+        $error = $callback($app, 404, 'foo');
         $this->assertEquals('{"status":"error","message":"foo"}', $error);
     }
 
-    /**
-     * @covers \Phix\App::defaultFormatXmlError
-     */
-    public function testDefaultFormatXmlError()
+    public function testFormatXmlErrorCallback()
     {
-        $error = App::defaultFormatXmlError(new App(), 404, 'foo');
+        $app = new App();
+        $format = $app->format('xml');
+        $callback = $format['error'];
+        $error = $callback($app, 404, 'foo');
         $this->assertEquals('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><response><status>error</status><message>foo</message></response>', $error);
     }
 
-    /**
-     * @covers \Phix\App::defaultFormatHtmlResponse
-     */
-    public function testDefaultFormatHtmlResponse()
+    public function testFormatHtmlResponseCallback()
     {
-        $response = App::defaultFormatHtmlResponse(new App(), 200, array('foo' => 'bar', 'bar' => array('key1' => 'val1'), 'baz' => array('val2', 'val3')));
+        $app = new App();
+        $format = $app->format('html');
+        $callback = $format['response'];
+
+        $response = $callback($app, 200, array('foo' => 'bar', 'bar' => array('key1' => 'val1'), 'baz' => array('val2', 'val3')));
         $expected = '<!DOCTYPE html><html><head><title>OK</title></head><body><h1>OK</h1><pre>Array
 (
     [foo] =&gt; bar
@@ -2079,7 +2080,7 @@ class AppTest extends \PHPUnit_Framework_TestCase
 </pre></body></html>';
         $this->assertEquals(str_replace(array("\r\n", "\t"), array("\n", "    "), $expected), $response);
 
-        $response = App::defaultFormatHtmlResponse(new App(), 412, array('foo' => 'bar', 'bar' => array('key1' => 'val1'), 'baz' => array('val2', 'val3')));
+        $response = $callback($app, 412, array('foo' => 'bar', 'bar' => array('key1' => 'val1'), 'baz' => array('val2', 'val3')));
         $expected = '<!DOCTYPE html><html><head><title>Precondition Failed</title></head><body><h1>Precondition Failed</h1><pre>Array
 (
     [foo] =&gt; bar
@@ -2099,86 +2100,92 @@ class AppTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(str_replace(array("\r\n", "\t"), array("\n", "    "), $expected), $response);
     }
 
-    /**
-     * @covers \Phix\App::defaultFormatJsonResponse
-     */
-    public function testDefaultFormatJsonResponse()
+    public function testFormatJsonResponseCallback()
     {
-        $response = App::defaultFormatJsonResponse(new App(), 200, array('foo' => 'bar', 'bar' => array('key1' => 'val1'), 'baz' => array('val2', 'val3')));
+        $app = new App();
+        $format = $app->format('json');
+        $callback = $format['response'];
+
+        $response = $callback($app, 200, array('foo' => 'bar', 'bar' => array('key1' => 'val1'), 'baz' => array('val2', 'val3')));
         $this->assertEquals('{"status":"success","data":{"foo":"bar","bar":{"key1":"val1"},"baz":["val2","val3"]}}', $response);
 
-        $response = App::defaultFormatJsonResponse(new App(), 412, array('foo' => 'bar', 'bar' => array('key1' => 'val1'), 'baz' => array('val2', 'val3')));
+        $response = $callback($app, 412, array('foo' => 'bar', 'bar' => array('key1' => 'val1'), 'baz' => array('val2', 'val3')));
         $this->assertEquals('{"status":"fail","data":{"foo":"bar","bar":{"key1":"val1"},"baz":["val2","val3"]}}', $response);
     }
 
-    /**
-     * @covers \Phix\App::defaultFormatJsonResponse
-     */
     public function testDefaultFormatJsonResponseHandlesJSONPCallback()
     {
         $_GET = array(
             'callback' => 'jsonp1234'
         );
-        $response = App::defaultFormatJsonResponse(new App(), 412, array('foo' => 'bar', 'bar' => array('key1' => 'val1'), 'baz' => array('val2', 'val3')));
+
+        $app = new App();
+        $format = $app->format('json');
+        $callback = $format['response'];
+
+        $response = $callback($app, 412, array('foo' => 'bar', 'bar' => array('key1' => 'val1'), 'baz' => array('val2', 'val3')));
         $this->assertEquals('jsonp1234({"status":"fail","data":{"foo":"bar","bar":{"key1":"val1"},"baz":["val2","val3"]}})', $response);
     }
 
-    /**
-     * @covers \Phix\App::defaultFormatJsonResponse
-     */
     public function testDefaultFormatJsonResponseIgnoresInvalidJSONPCallback()
     {
         $_GET = array(
             'callback' => '1234'
         );
-        $response = App::defaultFormatJsonResponse(new App(), 412, array('foo' => 'bar', 'bar' => array('key1' => 'val1'), 'baz' => array('val2', 'val3')));
+
+        $app = new App();
+        $format = $app->format('json');
+        $callback = $format['response'];
+
+        $response = $callback($app, 412, array('foo' => 'bar', 'bar' => array('key1' => 'val1'), 'baz' => array('val2', 'val3')));
         $this->assertEquals('{"status":"fail","data":{"foo":"bar","bar":{"key1":"val1"},"baz":["val2","val3"]}}', $response);
     }
 
-    /**
-     * @covers \Phix\App::defaultFormatXmlResponse
-     * @covers \Phix\App::_arrayToXml
-     */
     public function testDefaultFormatXmlResponse()
     {
-        $response = App::defaultFormatXmlResponse(new App(), 200, array('foo' => 'bar', 'bar' => array('key1' => 'val1'), 'baz' => array('val2', 'val3')));
+        $app = new App();
+        $format = $app->format('xml');
+        $callback = $format['response'];
+
+        $response = $callback($app, 200, array('foo' => 'bar', 'bar' => array('key1' => 'val1'), 'baz' => array('val2', 'val3')));
         $this->assertEquals('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><response><status>success</status><data><foo>bar</foo><bar><key1>val1</key1></bar><baz>val2</baz><baz>val3</baz></data></response>', $response);
 
-        $response = App::defaultFormatXmlResponse(new App(), 412, array('foo' => 'bar', 'bar' => array('key1' => 'val1'), 'baz' => array('val2', 'val3')));
+        $response = $callback($app, 412, array('foo' => 'bar', 'bar' => array('key1' => 'val1'), 'baz' => array('val2', 'val3')));
         $this->assertEquals('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><response><status>fail</status><data><foo>bar</foo><bar><key1>val1</key1></bar><baz>val2</baz><baz>val3</baz></data></response>', $response);
 
-        $response = App::defaultFormatXmlResponse(new App(), 200, (object) array('foo' => 'bar', 'bar' => (object) array('key1' => 'val1'), 'baz' => array('val2', 'val3')));
+        $response = $callback($app, 200, (object) array('foo' => 'bar', 'bar' => (object) array('key1' => 'val1'), 'baz' => array('val2', 'val3')));
         $this->assertEquals('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><response><status>success</status><data><foo>bar</foo><bar><key1>val1</key1></bar><baz>val2</baz><baz>val3</baz></data></response>', $response);
     }
 
-    /**
-     * @covers \Phix\App::defaultFormatJsonUnserialize
-     */
-    public function testDefaultFormatJsonUnserialize()
+    public function testFormatJsonUnserializeCallback()
     {
+        $app = new App();
+        $format = $app->format('json');
+        $callback = $format['unserialize'];
+
         $obj = new \stdClass();
         $obj->bar = array('baz', 'test');
         $json = json_encode(array('foo' => 'bar', 'obj' => $obj));
 
-        $arr = App::defaultFormatJsonUnserialize(new App(), $json);
+        $arr = $callback($app, $json);
 
         $expected = array('foo' => 'bar', 'obj' => array('bar' =>  array('baz', 'test')));
         $this->assertSame($expected, $arr);
     }
 
-    /**
-     * @covers \Phix\App::defaultFormatXmlUnserialize
-     * @covers \Phix\App::_xmlToArray
-     */
-    public function testDefaultFormatXmlUnserialize()
+    public function testFormatXmlUnserializeCallback()
     {
+        $app = new App();
+        $format = $app->format('xml');
+        $callback = $format['unserialize'];
+
         $xml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' .
                '<data>' .
                '<foo>bar</foo>' .
                '<obj><bar>baz</bar><bar>test</bar></obj>' .
                '</data>';
 
-        $arr = App::defaultFormatXmlUnserialize(new App(), $xml);
+        $arr = $callback($app, $xml);
 
         $expected = array('foo' => 'bar', 'obj' => array('bar' => array('baz', 'test')));
         $this->assertSame($expected, $arr);

@@ -148,46 +148,7 @@ class App
      * Available formats.
      * @var array
      */
-    private $_formats = array(
-        'html' => array(
-            'view' => array(
-                'layout'    => null,
-                'extension' => array('.html.php', '.html.phtml', '.html', '.php', '.phtml')
-            ),
-            'contenttype' => array(
-                'request'  => array('text/html', 'application/xhtml+xml'),
-                'response' => 'text/html'
-            ),
-            'error'    => array('\Phix\App', 'defaultFormatHtmlError'),
-            'response' => array('\Phix\App', 'defaultFormatHtmlResponse'),
-        ),
-        'json' => array(
-            'view' => array(
-                'layout'    => false,
-                'extension' => array('.json.php', '.json.phtml', '.json')
-            ),
-            'contenttype' => array(
-                'request'  => array('application/json'),
-                'response' => 'application/json'
-            ),
-            'error'       => array('\Phix\App', 'defaultFormatJsonError'),
-            'response'    => array('\Phix\App', 'defaultFormatJsonResponse'),
-            'unserialize' => array('\Phix\App', 'defaultFormatJsonUnserialize')
-        ),
-        'xml' => array(
-            'view' => array(
-                'layout'    => false,
-                'extension' => array('.xml.php', '.xml.phtml', '.xml')
-            ),
-            'contenttype' => array(
-                'request'  => array('text/xml', 'application/xml'),
-                'response' => 'text/xml'
-            ),
-            'error'       => array('\Phix\App', 'defaultFormatXmlError'),
-            'response'    => array('\Phix\App', 'defaultFormatXmlResponse'),
-            'unserialize' => array('\Phix\App', 'defaultFormatXmlUnserialize')
-        )
-    );
+    private $_formats = array();
 
     /**
      * Request headers.
@@ -318,6 +279,157 @@ class App
      */
     public function __construct($config = null)
     {
+        $this->_formats = array(
+            'html' => array(
+                'view' => array(
+                    'layout'    => null,
+                    'extension' => array('.html.php', '.html.phtml', '.html', '.php', '.phtml')
+                ),
+                'contenttype' => array(
+                    'request'  => array('text/html', 'application/xhtml+xml'),
+                    'response' => 'text/html'
+                ),
+                'error' => function($app, $status, $msg) {
+                    return '<!DOCTYPE html>' .
+                           '<html>' .
+                             '<head></head>' .
+                             '<body>' .
+                               '<h1>' . $app->statusPhrase($status) . '</h1>' .
+                               '<p>' . $app->escape($msg) . '</p>' .
+                             '</body>' .
+                           '</html>';
+                },
+                'response' => function($app, $status, $data) {
+                    return '<!DOCTYPE html>' .
+                           '<html>' .
+                             '<head><title>' . $app->statusPhrase($status) . '</title></head>' .
+                             '<body>' .
+                               '<h1>' . $app->statusPhrase($status) . '</h1>' .
+                               '<pre>' . $app->escape(print_r($data, true)) . '</pre>' .
+                             '</body>' .
+                           '</html>';
+                }
+            ),
+            'json' => array(
+                'view' => array(
+                    'layout'    => false,
+                    'extension' => array('.json.php', '.json.phtml', '.json')
+                ),
+                'contenttype' => array(
+                    'request'  => array('application/json'),
+                    'response' => 'application/json'
+                ),
+                'error' => function($app, $status, $msg) {
+                    return json_encode(array('status' => 'error', 'message' => $msg));
+                },
+                'response' => function($app, $status, $data) {
+                    $statusString = 200 <= $status && 206 >= $status ? 'success' : 'fail';
+                    $response = json_encode(array('status' => $statusString, 'data' => $data));
+
+                    // Handle JSONP callbacks
+                    if (!empty($_GET['callback']) && preg_match('/^[a-zA-Z_$][0-9a-zA-Z_$]*$/', $_GET['callback'])) {
+                        $response = $_GET['callback'] . '(' . $response . ')';
+                    }
+
+                    return $response;
+                },
+                'unserialize' => function($app, $string) {
+                    return json_decode($string, true);
+                }
+            ),
+            'xml' => array(
+                'view' => array(
+                    'layout'    => false,
+                    'extension' => array('.xml.php', '.xml.phtml', '.xml')
+                ),
+                'contenttype' => array(
+                    'request'  => array('text/xml', 'application/xml'),
+                    'response' => 'text/xml'
+                ),
+                'error' => function($app, $status, $msg) {
+                    return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' .
+                           '<response>' .
+                             '<status>error</status>' .
+                             '<message>' . $app->escape($msg) . '</message>' .
+                           '</response>';
+                },
+                'response' => function($app, $status, $data) {
+                    $arrayToXml = function(array $array, $root) use (&$arrayToXml) {
+                        $xml  = '';
+                        $wrap = true;
+                        foreach ($array as $key => $value) {
+                            if (is_object($value)) {
+                                $value = get_object_vars($value);
+                            }
+                            if (is_array($value)) {
+                                if (is_numeric($key)) {
+                                    $key  = $root;
+                                    $wrap = false;
+                                }
+                                $xml .= $arrayToXml($value, $key);
+                            } else {
+                                if (is_numeric($key)) {
+                                    $wrap = false;
+                                    $xml .= '<' . $root . '>' . htmlspecialchars($value, ENT_COMPAT, 'UTF-8') . '</' . $root . '>';
+                                } else {
+                                    $xml .= '<' . $key . '>' . htmlspecialchars($value, ENT_COMPAT, 'UTF-8') . '</' . $key . '>';
+                                }
+                            }
+                        }
+
+                        if ($wrap) {
+                            $xml = '<' . $root . '>' . $xml . '</' . $root . '>';
+                        }
+
+                        return $xml;
+                    };
+
+                    $statusString = 20 <= $status && 206 >= $status ? 'success' : 'fail';
+                    if (is_object($data)) {
+                        $data = get_object_vars($data);
+                    }
+
+                    return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' .
+                           '<response>' .
+                             '<status>' . $statusString . '</status>' .
+                             $arrayToXml($data, 'data') .
+                           '</response>';
+                },
+                'unserialize' => function($app, $string) {
+                    $xmlToArray = function(\SimpleXMLElement $xmlObject) use (&$xmlToArray) {
+                        $config = array();
+
+                        // Search for children
+                        if (count($xmlObject->children()) > 0) {
+                            foreach ($xmlObject->children() as $key => $value) {
+                                if (count($value->children()) > 0) {
+                                    $value = $xmlToArray($value);
+                                } else {
+                                    $value = (string) $value;
+                                }
+
+                                if (array_key_exists($key, $config)) {
+                                    if (!is_array($config[$key]) || !array_key_exists(0, $config[$key])) {
+                                        $config[$key] = array($config[$key]);
+                                    }
+
+                                    $config[$key][] = $value;
+                                } else {
+                                    $config[$key] = $value;
+                                }
+                            }
+                        } else {
+                            $config = (string) $xmlObject;
+                        }
+
+                        return $config;
+                    };
+
+                    return $xmlToArray(simplexml_load_string($string));
+                }
+            )
+        );
+
         if (null !== $config) {
             $this->configure($config);
         }
@@ -1900,218 +2012,6 @@ class App
         }
 
         return $this;
-    }
-
-    /**
-     * Default HTML error callback.
-     *
-     * @param \Phix\App $app The App instance
-     * @param integer $status The HTTP status code
-     * @param string $msg The error message
-     * @return string
-     */
-    public static function defaultFormatHtmlError($app, $status, $msg)
-    {
-        return '<!DOCTYPE html>' .
-               '<html>' .
-                 '<head></head>' .
-                 '<body>' .
-                   '<h1>' . $app->statusPhrase($status) . '</h1>' .
-                   '<p>' . $app->escape($msg) . '</p>' .
-                 '</body>' .
-               '</html>';
-    }
-
-    /**
-     * Default JSON error callback.
-     *
-     * @param \Phix\App $app The App instance
-     * @param integer $status The HTTP status code
-     * @param string $msg The error message
-     * @return string
-     */
-    public static function defaultFormatJsonError($app, $status, $msg)
-    {
-        return json_encode(array('status' => 'error', 'message' => $msg));
-    }
-
-    /**
-     * Default XML error callback.
-     *
-     * @param \Phix\App $app The App instance
-     * @param integer $status The HTTP status code
-     * @param string $msg The error message
-     * @return string
-     */
-    public static function defaultFormatXmlError($app, $status, $msg)
-    {
-        return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' .
-               '<response>' .
-                 '<status>error</status>' .
-                 '<message>' . $app->escape($msg) . '</message>' .
-               '</response>';
-    }
-
-    /**
-     * Default HTML response callback.
-     *
-     * @param \Phix\App $app The App instance
-     * @param integer $status The HTTP status code
-     * @param array $data The data
-     * @return string
-     */
-    public static function defaultFormatHtmlResponse($app, $status, $data)
-    {
-        return '<!DOCTYPE html>' .
-               '<html>' .
-                 '<head><title>' . $app->statusPhrase($status) . '</title></head>' .
-                 '<body>' .
-                   '<h1>' . $app->statusPhrase($status) . '</h1>' .
-                   '<pre>' . $app->escape(print_r($data, true)) . '</pre>' .
-                 '</body>' .
-               '</html>';
-    }
-
-    /**
-     * Default JSON response callback.
-     *
-     * @param \Phix\App $app The App instance
-     * @param integer $status The HTTP status code
-     * @param array $data The data
-     * @return string
-     */
-    public static function defaultFormatJsonResponse($app, $status, $data)
-    {
-        $statusString = 200 <= $status && 206 >= $status ? 'success' : 'fail';
-        $response = json_encode(array('status' => $statusString, 'data' => $data));
-
-        // Handle JSONP callbacks
-        if (!empty($_GET['callback']) && preg_match('/^[a-zA-Z_$][0-9a-zA-Z_$]*$/', $_GET['callback'])) {
-            $response = $_GET['callback'] . '(' . $response . ')';
-        }
-
-        return $response;
-    }
-
-    /**
-     * Default XML response callback.
-     *
-     * @param \Phix\App $app The App instance
-     * @param integer $status The HTTP status code
-     * @param array $data The data
-     * @return string
-     */
-    public static function defaultFormatXmlResponse($app, $status, $data)
-    {
-        $statusString = 20 <= $status && 206 >= $status ? 'success' : 'fail';
-        if (is_object($data)) {
-            $data = get_object_vars($data);
-        }
-        return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' .
-               '<response>' .
-                 '<status>' . $statusString . '</status>' .
-                 self::_arrayToXml($data, 'data') .
-               '</response>';
-    }
-
-    /**
-     * Returns a xml representaion from an array.
-     *
-     * @param  array $array The array
-     * @param  string $root The root
-     * @param  string $element The element
-     * @return array|string
-     */
-    protected static function _arrayToXml(array $array, $root)
-    {
-        $xml  = '';
-        $wrap = true;
-        foreach ($array as $key => $value) {
-            if (is_object($value)) {
-                $value = get_object_vars($value);
-            }
-            if (is_array($value)) {
-                if (is_numeric($key)) {
-                    $key  = $root;
-                    $wrap = false;
-                }
-                $xml .= self::_arrayToXml($value, $key);
-            } else {
-                if (is_numeric($key)) {
-                    $wrap = false;
-                    $xml .= '<' . $root . '>' . htmlspecialchars($value, ENT_COMPAT, 'UTF-8') . '</' . $root . '>';
-                } else {
-                    $xml .= '<' . $key . '>' . htmlspecialchars($value, ENT_COMPAT, 'UTF-8') . '</' . $key . '>';
-                }
-            }
-        }
-
-        if ($wrap) {
-            $xml = '<' . $root . '>' . $xml . '</' . $root . '>';
-        }
-
-        return $xml;
-    }
-
-    /**
-     * Default JSON unserialize callback.
-     *
-     * @param \Phix\App $app The App instance
-     * @param string $string The string to unserialize
-     * @return array
-     */
-    public static function defaultFormatJsonUnserialize($app, $string)
-    {
-        return json_decode($string, true);
-    }
-
-    /**
-     * Default XML unserialize callback.
-     *
-     * @param \Phix\App $app The App instance
-     * @param string $string The string to unserialize
-     * @return array
-     */
-    public static function defaultFormatXmlUnserialize($app, $string)
-    {
-        return self::_xmlToArray(simplexml_load_string($string));
-    }
-
-    /**
-     * Returns a string or an associative and possibly multidimensional array from
-     * a SimpleXMLElement.
-     *
-     * @param  SimpleXMLElement $xmlObject Convert a SimpleXMLElement into an array
-     * @return array|string
-     */
-    protected static function _xmlToArray(\SimpleXMLElement $xmlObject)
-    {
-        $config = array();
-
-        // Search for children
-        if (count($xmlObject->children()) > 0) {
-            foreach ($xmlObject->children() as $key => $value) {
-                if (count($value->children()) > 0) {
-                    $value = self::_xmlToArray($value);
-                } else {
-                    $value = (string) $value;
-                }
-
-                if (array_key_exists($key, $config)) {
-                    if (!is_array($config[$key]) || !array_key_exists(0, $config[$key])) {
-                        $config[$key] = array($config[$key]);
-                    }
-
-                    $config[$key][] = $value;
-                } else {
-                    $config[$key] = $value;
-                }
-            }
-        } else {
-            $config = (string) $xmlObject;
-        }
-
-        return $config;
     }
 
     /**
