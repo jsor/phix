@@ -1847,7 +1847,9 @@ class AppTest extends \PHPUnit_Framework_TestCase
 
         $app->reset();
 
-        $app->render('view', array('controller' => 'foo'), 'html');
+        $app->render('view', array('controller' => 'foo'), function() {
+            return 'html';
+        });
         $this->assertEquals('foo', $app->output());
         $this->assertTrue(in_array('Content-Type: text/html;charset=utf-8', $app->headers()));
 
