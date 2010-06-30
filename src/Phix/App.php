@@ -1757,7 +1757,24 @@ class App
     {
         if (func_num_args() == 0) {
             if (null === $this->_renderer) {
-                $this->_renderer = array('\Phix\App', 'defaultRenderer');
+                $this->_renderer = function($app, $view, array $vars, $format) {
+                    if (is_callable($view)) {
+                        $content = call_user_func($view, $app, $vars, $format);
+                    } elseif (false !== ($viewFilename = $app->viewFilename($view, $format))) {
+                        ob_start();
+                        extract($vars);
+                        include $viewFilename;
+                        $content = ob_get_clean();
+                    } else {
+                        if (count($vars) > 0) {
+                            $content = vsprintf($view, $vars);
+                        } else {
+                            $content = (string) $view;
+                        }
+                    }
+
+                    return $content;
+                };
             }
 
             return $this->_renderer;
@@ -1766,34 +1783,6 @@ class App
         $this->_renderer = $renderer;
 
         return $this;
-    }
-
-    /**
-     * Default renderer implementation.
-     *
-     * @param \Phix\App $app The App instance
-     * @param string $view The view to render
-     * @param array $vars The vars to pass to the view
-     * @return string
-     */
-    public static function defaultRenderer($app, $view, array $vars, $format)
-    {
-        if (is_callable($view)) {
-            $content = call_user_func($view, $app, $vars, $format);
-        } elseif (false !== ($viewFilename = $app->viewFilename($view, $format))) {
-            ob_start();
-            extract($vars);
-            include $viewFilename;
-            $content = ob_get_clean();
-        } else {
-            if (count($vars) > 0) {
-                $content = vsprintf($view, $vars);
-            } else {
-                $content = (string) $view;
-            }
-        }
-
-        return $content;
     }
 
     /**

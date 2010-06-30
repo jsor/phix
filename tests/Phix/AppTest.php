@@ -1769,33 +1769,31 @@ class AppTest extends \PHPUnit_Framework_TestCase
 
         $app = new App();
         $defaultRenderer = $app->renderer();
-        $this->assertEquals($defaultRenderer[0], '\Phix\App');
-        $this->assertEquals($defaultRenderer[1], 'defaultRenderer');
+        $this->assertTrue(is_callable($defaultRenderer));
         $ret = $app->renderer($renderer);
         $this->assertEquals($renderer, $app->renderer());
         $this->assertEquals($ret, $app);
     }
 
-    /**
-     * @covers \Phix\App::defaultRenderer
-     */
     public function testDefaultRenderer()
     {
         $app = new App();
         $app->viewsDir(dirname(__FILE__) . '/_files/views');
 
-        $content = App::defaultRenderer($app, function($app, array $vars, $format) {
+        $callback = $app->renderer();
+
+        $content = $callback($app, function($app, array $vars, $format) {
             return 'foo';
         }, array(), 'html');
         $this->assertEquals('foo', $content);
 
-        $content = App::defaultRenderer($app, 'view', array('controller' => 'foo'), 'html');
+        $content = $callback($app, 'view', array('controller' => 'foo'), 'html');
         $this->assertEquals('foo', $content);
 
-        $content = App::defaultRenderer($app, 'Just a string', array(), 'html');
+        $content = $callback($app, 'Just a string', array(), 'html');
         $this->assertEquals('Just a string', $content);
 
-        $content = App::defaultRenderer($app, 'Just a %s', array('string'), 'html');
+        $content = $callback($app, 'Just a %s', array('string'), 'html');
         $this->assertEquals('Just a string', $content);
     }
 
