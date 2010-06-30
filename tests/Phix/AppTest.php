@@ -1489,20 +1489,17 @@ class AppTest extends \PHPUnit_Framework_TestCase
 
         $app = new App();
         $defaultDispatcher = $app->dispatcher();
-        $this->assertEquals($defaultDispatcher[0], '\Phix\App');
-        $this->assertEquals($defaultDispatcher[1], 'defaultDispatcher');
+        $this->assertTrue(is_callable($defaultDispatcher));
         $ret = $app->dispatcher($dispatcher);
         $this->assertEquals($dispatcher, $app->dispatcher());
         $this->assertEquals($ret, $app);
     }
 
-    /**
-     * @covers \Phix\App::defaultDispatcher
-     */
     public function testDefaultDispatcher()
     {
         $app = new App();
-        App::defaultDispatcher($app, function($app) {
+        $callback = $app->dispatcher();
+        $callback($app, function($app) {
             $app->output('foo');
         });
         $this->assertEquals('foo', $app->output());

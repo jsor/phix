@@ -1382,7 +1382,9 @@ class App
     {
         if (func_num_args() == 0) {
             if (null === $this->_dispatcher) {
-                $this->_dispatcher = array('\Phix\App', 'defaultDispatcher');
+                $this->_dispatcher = function($app, $controller) {
+                    call_user_func($controller, $app);
+                };
             }
 
             return $this->_dispatcher;
@@ -1391,18 +1393,6 @@ class App
         $this->_dispatcher = $dispatcher;
 
         return $this;
-    }
-
-    /**
-     * The default dispatcher callback.
-     *
-     * @param \Phix\App $app The App instance
-     * @param mixed $controller The controller
-     * @return void
-     */
-    public static function defaultDispatcher($app, $controller)
-    {
-        call_user_func($controller, $app);
     }
 
     /**
