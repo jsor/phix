@@ -937,6 +937,7 @@ class AppTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
+     * @covers \Phix\App::router
      * @covers \Phix\App::route
      * @covers \Phix\App::_route
      * @covers \Phix\App::_dispatch
@@ -961,6 +962,7 @@ class AppTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @covers \Phix\App::get
+     * @covers \Phix\App::router
      * @covers \Phix\App::route
      * @covers \Phix\App::_route
      * @covers \Phix\App::_dispatch
@@ -998,6 +1000,7 @@ class AppTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @covers \Phix\App::head
+     * @covers \Phix\App::router
      * @covers \Phix\App::route
      * @covers \Phix\App::_route
      * @covers \Phix\App::_dispatch
@@ -1022,6 +1025,7 @@ class AppTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @covers \Phix\App::get
+     * @covers \Phix\App::router
      * @covers \Phix\App::route
      * @covers \Phix\App::_route
      * @covers \Phix\App::_dispatch
@@ -1046,6 +1050,7 @@ class AppTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @covers \Phix\App::post
+     * @covers \Phix\App::router
      * @covers \Phix\App::route
      * @covers \Phix\App::_route
      * @covers \Phix\App::_dispatch
@@ -1071,6 +1076,7 @@ class AppTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @covers \Phix\App::put
+     * @covers \Phix\App::router
      * @covers \Phix\App::route
      * @covers \Phix\App::_route
      * @covers \Phix\App::_dispatch
@@ -1096,6 +1102,7 @@ class AppTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @covers \Phix\App::delete
+     * @covers \Phix\App::router
      * @covers \Phix\App::route
      * @covers \Phix\App::_route
      * @covers \Phix\App::_dispatch
@@ -1121,6 +1128,7 @@ class AppTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @covers \Phix\App::get
+     * @covers \Phix\App::router
      * @covers \Phix\App::route
      * @covers \Phix\App::_route
      * @covers \Phix\App::_dispatch
@@ -1145,6 +1153,7 @@ class AppTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @covers \Phix\App::get
+     * @covers \Phix\App::router
      * @covers \Phix\App::route
      * @covers \Phix\App::_route
      * @covers \Phix\App::_dispatch
@@ -1169,6 +1178,7 @@ class AppTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @covers \Phix\App::get
+     * @covers \Phix\App::router
      * @covers \Phix\App::route
      * @covers \Phix\App::_route
      * @covers \Phix\App::_dispatch
@@ -1194,6 +1204,7 @@ class AppTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @covers \Phix\App::get
+     * @covers \Phix\App::router
      * @covers \Phix\App::route
      * @covers \Phix\App::_route
      * @covers \Phix\App::_dispatch
@@ -1218,6 +1229,7 @@ class AppTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @covers \Phix\App::get
+     * @covers \Phix\App::router
      * @covers \Phix\App::route
      * @covers \Phix\App::_route
      * @covers \Phix\App::_dispatch
@@ -1244,6 +1256,7 @@ class AppTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @covers \Phix\App::get
+     * @covers \Phix\App::router
      * @covers \Phix\App::route
      * @covers \Phix\App::_route
      * @covers \Phix\App::_dispatch
@@ -1270,6 +1283,7 @@ class AppTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @covers \Phix\App::get
+     * @covers \Phix\App::router
      * @covers \Phix\App::route
      * @covers \Phix\App::_route
      * @covers \Phix\App::_dispatch
@@ -1295,6 +1309,7 @@ class AppTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @covers \Phix\App::get
+     * @covers \Phix\App::router
      * @covers \Phix\App::route
      * @covers \Phix\App::_route
      * @covers \Phix\App::_dispatch
@@ -1320,6 +1335,7 @@ class AppTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @covers \Phix\App::get
+     * @covers \Phix\App::router
      * @covers \Phix\App::route
      * @covers \Phix\App::_route
      * @covers \Phix\App::_dispatch
@@ -1345,6 +1361,7 @@ class AppTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @covers \Phix\App::get
+     * @covers \Phix\App::router
      * @covers \Phix\App::route
      * @covers \Phix\App::_route
      * @covers \Phix\App::_dispatch
@@ -1379,6 +1396,7 @@ class AppTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @covers \Phix\App::get
+     * @covers \Phix\App::router
      * @covers \Phix\App::route
      * @covers \Phix\App::_route
      * @covers \Phix\App::_dispatch
@@ -1406,6 +1424,7 @@ class AppTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @covers \Phix\App::get
+     * @covers \Phix\App::router
      * @covers \Phix\App::route
      * @covers \Phix\App::_route
      * @covers \Phix\App::_dispatch
@@ -1432,6 +1451,9 @@ class AppTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('bar', $app->param('foo'));
     }
 
+    /**
+     * @covers \Phix\App::router
+     */
     public function testDefaultRouterReturnsFalseIfNoRouteForSuppliedRequestMethod()
     {
         $app = new App();
@@ -1495,6 +1517,9 @@ class AppTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($ret, $app);
     }
 
+    /**
+     * @covers \Phix\App::dispatcher
+     */
     public function testDefaultDispatcher()
     {
         $app = new App();
@@ -1775,6 +1800,9 @@ class AppTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($ret, $app);
     }
 
+    /**
+     * @covers \Phix\App::renderer
+     */
     public function testDefaultRenderer()
     {
         $app = new App();
