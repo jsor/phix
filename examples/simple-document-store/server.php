@@ -2,8 +2,6 @@
 
 include __DIR__ . '/../../src/Phix/App.php';
 
-clearstatcache();
-
 \Phix\App::instance()
 
     // -----------------------
