@@ -6,8 +6,7 @@ set_include_path(implode(PATH_SEPARATOR, array(
     get_include_path()
 )));
 
-function phixClassLoader($className)
-{
+spl_autoload_register(function($className) {
     if (false !== strripos($className, '\\')) {
         $replace = '\\';
     } else {
@@ -17,8 +16,6 @@ function phixClassLoader($className)
     require str_replace($replace, DIRECTORY_SEPARATOR, $className) . '.php';
 
     return true;
-}
-
-spl_autoload_register('phixClassLoader', true, true);
+}, true, true);
 
 \app\MyPhixApp::instance()->run();

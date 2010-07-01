@@ -40,8 +40,7 @@ unset($rootPath);
 /**
  * Setup autoloading
  */
-function phixTestClassLoader($className)
-{
+spl_autoload_register(function($className) {
     if (false !== strripos($className, '\\')) {
         $replace = '\\';
     } else {
@@ -51,6 +50,4 @@ function phixTestClassLoader($className)
     require str_replace($replace, DIRECTORY_SEPARATOR, $className) . '.php';
 
     return true;
-}
-
-spl_autoload_register('phixTestClassLoader', true, true);
+}, true, true);
