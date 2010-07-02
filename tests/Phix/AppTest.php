@@ -1776,10 +1776,11 @@ class AppTest extends \PHPUnit_Framework_TestCase
         $this->assertNull($app->layout());
         $app->layout('foo');
         $this->assertSame('foo', $app->layout());
-        $ret = $app->layout(function() {
+        $func = function() {
             return 'bar';
-        });
-        $this->assertSame('bar', $app->layout());
+        };
+        $ret = $app->layout($func);
+        $this->assertSame($func, $app->layout());
         $this->assertEquals($ret, $app);
     }
 

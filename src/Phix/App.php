@@ -1742,10 +1742,6 @@ class App
             return $this->_layout;
         }
 
-        if (is_callable($layout)) {
-            $layout = call_user_func($layout, $this);
-        }
-
         $this->_layout = $layout;
 
         return $this;
