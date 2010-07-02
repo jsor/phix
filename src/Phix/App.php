@@ -139,6 +139,12 @@ class App
     private $_layout;
 
     /**
+     * Views.
+     * @var array
+     */
+    private $_views = array();
+
+    /**
      * Default format.
      * @var string
      */
