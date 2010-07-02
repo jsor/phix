@@ -1731,10 +1731,10 @@ class App
     }
 
     /**
-     * Set/Get the layout view.
+     * Set/Get the layout.
      *
-     * @param string $layout The layout (Can be a callable)
-     * @return string|\Phix\App
+     * @param mixed $layout The layout
+     * @return mixed|\Phix\App
      */
     public function layout($layout = null)
     {
@@ -1743,6 +1743,28 @@ class App
         }
 
         $this->_layout = $layout;
+
+        return $this;
+    }
+
+    /**
+     * Set/Get a named view.
+     *
+     * @param string $name The name
+     * @param mixed $view The view
+     * @return mixed|\Phix\App
+     */
+    public function view($name, $view = null)
+    {
+        if (func_num_args() == 1) {
+            if (isset($this->_views[$name])) {
+                return $this->_views[$name];
+            }
+
+            return null;
+        }
+
+        $this->_views[$name] = $view;
 
         return $this;
     }
@@ -1808,6 +1830,10 @@ class App
             if (!isset($formats[$format])) {
                 throw new \Exception('Invalid format "' . $format . '"');
             }
+        }
+
+        if (null !== ($registered = $this->view($view))) {
+            $view = $registered;
         }
 
         $content = call_user_func($this->renderer(), $this, $view, $vars, $format);

@@ -1785,6 +1785,23 @@ class AppTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
+     * @covers \Phix\App::view
+     */
+    public function testView()
+    {
+        $app = new App();
+        $this->assertNull($app->view('foo'));
+        $app->view('foo', 'bar');
+        $this->assertEquals('bar', $app->view('foo'));
+        $func = function() {
+            return 'baz';
+        };
+        $ret = $app->view('foo', $func);
+        $this->assertEquals($func, $app->view('foo'));
+        $this->assertEquals($ret, $app);
+    }
+
+    /**
      * @covers \Phix\App::renderer
      */
     public function testRenderer()
@@ -1880,6 +1897,14 @@ class AppTest extends \PHPUnit_Framework_TestCase
         $app->render('view', array('controller' => 'foo'), 'json');
         $this->assertEquals(json_encode(array('status' => 'success', 'data' => array('controller' => 'foo'))), $app->output());
         $this->assertTrue(in_array('Content-Type: application/json;charset=utf-8', $app->headers()));
+
+        $app->reset();
+
+        $app->view('view', function() {
+            return 'bar';
+        });
+        $app->render('view', array('controller' => 'foo'), 'json');
+        $this->assertEquals('bar', $app->output());
     }
 
     /**
