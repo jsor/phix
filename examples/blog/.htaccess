@@ -1,0 +1,12 @@
+SetEnv PHIX_ENV development
+
+<Files *.db>
+    deny from all
+</Files>
+
+RewriteEngine on
+RewriteCond %{REQUEST_FILENAME} -s [OR]
+RewriteCond %{REQUEST_FILENAME} -l [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^.*$ - [QSA,NC,L]
+RewriteRule ^.*$ index.php [QSA,NC,L]
