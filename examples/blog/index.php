@@ -117,7 +117,7 @@ include __DIR__ . '/../../src/Phix/App.php';
                     $app->response(compact('post'));
                 }
             } else {
-                $this->error('Error updating post');
+                $app->error('Error updating post');
             }
         } else {
             $app->notFound('There is no such post');
@@ -145,7 +145,7 @@ include __DIR__ . '/../../src/Phix/App.php';
                     $app->status(204);
                 }
             } else {
-                $this->error('Error deleting post');
+                $app->error('Error deleting post');
             }
         } else {
             $app->notFound('There is no such post');
@@ -184,7 +184,7 @@ include __DIR__ . '/../../src/Phix/App.php';
                 $app->response(compact('post', 'location'));
             }
         } else {
-            $this->error('Error creating post');
+            $app->error('Error creating post');
         }
     })
     ->get('/posts', function($app) {
