@@ -29,10 +29,17 @@ include __DIR__ . '/../../src/Phix/App.php';
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title><?php echo $app->reg('site_title'); ?></title>
+    <link rel="stylesheet" type="text/css" href="<?php echo $app->url(array('css', 'blog.css')); ?>" media="all">
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js" type="text/javascript"></script>
+    <script src="<?php echo $app->url(array('js', 'jquery.relatizeDate.js')); ?>" type="text/javascript"></script>
+    <script src="<?php echo $app->url(array('js', 'blog.js')); ?>" type="text/javascript"></script>
 </head>
 <body>
-<h1><a href="<?php echo $app->escape($app->url(array('posts'))); ?>"><?php echo $app->reg('site_title'); ?></a></h1>
-<?php echo $content; ?>
+    <div id="container">
+        <h1><a href="<?php echo $app->escape($app->url(array('posts'))); ?>"><?php echo $app->reg('site_title'); ?></a></h1>
+        <p><a href="<?php echo $app->url(array('posts', 'add')); ?>">Add Post</a></p>
+        <?php echo $content; ?>
+    </div>
 </body>
 </html>
 <?php
@@ -42,9 +49,9 @@ include __DIR__ . '/../../src/Phix/App.php';
         extract($vars);
         ob_start();
 ?>
-<ul>
+<ul class="postlist">
 <?php foreach ($posts as $post): ?>
-    <li><a href="<?php echo $app->escape($app->url(array('posts', $post['id']))); ?>"><?php echo $app->escape($post['title']); ?></a></li>
+    <li><a href="<?php echo $app->escape($app->url(array('posts', $post['id']))); ?>"><?php echo $app->escape($post['title']); ?></a> (<span class="date"><?php echo date('r', strtotime($post['created'])); ?></span>)</li>
 <?php endforeach; ?>
 </ul>
 <?php
@@ -55,7 +62,42 @@ include __DIR__ . '/../../src/Phix/App.php';
         ob_start();
 ?>
 <h2><?php echo $app->escape($post['title']); ?></h2>
+<p><a href="<?php echo $app->url(array('posts', $post['id'], 'edit')); ?>">Edit Post</a></p>
 <?php echo $post['content']; ?>
+<hr>
+<form action="<?php echo $app->url(array('posts', $post['id'])); ?>" method="post">
+    <input type="hidden" name="_method" value="DELETE">
+    <input type="submit" value="Delete Post">
+</form>
+<?php
+        return ob_get_clean();
+    })
+    ->view('posts/form', function($app, array $vars, $format) {
+        extract($vars);
+        ob_start();
+
+        if (isset($post)) {
+            $action = $app->url(array('posts', $post['id']));
+            $method = 'PUT';
+            $headline = 'Edit Post: ' . $post['title'];
+        } else {
+            $action = $app->url(array('posts'));
+            $method = 'POST';
+            $headline = 'Add Post';
+        }
+
+        $title   = isset($_POST['title']) ? $_POST['title'] : (isset($post['title']) ? $post['title'] : '');
+        $content = isset($_POST['content']) ? $_POST['content'] : (isset($post['content']) ? $post['content'] : '');
+?>
+<h2><?php echo $app->escape($headline); ?></h2>
+<form action="<?php echo $action; ?>" method="post">
+    <input type="hidden" name="_method" value="<?php echo $method; ?>">
+    <label for="title">Title</label>
+    <input id="title" type="text" name="title" value="<?php echo $app->escape($title); ?>">
+    <label for="content">Content</label>
+    <textarea id="content" cols="35" rows="10" name="content"><?php echo $app->escape($content); ?></textarea>
+    <input type="submit">
+</form>
 <?php
         return ob_get_clean();
     })
@@ -93,12 +135,12 @@ include __DIR__ . '/../../src/Phix/App.php';
         if ($stmt->execute() && $post = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $date = date('Y-m-d H:i:s');
 
-            $post['title']    = $app->param('title');
-            $post['content']  = $app->param('content');
+            $post['title']    = $_POST['title'];
+            $post['content']  = $_POST['content'];
             $post['modified'] = $date;
 
             $sql = "UPDATE posts
-                    SET title = :title, content = :content, modified = DATETIME('NOW', 'localtime')
+                    SET title = :title, content = :content, modified = :modified
                     WHERE id = :id";
 
             $stmt = $app->reg('pdo')->prepare($sql);
@@ -109,7 +151,7 @@ include __DIR__ . '/../../src/Phix/App.php';
             $stmt->bindValue(':modified', $post['modified'], PDO::PARAM_STR);
 
             if ($stmt->execute()) {
-                $location = $app->url(array('post', $post['id']));
+                $location = $app->url(array('posts', $post['id']));
 
                 if ($app->currentFormat() == 'html') {
                     $app->redirect($location);
@@ -132,7 +174,7 @@ include __DIR__ . '/../../src/Phix/App.php';
 
         if ($stmt->execute() && $post = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $sql = "DELETE FROM posts
-                WHERE id = :id";
+                    WHERE id = :id";
 
             $stmt = $app->reg('pdo')->prepare($sql);
 
@@ -151,6 +193,30 @@ include __DIR__ . '/../../src/Phix/App.php';
             $app->notFound('There is no such post');
         }
     })
+    ->get('/posts/:id/edit', function($app) {
+        $sql = "SELECT *
+                FROM posts where id=:id";
+
+        $stmt = $app->reg('pdo')->prepare($sql);
+        $stmt->bindValue(':id', $app->param('id'), PDO::PARAM_INT);
+
+        if ($stmt->execute() && $post = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            if ($app->currentFormat() == 'html') {
+                $app->render('posts/form', compact('post'));
+            } else {
+                $app->error(400, 'No "' . $app->escape($app->currentFormat()) . '" representation available');
+            }
+        } else {
+            $app->notFound('There is no such post');
+        }
+    })
+    ->get('/posts/add', function($app) {
+        if ($app->currentFormat() == 'html') {
+            $app->render('posts/form');
+        } else {
+            $app->error(400, 'No "' . $app->escape($app->currentFormat()) . '" representation available');
+        }
+    })
     ->post('/posts', function($app) {
         $date = date('Y-m-d H:i:s');
 
@@ -159,8 +225,8 @@ include __DIR__ . '/../../src/Phix/App.php';
 
         $stmt = $app->reg('pdo')->prepare($sql);
 
-        $stmt->bindValue(':title', $app->param('title'), PDO::PARAM_STR);
-        $stmt->bindValue(':content', $app->param('content'), PDO::PARAM_STR);
+        $stmt->bindValue(':title', $_POST['title'], PDO::PARAM_STR);
+        $stmt->bindValue(':content', $_POST['content'], PDO::PARAM_STR);
         $stmt->bindValue(':created', $date, PDO::PARAM_STR);
         $stmt->bindValue(':modified', $date, PDO::PARAM_STR);
 
@@ -173,7 +239,7 @@ include __DIR__ . '/../../src/Phix/App.php';
                 'modified' => $date
             );
 
-            $location = $app->url(array('post', $post['id']));
+            $location = $app->url(array('posts', $post['id']));
 
             if ($app->currentFormat() == 'html') {
                 $app->redirect($location);
@@ -190,7 +256,7 @@ include __DIR__ . '/../../src/Phix/App.php';
     ->get('/posts', function($app) {
         $sql = "SELECT *
                 FROM posts
-                ORDER BY modified DESC";
+                ORDER BY created DESC, id DESC";
 
         $stmt = $app->reg('pdo')->prepare($sql);
         $stmt->execute();
@@ -201,6 +267,37 @@ include __DIR__ . '/../../src/Phix/App.php';
         } else {
             $app->response(compact('posts'));
         }
+    })
+    ->get('/css/blog.css', function($app) {
+        $app->header('Content-Type: text/css');
+        $app->output('
+body {
+    font-family: Helvetica,Arial,FreeSans;
+}
+#container {
+    width: 800px;
+    margin: 0 auto;
+}
+label {
+    display: block;
+}
+input, textarea {
+    display: block;
+    margin-bottom: 10px;
+}
+');
+    })
+    ->get('/js/blog.js', function($app) {
+        $app->header('Content-Type: text/javascript');
+        $app->output('
+$(function() {
+    $(".date").relatizeDate();
+});
+');
+    })
+    ->get('/js/jquery.relatizeDate.js', function($app) {
+        $app->header('Content-Type: text/javascript');
+        $app->output('(function(c){c.fn.relatizeDate=function(){return c(this).each(function(){c(this).text(c.relatizeDate(this))})};c.relatizeDate=function(b){return c.relatizeDate.timeAgoInWords(new Date(c(b).text()))};$r=c.relatizeDate;c.extend(c.relatizeDate,{shortDays:["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],days:["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],shortMonths:["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],months:["January","February","March","April", "May","June","July","August","September","October","November","December"],strftime:function(b,a){var f=b.getDay(),g=b.getMonth(),h=b.getHours(),i=b.getMinutes(),d=function(e){e=e.toString(10);return Array(2-e.length+1).join("0")+e};return a.replace(/\%([aAbBcdHImMpSwyY])/g,function(e){switch(e[1]){case "a":return $r.shortDays[f];case "A":return $r.days[f];case "b":return $r.shortMonths[g];case "B":return $r.months[g];case "c":return b.toString();case "d":return d(b.getDate());case "H":return d(h); case "I":return d((h+12)%12);case "m":return d(g+1);case "M":return d(i);case "p":return h>12?"PM":"AM";case "S":return d(b.getSeconds());case "w":return f;case "y":return d(b.getFullYear()%100);case "Y":return b.getFullYear().toString()}})},timeAgoInWords:function(b,a){return $r.distanceOfTimeInWords(b,new Date,a)},distanceOfTimeInWords:function(b,a,f){a=parseInt((a.getTime()-b.getTime())/1E3);if(a<60)return"less than a minute ago";else if(a<120)return"about a minute ago";else if(a<2700)return parseInt(a/ 60).toString()+" minutes ago";else if(a<7200)return"about an hour ago";else if(a<86400)return"about "+parseInt(a/3600).toString()+" hours ago";else if(a<172800)return"1 day ago";else{a=parseInt(a/86400).toString();if(a>5){a="%B %d, %Y";if(f)a+=" %I:%M %p";return $r.strftime(b,a)}else return a+" days ago"}}})})(jQuery);');
     })
     ->get('/_setup', function($app) {
         $schema = <<<SCHEMA
