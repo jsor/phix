@@ -903,6 +903,42 @@ class App
     }
 
     /**
+     * Shortcut for sending javascript output with proper http headers.
+     *
+     * @param string $output The output (Can be a callable)
+     * @return string|\Phix\App
+     */
+    public function javascript($output)
+    {
+        if (is_callable($output)) {
+            $output = call_user_func($output, $this);
+        }
+
+        $this->header('Content-Type: text/javascript;charset=' . strtolower($this->encoding()));
+        $this->output($output);
+
+        return $this;
+    }
+
+    /**
+     * Shortcut for sending css output with proper http headers.
+     *
+     * @param string $output The output (Can be a callable)
+     * @return string|\Phix\App
+     */
+    public function css($output)
+    {
+        if (is_callable($output)) {
+            $output = call_user_func($output, $this);
+        }
+
+        $this->header('Content-Type: text/css;charset=' . strtolower($this->encoding()));
+        $this->output($output);
+
+        return $this;
+    }
+
+    /**
      * Set/Get multiple hooks.
      *
      * @param string $hooks The hooks

@@ -758,6 +758,42 @@ class AppTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
+     * @covers \Phix\App::javascript
+     */
+    public function testJavascript()
+    {
+        $app = new App();
+        $app->javascript('$(function() {});');
+        $this->assertTrue(in_array('Content-Type: text/javascript;charset=utf-8', $app->headers()));
+        $this->assertEquals('$(function() {});', $app->output());
+
+        $app = new App();
+        $app->javascript(function() {
+            return '$(function() {});';
+        });
+        $this->assertTrue(in_array('Content-Type: text/javascript;charset=utf-8', $app->headers()));
+        $this->assertEquals('$(function() {});', $app->output());
+    }
+
+    /**
+     * @covers \Phix\App::css
+     */
+    public function testCss()
+    {
+        $app = new App();
+        $app->css('$(function() {});');
+        $this->assertTrue(in_array('Content-Type: text/css;charset=utf-8', $app->headers()));
+        $this->assertEquals('$(function() {});', $app->output());
+
+        $app = new App();
+        $app->css(function() {
+            return '$(function() {});';
+        });
+        $this->assertTrue(in_array('Content-Type: text/css;charset=utf-8', $app->headers()));
+        $this->assertEquals('$(function() {});', $app->output());
+    }
+
+    /**
      * @covers \Phix\App::response
      */
     public function testResponseThrowsExceptionOnInvalidFormat()

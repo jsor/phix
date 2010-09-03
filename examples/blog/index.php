@@ -269,8 +269,7 @@ include __DIR__ . '/../../src/Phix/App.php';
         }
     })
     ->get('/css/blog.css', function($app) {
-        $app->header('Content-Type: text/css');
-        $app->output('
+        $app->css('
 body {
     font-family: Helvetica,Arial,FreeSans;
 }
@@ -288,16 +287,14 @@ input, textarea {
 ');
     })
     ->get('/js/blog.js', function($app) {
-        $app->header('Content-Type: text/javascript');
-        $app->output('
+        $app->javascript('
 $(function() {
     $(".date").relatizeDate();
 });
 ');
     })
     ->get('/js/jquery.relatizeDate.js', function($app) {
-        $app->header('Content-Type: text/javascript');
-        $app->output('(function(c){c.fn.relatizeDate=function(){return c(this).each(function(){c(this).text(c.relatizeDate(this))})};c.relatizeDate=function(b){return c.relatizeDate.timeAgoInWords(new Date(c(b).text()))};$r=c.relatizeDate;c.extend(c.relatizeDate,{shortDays:["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],days:["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],shortMonths:["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],months:["January","February","March","April", "May","June","July","August","September","October","November","December"],strftime:function(b,a){var f=b.getDay(),g=b.getMonth(),h=b.getHours(),i=b.getMinutes(),d=function(e){e=e.toString(10);return Array(2-e.length+1).join("0")+e};return a.replace(/\%([aAbBcdHImMpSwyY])/g,function(e){switch(e[1]){case "a":return $r.shortDays[f];case "A":return $r.days[f];case "b":return $r.shortMonths[g];case "B":return $r.months[g];case "c":return b.toString();case "d":return d(b.getDate());case "H":return d(h); case "I":return d((h+12)%12);case "m":return d(g+1);case "M":return d(i);case "p":return h>12?"PM":"AM";case "S":return d(b.getSeconds());case "w":return f;case "y":return d(b.getFullYear()%100);case "Y":return b.getFullYear().toString()}})},timeAgoInWords:function(b,a){return $r.distanceOfTimeInWords(b,new Date,a)},distanceOfTimeInWords:function(b,a,f){a=parseInt((a.getTime()-b.getTime())/1E3);if(a<60)return"less than a minute ago";else if(a<120)return"about a minute ago";else if(a<2700)return parseInt(a/ 60).toString()+" minutes ago";else if(a<7200)return"about an hour ago";else if(a<86400)return"about "+parseInt(a/3600).toString()+" hours ago";else if(a<172800)return"1 day ago";else{a=parseInt(a/86400).toString();if(a>5){a="%B %d, %Y";if(f)a+=" %I:%M %p";return $r.strftime(b,a)}else return a+" days ago"}}})})(jQuery);');
+        $app->javascript('(function(c){c.fn.relatizeDate=function(){return c(this).each(function(){c(this).text(c.relatizeDate(this))})};c.relatizeDate=function(b){return c.relatizeDate.timeAgoInWords(new Date(c(b).text()))};$r=c.relatizeDate;c.extend(c.relatizeDate,{shortDays:["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],days:["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],shortMonths:["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],months:["January","February","March","April", "May","June","July","August","September","October","November","December"],strftime:function(b,a){var f=b.getDay(),g=b.getMonth(),h=b.getHours(),i=b.getMinutes(),d=function(e){e=e.toString(10);return Array(2-e.length+1).join("0")+e};return a.replace(/\%([aAbBcdHImMpSwyY])/g,function(e){switch(e[1]){case "a":return $r.shortDays[f];case "A":return $r.days[f];case "b":return $r.shortMonths[g];case "B":return $r.months[g];case "c":return b.toString();case "d":return d(b.getDate());case "H":return d(h); case "I":return d((h+12)%12);case "m":return d(g+1);case "M":return d(i);case "p":return h>12?"PM":"AM";case "S":return d(b.getSeconds());case "w":return f;case "y":return d(b.getFullYear()%100);case "Y":return b.getFullYear().toString()}})},timeAgoInWords:function(b,a){return $r.distanceOfTimeInWords(b,new Date,a)},distanceOfTimeInWords:function(b,a,f){a=parseInt((a.getTime()-b.getTime())/1E3);if(a<60)return"less than a minute ago";else if(a<120)return"about a minute ago";else if(a<2700)return parseInt(a/ 60).toString()+" minutes ago";else if(a<7200)return"about an hour ago";else if(a<86400)return"about "+parseInt(a/3600).toString()+" hours ago";else if(a<172800)return"1 day ago";else{a=parseInt(a/86400).toString();if(a>5){a="%B %d, %Y";if(f)a+=" %I:%M %p";return $r.strftime(b,a)}else return a+" days ago"}}})})(jQuery);');
     })
     ->get('/_setup', function($app) {
         $schema = <<<SCHEMA
