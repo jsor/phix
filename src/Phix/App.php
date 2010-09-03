@@ -1838,7 +1838,7 @@ class App
             }
         }
 
-        if (null !== ($registered = $this->view($view))) {
+        if (is_scalar($view) && null !== ($registered = $this->view($view))) {
             $view = $registered;
         }
 
