@@ -6,6 +6,8 @@ class MyPhixApp extends \Phix\App
 {
     public function __construct($config = null)
     {
+        parent::__construct($config);
+
         $this
             ->viewsDir(__DIR__ . '/views')
             ->layout('layout')
@@ -19,7 +21,5 @@ class MyPhixApp extends \Phix\App
             ->get('/notfound', function($app) {
                 $app->notFound('Ooops. The URL ' . $app->escape($app->requestUri()) . ' is not there.');
             });
-
-        parent::__construct($config);
     }
 }
