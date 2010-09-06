@@ -51,7 +51,6 @@ class AppTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @covers \Phix\App::instance
-     * @group 123
      */
     public function testInstanceConfiguresInstance()
     {
@@ -1464,7 +1463,6 @@ class AppTest extends \PHPUnit_Framework_TestCase
      * @covers \Phix\App::route
      * @covers \Phix\App::_route
      * @covers \Phix\App::_dispatch
-     * @group 123
      */
     public function testRouteRouteCallbackReturningArrayPopulatesToParams()
     {
