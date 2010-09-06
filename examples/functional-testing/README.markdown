@@ -1,9 +1,9 @@
 Functional Testing of Phix Applications
 =======================================
 
-If you write applications for production, you should cover it with functional tests. This example shows how to do it utilizing `PhixTestCase` and [PHPUnit](http://www.phpunit.de).
+If you write applications for production, you should cover it with functional tests. This example shows how to do it utilizing `Phix\AppTestCase` and [PHPUnit](http://www.phpunit.de).
 
-To share the Phix application between your test suite and your web application, we simply create a new class `MyPhixApp` inside the `apps` folder which extends `Phix` and configures it inside of its constructor.
+To share the Phix application between your test suite and your web application, we simply create a new class `MyPhixApp` inside the `apps` folder which extends `Phix\App` and configures it inside of its constructor.
 
 The folder `tests` contains the test suite, the folder `htdocs` (which is the `DOCUMENT_ROOT`) the web application endpoint.
 
