@@ -1,7 +1,7 @@
 Phix
 ====
 
-[Phix](http://github.com/jsor/phix) is a lightweight and flexible PHP 5.3 microframework for rapid web application development.
+[Phix](http://github.com/jsor/phix) is a lightweight and flexible PHP 5.3+ microframework for rapid web application development.
 
 ## License ##
 
