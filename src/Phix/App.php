@@ -166,7 +166,7 @@ class App
      * Raw request body
      * @var string|false
      */
-    protected $_requestRawBody;
+    private $_requestRawBody;
 
     /**
      * REQUEST_METHOD
