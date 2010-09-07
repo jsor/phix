@@ -2064,9 +2064,6 @@ class AppTest extends \PHPUnit_Framework_TestCase
     public function testFormats()
     {
         $app = new App();
-        $this->assertArrayHasKey('html', $app->formats());
-        $this->assertArrayHasKey('json', $app->formats());
-        $this->assertArrayHasKey('xml', $app->formats());
 
         $current = $app->formats();
         $formats = array(
@@ -2090,6 +2087,17 @@ class AppTest extends \PHPUnit_Framework_TestCase
         $ret = $app->formats($formats, true);
         $this->assertEquals($formats, $app->formats());
         $this->assertEquals($ret, $app);
+    }
+
+    /**
+     * @covers \Phix\App::setDefaultFormats
+     */
+    public function testSetDefaultFormats()
+    {
+        $app = new App();
+        $this->assertArrayHasKey('html', $app->formats());
+        $this->assertArrayHasKey('json', $app->formats());
+        $this->assertArrayHasKey('xml', $app->formats());
     }
 
     public function testFormatHtmlErrorCallback()
