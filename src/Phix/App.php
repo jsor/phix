@@ -285,7 +285,7 @@ class App
      */
     public function __construct($config = null)
     {
-        $this->_registerDefaultFormats();
+        $this->setDefaultFormats();
 
         if (null !== $config) {
             $this->configure($config);
@@ -592,7 +592,9 @@ class App
 
         $params = array('route' => &$route, 'request_method' => &$requestMethod);
 
-        if (false === ($route = $this->_route($requestMethod, $pathInfo))) {
+        $route = call_user_func($this->router(), $this, $this->routes(), $requestMethod, $pathInfo);
+
+        if (false === $route) {
             if (false !== $this->trigger('run_no_route', $params)) {
                 $this->notFound();
             }
@@ -607,7 +609,8 @@ class App
             ob_start();
         }
 
-        $this->_dispatch($route);
+        $this->params(array_merge($route['params'], $_GET));
+        call_user_func($this->dispatcher(), $this, $route['controller']);
 
         if ($this->requestMethod() == 'HEAD') {
             ob_end_clean();
@@ -1177,18 +1180,6 @@ class App
     }
 
     /**
-     * Call the router and return a matching route for the given request method and pathinfo.
-     *
-     * @param string $requestMethod The request method
-     * @param string $pathInfo The pathinfo
-     * @return array|false
-     */
-    private function _route($requestMethod, $pathInfo)
-    {
-        return call_user_func($this->router(), $this, $this->_routes, $requestMethod, $pathInfo);
-    }
-
-    /**
      * Get/Set the router.
      *
      * @author Fabrice Luraine
@@ -1255,18 +1246,6 @@ class App
         $this->_router = $router;
 
         return $this;
-    }
-
-    /**
-     * Set the params and call the dispatcher.
-     *
-     * @param array $route The route
-     * @return void
-     */
-    private function _dispatch($route)
-    {
-        $this->params(array_merge($route['params'], $_GET));
-        call_user_func($this->dispatcher(), $this, $route['controller']);
     }
 
     /**
@@ -1899,11 +1878,11 @@ class App
     }
 
     /**
-     * Register default formats.
+     * Set default formats.
      *
      * @return void
      */
-    protected function _registerDefaultFormats()
+    public function setDefaultFormats()
     {
         $this->_formats = array(
             'html' => array(

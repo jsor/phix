@@ -89,7 +89,7 @@ class AppTest extends \PHPUnit_Framework_TestCase
     {
         $this->setExpectedException('\Exception', 'Configuring through private methods is forbidden');
         $app = new App();
-        $app->configure(array('_route' => array()));
+        $app->configure(array('_init' => array()));
     }
 
     /**
@@ -974,8 +974,6 @@ class AppTest extends \PHPUnit_Framework_TestCase
     /**
      * @covers \Phix\App::router
      * @covers \Phix\App::route
-     * @covers \Phix\App::_route
-     * @covers \Phix\App::_dispatch
      */
     public function testRoute()
     {
@@ -999,8 +997,6 @@ class AppTest extends \PHPUnit_Framework_TestCase
      * @covers \Phix\App::get
      * @covers \Phix\App::router
      * @covers \Phix\App::route
-     * @covers \Phix\App::_route
-     * @covers \Phix\App::_dispatch
      */
     public function testGetRouteAlsoAssignsHeadRoute()
     {
@@ -1037,8 +1033,6 @@ class AppTest extends \PHPUnit_Framework_TestCase
      * @covers \Phix\App::head
      * @covers \Phix\App::router
      * @covers \Phix\App::route
-     * @covers \Phix\App::_route
-     * @covers \Phix\App::_dispatch
      */
     public function testSimpleHeadRoute()
     {
@@ -1062,8 +1056,6 @@ class AppTest extends \PHPUnit_Framework_TestCase
      * @covers \Phix\App::get
      * @covers \Phix\App::router
      * @covers \Phix\App::route
-     * @covers \Phix\App::_route
-     * @covers \Phix\App::_dispatch
      */
     public function testSimpleGetRoute()
     {
@@ -1087,8 +1079,6 @@ class AppTest extends \PHPUnit_Framework_TestCase
      * @covers \Phix\App::post
      * @covers \Phix\App::router
      * @covers \Phix\App::route
-     * @covers \Phix\App::_route
-     * @covers \Phix\App::_dispatch
      */
     public function testSimplePostRoute()
     {
@@ -1113,8 +1103,6 @@ class AppTest extends \PHPUnit_Framework_TestCase
      * @covers \Phix\App::put
      * @covers \Phix\App::router
      * @covers \Phix\App::route
-     * @covers \Phix\App::_route
-     * @covers \Phix\App::_dispatch
      */
     public function testSimplePutRoute()
     {
@@ -1139,8 +1127,6 @@ class AppTest extends \PHPUnit_Framework_TestCase
      * @covers \Phix\App::delete
      * @covers \Phix\App::router
      * @covers \Phix\App::route
-     * @covers \Phix\App::_route
-     * @covers \Phix\App::_dispatch
      */
     public function testSimpleDeleteRoute()
     {
@@ -1165,8 +1151,6 @@ class AppTest extends \PHPUnit_Framework_TestCase
      * @covers \Phix\App::get
      * @covers \Phix\App::router
      * @covers \Phix\App::route
-     * @covers \Phix\App::_route
-     * @covers \Phix\App::_dispatch
      */
     public function testEmptyRoute()
     {
@@ -1190,8 +1174,6 @@ class AppTest extends \PHPUnit_Framework_TestCase
      * @covers \Phix\App::get
      * @covers \Phix\App::router
      * @covers \Phix\App::route
-     * @covers \Phix\App::_route
-     * @covers \Phix\App::_dispatch
      */
     public function testSingleSlashRoute()
     {
@@ -1215,8 +1197,6 @@ class AppTest extends \PHPUnit_Framework_TestCase
      * @covers \Phix\App::get
      * @covers \Phix\App::router
      * @covers \Phix\App::route
-     * @covers \Phix\App::_route
-     * @covers \Phix\App::_dispatch
      */
     public function testNamedParameterRoute()
     {
@@ -1241,8 +1221,6 @@ class AppTest extends \PHPUnit_Framework_TestCase
      * @covers \Phix\App::get
      * @covers \Phix\App::router
      * @covers \Phix\App::route
-     * @covers \Phix\App::_route
-     * @covers \Phix\App::_dispatch
      */
     public function testInlineWildcardRoute()
     {
@@ -1266,8 +1244,6 @@ class AppTest extends \PHPUnit_Framework_TestCase
      * @covers \Phix\App::get
      * @covers \Phix\App::router
      * @covers \Phix\App::route
-     * @covers \Phix\App::_route
-     * @covers \Phix\App::_dispatch
      */
     public function testWildcardRoute()
     {
@@ -1293,8 +1269,6 @@ class AppTest extends \PHPUnit_Framework_TestCase
      * @covers \Phix\App::get
      * @covers \Phix\App::router
      * @covers \Phix\App::route
-     * @covers \Phix\App::_route
-     * @covers \Phix\App::_dispatch
      */
     public function testWildcardWithNamedParameterRoute()
     {
@@ -1320,8 +1294,6 @@ class AppTest extends \PHPUnit_Framework_TestCase
      * @covers \Phix\App::get
      * @covers \Phix\App::router
      * @covers \Phix\App::route
-     * @covers \Phix\App::_route
-     * @covers \Phix\App::_dispatch
      */
     public function testDoubleWildcardRoute()
     {
@@ -1346,8 +1318,6 @@ class AppTest extends \PHPUnit_Framework_TestCase
      * @covers \Phix\App::get
      * @covers \Phix\App::router
      * @covers \Phix\App::route
-     * @covers \Phix\App::_route
-     * @covers \Phix\App::_dispatch
      */
     public function testRegexpRoute()
     {
@@ -1372,8 +1342,6 @@ class AppTest extends \PHPUnit_Framework_TestCase
      * @covers \Phix\App::get
      * @covers \Phix\App::router
      * @covers \Phix\App::route
-     * @covers \Phix\App::_route
-     * @covers \Phix\App::_dispatch
      */
     public function testRegexpWithNamedParameterRoute()
     {
@@ -1398,8 +1366,6 @@ class AppTest extends \PHPUnit_Framework_TestCase
      * @covers \Phix\App::get
      * @covers \Phix\App::router
      * @covers \Phix\App::route
-     * @covers \Phix\App::_route
-     * @covers \Phix\App::_dispatch
      */
     public function testRouteSetsDefaults()
     {
@@ -1433,8 +1399,6 @@ class AppTest extends \PHPUnit_Framework_TestCase
      * @covers \Phix\App::get
      * @covers \Phix\App::router
      * @covers \Phix\App::route
-     * @covers \Phix\App::_route
-     * @covers \Phix\App::_dispatch
      */
     public function testRouteRouteCallbackReturningFalseDontMatchRoute()
     {
@@ -1461,8 +1425,6 @@ class AppTest extends \PHPUnit_Framework_TestCase
      * @covers \Phix\App::get
      * @covers \Phix\App::router
      * @covers \Phix\App::route
-     * @covers \Phix\App::_route
-     * @covers \Phix\App::_dispatch
      */
     public function testRouteRouteCallbackReturningArrayPopulatesToParams()
     {
