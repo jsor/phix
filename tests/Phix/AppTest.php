@@ -1922,7 +1922,7 @@ class AppTest extends \PHPUnit_Framework_TestCase
 
         $app->reset();
 
-        $app->view('view', function() {
+        $app->view(array('view', 'json'), function() {
             return 'bar';
         });
         $app->render('view', array('controller' => 'foo'), 'json');

@@ -1622,21 +1622,37 @@ class App
     /**
      * Set/Get a named view.
      *
-     * @param string $name The name
+     * @param string|array $name The name or an array of name andformat
      * @param mixed $view The view
      * @return mixed|\Phix\App
      */
     public function view($name, $view = null)
     {
+        if (is_array($name)) {
+            list($name, $format) = $name;
+
+            if (is_callable($format)) {
+                $format = call_user_func($format, $this);
+            }
+
+            $formats = $this->formats();
+
+            if (!isset($formats[$format])) {
+                throw new \Exception('Invalid format "' . $format . '"');
+            }
+        } else {
+            $format = $this->currentFormat();
+        }
+
         if (func_num_args() == 1) {
-            if (isset($this->_views[$name])) {
-                return $this->_views[$name];
+            if (isset($this->_views[$name][$format])) {
+                return $this->_views[$name][$format];
             }
 
             return null;
         }
 
-        $this->_views[$name] = $view;
+        $this->_views[$name][$format] = $view;
 
         return $this;
     }
@@ -1704,7 +1720,7 @@ class App
             }
         }
 
-        if (is_scalar($view) && null !== ($registered = $this->view($view))) {
+        if (is_scalar($view) && null !== ($registered = $this->view(array($view, $format)))) {
             $view = $registered;
         }
 
