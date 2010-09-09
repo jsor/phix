@@ -609,7 +609,7 @@ class App
             ob_start();
         }
 
-        $this->params(array_merge($route['params'], $_GET));
+        $this->params($route['params']);
         call_user_func($this->dispatcher(), $this, $route['controller']);
 
         if ($this->requestMethod() == 'HEAD') {
@@ -1199,7 +1199,7 @@ class App
 
                     foreach (array_reverse($routes[$requestMethod]) as $route) {
                         if (preg_match($route['pattern'], $pathInfo, $matches)) {
-                            $params = $route['defaults'];
+                            $params = $_GET + $route['defaults'];
 
                             if (count($matches) > 1) {
                                 array_shift($matches);
@@ -1219,7 +1219,7 @@ class App
                             }
 
                             if (is_callable($route['callback'])) {
-                                $ret = call_user_func($route['callback'], $app);
+                                $ret = call_user_func($route['callback'], $app, $params);
 
                                 if (false === $ret) {
                                     continue;

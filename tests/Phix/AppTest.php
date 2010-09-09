@@ -1400,7 +1400,33 @@ class AppTest extends \PHPUnit_Framework_TestCase
      * @covers \Phix\App::router
      * @covers \Phix\App::route
      */
-    public function testRouteRouteCallbackReturningFalseDontMatchRoute()
+    public function testRouteParamsIncludeGetParameters()
+    {
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $_GET['key1'] = 'val1';
+
+        $bool = false;
+
+        $app = new App();
+        $app
+            ->autoFlush(false)
+            ->get('/test', function() use(&$called) {
+            }, array(), function($app, $params) use(&$bool) {
+                $bool = $params == array('key1' => 'val1', 'key2' => 'val2');
+            })
+            ->requestUri('/test?key2=val2')
+            ->run();
+
+        $this->assertTrue($bool);
+        $this->assertEquals('val1', $app->param('key1'));
+    }
+
+    /**
+     * @covers \Phix\App::get
+     * @covers \Phix\App::router
+     * @covers \Phix\App::route
+     */
+    public function testRouteCallbackReturningFalseDontMatchRoute()
     {
         $_SERVER['REQUEST_METHOD'] = 'GET';
 
@@ -1426,7 +1452,7 @@ class AppTest extends \PHPUnit_Framework_TestCase
      * @covers \Phix\App::router
      * @covers \Phix\App::route
      */
-    public function testRouteRouteCallbackReturningArrayPopulatesToParams()
+    public function testRouteCallbackReturningArrayPopulatesToParams()
     {
         $_SERVER['REQUEST_METHOD'] = 'GET';
 
