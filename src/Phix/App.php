@@ -1190,7 +1190,7 @@ class App
     {
         if (func_num_args() == 0) {
             if (null === $this->_router) {
-                $this->_router = function($app, $routes, $requestMethod, $pathInfo) {
+                $this->_router = function(\Phix\App $app, $routes, $requestMethod, $pathInfo) {
                     $requestMethod = strtoupper($requestMethod);
 
                     if (!isset($routes[$requestMethod])) {
@@ -1258,7 +1258,7 @@ class App
     {
         if (func_num_args() == 0) {
             if (null === $this->_dispatcher) {
-                $this->_dispatcher = function($app, $controller) {
+                $this->_dispatcher = function(\Phix\App $app, $controller) {
                     $obLevel = ob_get_level();
                     if (empty($disableOb)) {
                         ob_start();
@@ -1695,7 +1695,7 @@ class App
     {
         if (func_num_args() == 0) {
             if (null === $this->_renderer) {
-                $this->_renderer = function($app, $viewFilename, array $vars) {
+                $this->_renderer = function(\Phix\App $app, $viewFilename, array $vars) {
                     ob_start();
                     extract($vars);
                     include $viewFilename;
@@ -1953,7 +1953,7 @@ class App
                     'request'  => array('text/html', 'application/xhtml+xml'),
                     'response' => 'text/html'
                 ),
-                'error' => function($app, $status, $msg) {
+                'error' => function(\Phix\App $app, $status, $msg) {
                     return '<!DOCTYPE html>' .
                            '<html>' .
                              '<head></head>' .
@@ -1963,7 +1963,7 @@ class App
                              '</body>' .
                            '</html>';
                 },
-                'response' => function($app, $status, $data) {
+                'response' => function(\Phix\App $app, $status, $data) {
                     return '<!DOCTYPE html>' .
                            '<html>' .
                              '<head><title>' . $app->statusPhrase($status) . '</title></head>' .
@@ -1983,10 +1983,10 @@ class App
                     'request'  => array('application/json'),
                     'response' => 'application/json'
                 ),
-                'error' => function($app, $status, $msg) {
+                'error' => function(\Phix\App $app, $status, $msg) {
                     return json_encode(array('status' => 'error', 'message' => $msg));
                 },
-                'response' => function($app, $status, $data) {
+                'response' => function(\Phix\App $app, $status, $data) {
                     $statusString = 200 <= $status && 206 >= $status ? 'success' : 'fail';
                     $response = json_encode(array('status' => $statusString, 'data' => $data));
 
@@ -1997,7 +1997,7 @@ class App
 
                     return $response;
                 },
-                'unserialize' => function($app, $string) {
+                'unserialize' => function(\Phix\App $app, $string) {
                     return json_decode($string, true);
                 }
             ),
@@ -2010,14 +2010,14 @@ class App
                     'request'  => array('text/xml', 'application/xml'),
                     'response' => 'text/xml'
                 ),
-                'error' => function($app, $status, $msg) {
+                'error' => function(\Phix\App $app, $status, $msg) {
                     return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' .
                            '<response>' .
                              '<status>error</status>' .
                              '<message>' . $app->escape($msg) . '</message>' .
                            '</response>';
                 },
-                'response' => function($app, $status, $data) {
+                'response' => function(\Phix\App $app, $status, $data) {
                     $arrayToXml = function(array $array, $root) use (&$arrayToXml) {
                         $xml  = '';
                         $wrap = true;
@@ -2059,7 +2059,7 @@ class App
                              $arrayToXml($data, 'data') .
                            '</response>';
                 },
-                'unserialize' => function($app, $string) {
+                'unserialize' => function(\Phix\App $app, $string) {
                     $xmlToArray = function(\SimpleXMLElement $xmlObject) use (&$xmlToArray) {
                         $config = array();
 
