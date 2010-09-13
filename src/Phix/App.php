@@ -1271,9 +1271,7 @@ class App
             if (null === $this->_dispatcher) {
                 $this->_dispatcher = function(\Phix\App $app, $controller) {
                     $obLevel = ob_get_level();
-                    if (empty($disableOb)) {
-                        ob_start();
-                    }
+                    ob_start();
 
                     try {
                         call_user_func($controller, $app);
@@ -1289,11 +1287,9 @@ class App
                         throw $e;
                     }
 
-                    if (empty($disableOb)) {
-                        $content = ob_get_clean();
-                        if ($content != '') {
-                            $app->response($content);
-                        }
+                    $content = ob_get_clean();
+                    if ($content != '') {
+                        $app->response($content);
                     }
                 };
             }
