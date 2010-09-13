@@ -287,9 +287,20 @@ class App
     {
         $this->setDefaultFormats();
 
+        $this->_setup();
+
         if (null !== $config) {
             $this->configure($config);
         }
+    }
+
+    /**
+     * Setup hook intended for usage in subclasses.
+     *
+     * @return void
+     */
+    protected function _setup()
+    {
     }
 
     /**

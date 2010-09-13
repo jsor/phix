@@ -4,10 +4,8 @@ namespace app;
 
 class MyPhixApp extends \Phix\App
 {
-    public function __construct($config = null)
+    protected function _setup()
     {
-        parent::__construct($config);
-
         $this
             ->viewsDir(__DIR__ . '/views')
             ->layout('layout')
