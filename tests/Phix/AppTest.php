@@ -1815,6 +1815,11 @@ class AppTest extends \PHPUnit_Framework_TestCase
         $this->assertNull($app->view('foo'));
         $app->view('foo', 'bar');
         $this->assertEquals('bar', $app->view('foo'));
+        
+        $app->view(array('foo', 'html'), 'bar');
+        $this->assertEquals('bar', $app->view(array('foo', 'html')));
+        $this->assertNull($app->view(array('foo', 'json')));
+
         $func = function() {
             return 'baz';
         };
@@ -1841,32 +1846,8 @@ class AppTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @covers \Phix\App::renderer
-     */
-    public function testDefaultRenderer()
-    {
-        $app = new App();
-        $app->viewsDir(dirname(__FILE__) . '/_files/views');
-
-        $callback = $app->renderer();
-
-        $content = $callback($app, function($app, array $vars, $format) {
-            return 'foo';
-        }, array(), 'html');
-        $this->assertEquals('foo', $content);
-
-        $content = $callback($app, 'view', array('controller' => 'foo'), 'html');
-        $this->assertEquals('foo', $content);
-
-        $content = $callback($app, 'Just a string', array(), 'html');
-        $this->assertEquals('Just a string', $content);
-
-        $content = $callback($app, 'Just a %s', array('string'), 'html');
-        $this->assertEquals('Just a string', $content);
-    }
-
-    /**
      * @covers \Phix\App::render
+     * @covers \Phix\App::renderer
      */
     public function testRender()
     {
@@ -1937,6 +1918,29 @@ class AppTest extends \PHPUnit_Framework_TestCase
         $this->setExpectedException('\Exception', 'Invalid format "bogus"');
         $app = new App();
         $app->render('123', array(), 'bogus');
+    }
+
+    /**
+     * @covers \Phix\App::renderView
+     */
+    public function testRenderView()
+    {
+        $app = new App();
+        $app->viewsDir(dirname(__FILE__) . '/_files/views');
+
+        $content = $app->renderView(function($app, array $vars, $format) {
+            return 'foo';
+        }, array(), 'html');
+        $this->assertEquals('foo', $content);
+
+        $content = $app->renderView('view', array('controller' => 'foo'), 'html');
+        $this->assertEquals('foo', $content);
+
+        $content = $app->renderView('Just a string', array(), 'html');
+        $this->assertEquals('Just a string', $content);
+
+        $content = $app->renderView('Just a %s', array('string'), 'html');
+        $this->assertEquals('Just a string', $content);
     }
 
     /**

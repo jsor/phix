@@ -1628,6 +1628,8 @@ class App
      */
     public function view($name, $view = null)
     {
+        $format = null;
+
         if (is_array($name)) {
             list($name, $format) = $name;
 
@@ -1640,8 +1642,10 @@ class App
             if (!isset($formats[$format])) {
                 throw new \Exception('Invalid format "' . $format . '"');
             }
-        } else {
-            $format = $this->currentFormat();
+        }
+
+        if (null === $format) {
+            $format = $this->defaultFormat();
         }
 
         if (func_num_args() == 1) {
@@ -1667,23 +1671,11 @@ class App
     {
         if (func_num_args() == 0) {
             if (null === $this->_renderer) {
-                $this->_renderer = function($app, $view, array $vars, $format) {
-                    if (is_callable($view)) {
-                        $content = call_user_func($view, $app, $vars, $format);
-                    } elseif (false !== ($viewFilename = $app->viewFilename($view, $format))) {
-                        ob_start();
-                        extract($vars);
-                        include $viewFilename;
-                        $content = ob_get_clean();
-                    } else {
-                        if (count($vars) > 0) {
-                            $content = vsprintf($view, $vars);
-                        } else {
-                            $content = (string) $view;
-                        }
-                    }
-
-                    return $content;
+                $this->_renderer = function($app, $viewFilename, array $vars) {
+                    ob_start();
+                    extract($vars);
+                    include $viewFilename;
+                    return ob_get_clean();
                 };
             }
 
@@ -1706,39 +1698,33 @@ class App
      */
     public function render($view, array $vars = array(), $format = null, $layout = null)
     {
-        $formats = $this->formats();
-
         if (null === $format) {
             $format = $this->currentFormat();
         } else {
             if (is_callable($format)) {
                 $format = call_user_func($format, $this);
             }
-
-            if (!isset($formats[$format])) {
-                throw new \Exception('Invalid format "' . $format . '"');
-            }
         }
 
-        if (is_scalar($view) && null !== ($registered = $this->view(array($view, $format)))) {
-            $view = $registered;
-        }
-
-        $content = call_user_func($this->renderer(), $this, $view, $vars, $format);
+        $content = $this->renderView($view, $vars, $format);
 
         if (false !== $layout) {
-            if (false !== $formats[$format]['view']['layout']) {
+            if (null === ($formatConfig = $this->format($format))) {
+                throw new \Exception('Invalid format "' . $format . '"');
+            }
+
+            if (false !== $formatConfig['view']['layout']) {
                 if (null === $layout) {
                     $layout = $this->layout();
                 }
 
-                if (null !== $formats[$format]['view']['layout']) {
-                    $layout = $formats[$format]['view']['layout'];
+                if (null !== $formatConfig['view']['layout']) {
+                    $layout = $formatConfig['view']['layout'];
                 }
 
                 if (null !== $layout) {
                     $vars = array('content' => $content);
-                    $content = call_user_func($this->renderer(), $this, $layout, $vars, $format);
+                    $content = $this->renderView($layout, $vars, $format);
                 }
             }
         }
@@ -1746,6 +1732,39 @@ class App
         $this->response($content, $format);
 
         return $this;
+    }
+
+    public function renderView($view, array $vars = array(), $format = null)
+    {
+        if (null === $format) {
+            $format = $this->currentFormat();
+        } else {
+            if (is_callable($format)) {
+                $format = call_user_func($format, $this);
+            }
+        }
+
+        if (null === $this->format($format)) {
+            throw new \Exception('Invalid format "' . $format . '"');
+        }
+
+        if (is_scalar($view) && null !== ($registered = $this->view(array($view, $format)))) {
+            $view = $registered;
+        }
+
+        if (is_callable($view)) {
+            $content = call_user_func($view, $this, $vars, $format);
+        } elseif (false !== ($viewFilename = $this->viewFilename($view, $format))) {
+            $content = call_user_func($this->renderer(), $this, $viewFilename, $vars);
+        } else {
+            if (count($vars) > 0) {
+                $content = vsprintf($view, $vars);
+            } else {
+                $content = (string) $view;
+            }
+        }
+
+        return $content;
     }
 
     /**
