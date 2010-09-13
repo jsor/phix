@@ -1259,7 +1259,31 @@ class App
         if (func_num_args() == 0) {
             if (null === $this->_dispatcher) {
                 $this->_dispatcher = function($app, $controller) {
-                    call_user_func($controller, $app);
+                    $obLevel = ob_get_level();
+                    if (empty($disableOb)) {
+                        ob_start();
+                    }
+
+                    try {
+                        call_user_func($controller, $app);
+                    } catch (\Exception $e) {
+                        // Clean output buffer on error
+                        $curObLevel = ob_get_level();
+                        if ($curObLevel > $obLevel) {
+                            do {
+                                ob_get_clean();
+                                $curObLevel = ob_get_level();
+                            } while ($curObLevel > $obLevel);
+                        }
+                        throw $e;
+                    }
+
+                    if (empty($disableOb)) {
+                        $content = ob_get_clean();
+                        if ($content != '') {
+                            $app->response($content);
+                        }
+                    }
                 };
             }
 

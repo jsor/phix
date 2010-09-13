@@ -1550,6 +1550,14 @@ class AppTest extends \PHPUnit_Framework_TestCase
             $app->output('foo');
         });
         $this->assertEquals('foo', $app->output());
+
+        $app->reset();
+
+        $callback($app, function($app) {
+            echo 'bar';
+        });
+        $this->assertEquals('bar', $app->output());
+        $this->assertTrue(in_array('Content-Type: text/html;charset=utf-8', $app->headers()));
     }
 
     /**
