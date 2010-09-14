@@ -1684,6 +1684,10 @@ class App
                 return $this->_views[$name][$format];
             }
 
+            if (isset($this->_views['*'][$format])) {
+                return $this->_views['*'][$format];
+            }
+
             return null;
         }
 
