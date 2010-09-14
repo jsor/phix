@@ -1787,19 +1787,39 @@ class App
             $view = $registered;
         }
 
-        if (is_callable($view)) {
-            $content = call_user_func($view, $this, $vars, $format);
-        } elseif (false !== ($viewFilename = $this->viewFilename($view, $format))) {
-            $content = call_user_func($this->renderer(), $this, $viewFilename, $vars);
-        } else {
-            if (count($vars) > 0) {
-                $content = vsprintf($view, $vars);
+        $obLevel = ob_get_level();
+        ob_start();
+
+        try {
+            if (is_callable($view)) {
+                $rendered = call_user_func($view, $this, $vars, $format);
+            } elseif (false !== ($viewFilename = $this->viewFilename($view, $format))) {
+                $rendered = call_user_func($this->renderer(), $this, $viewFilename, $vars);
             } else {
-                $content = (string) $view;
+                if (count($vars) > 0) {
+                    $rendered = vsprintf($view, $vars);
+                } else {
+                    $rendered = (string) $view;
+                }
             }
+        } catch (\Exception $e) {
+            // Clean output buffer on error
+            $curObLevel = ob_get_level();
+            if ($curObLevel > $obLevel) {
+                do {
+                    ob_get_clean();
+                    $curObLevel = ob_get_level();
+                } while ($curObLevel > $obLevel);
+            }
+            throw $e;
         }
 
-        return $content;
+        $content = ob_get_clean();
+        if ($content != '') {
+            $rendered .= $content;
+        }
+
+        return $rendered;
     }
 
     /**
