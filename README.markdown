@@ -120,7 +120,7 @@ Unlike the simple wildcard character `*`, the double wildcard character `**` spe
             $app->param(0); // path/to/file.xml
         })
 
-A routw pattern may also be a regular expression if it begins with a `^`:
+A route pattern may also be a regular expression if it begins with a `^`:
 
     $app
         ->get('^/my/own/(\d+)/regexp', function(\Phix\App $app) {
