@@ -709,14 +709,14 @@ class AppTest extends \PHPUnit_Framework_TestCase
     public function testResponse()
     {
         $app = new App();
-        $app->response('<foo/>');
+        $app->response('<html/>');
         $this->assertTrue(in_array('Content-Type: text/html;charset=utf-8', $app->headers()));
-        $this->assertEquals('<foo/>', $app->output());
+        $this->assertEquals('<html/>', $app->output());
 
         $app = new App();
-        $app->response('<foo/>', 'html');
+        $app->response('<html/>', 'html');
         $this->assertTrue(in_array('Content-Type: text/html;charset=utf-8', $app->headers()));
-        $this->assertEquals('<foo/>', $app->output());
+        $this->assertEquals('<html/>', $app->output());
 
         $app = new App();
         $app->response('{}', 'json');
@@ -724,36 +724,20 @@ class AppTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('{}', $app->output());
 
         $app = new App();
-        $app->status(412);
-        $app->response(array('foo' => 'bar'), 'json');
-        $this->assertTrue(in_array('Content-Type: application/json;charset=utf-8', $app->headers()));
-        $this->assertEquals('{"status":"fail","data":{"foo":"bar"}}', $app->output());
-
-        $app = new App();
-        $app->response(array('foo' => 'bar'), 'json');
-        $this->assertTrue(in_array('Content-Type: application/json;charset=utf-8', $app->headers()));
-        $this->assertEquals('{"status":"success","data":{"foo":"bar"}}', $app->output());
-
-        $app = new App();
         $app->response('<xml/>', 'xml');
         $this->assertTrue(in_array('Content-Type: text/xml;charset=utf-8', $app->headers()));
         $this->assertEquals('<xml/>', $app->output());
 
         $app = new App();
-        $app->response(array('foo' => 'bar'), 'xml');
-        $this->assertTrue(in_array('Content-Type: text/xml;charset=utf-8', $app->headers()));
-        $this->assertEquals('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><response><status>success</status><data><foo>bar</foo></data></response>', $app->output());
-
-        $app = new App();
         $app->status(412);
         $app->response(function() {
-            return array('foo' => 'bar');
+            return '<xml/>';
         }, function() {
             return 'xml';
 
         });
         $this->assertTrue(in_array('Content-Type: text/xml;charset=utf-8', $app->headers()));
-        $this->assertEquals('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><response><status>fail</status><data><foo>bar</foo></data></response>', $app->output());
+        $this->assertEquals('<xml/>', $app->output());
     }
 
     /**
@@ -2125,108 +2109,6 @@ class AppTest extends \PHPUnit_Framework_TestCase
         $callback = $format['error'];
         $error = $callback($app, 404, 'foo');
         $this->assertEquals('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><response><status>error</status><message>foo</message></response>', $error);
-    }
-
-    public function testFormatHtmlResponseCallback()
-    {
-        $app = new App();
-        $format = $app->format('html');
-        $callback = $format['response'];
-
-        $response = $callback($app, 200, array('foo' => 'bar', 'bar' => array('key1' => 'val1'), 'baz' => array('val2', 'val3')));
-        $expected = '<!DOCTYPE html><html><head><title>OK</title></head><body><h1>OK</h1><pre>Array
-(
-    [foo] =&gt; bar
-    [bar] =&gt; Array
-        (
-            [key1] =&gt; val1
-        )
-
-    [baz] =&gt; Array
-        (
-            [0] =&gt; val2
-            [1] =&gt; val3
-        )
-
-)
-</pre></body></html>';
-        $this->assertEquals(str_replace(array("\r\n", "\t"), array("\n", "    "), $expected), $response);
-
-        $response = $callback($app, 412, array('foo' => 'bar', 'bar' => array('key1' => 'val1'), 'baz' => array('val2', 'val3')));
-        $expected = '<!DOCTYPE html><html><head><title>Precondition Failed</title></head><body><h1>Precondition Failed</h1><pre>Array
-(
-    [foo] =&gt; bar
-    [bar] =&gt; Array
-        (
-            [key1] =&gt; val1
-        )
-
-    [baz] =&gt; Array
-        (
-            [0] =&gt; val2
-            [1] =&gt; val3
-        )
-
-)
-</pre></body></html>';
-        $this->assertEquals(str_replace(array("\r\n", "\t"), array("\n", "    "), $expected), $response);
-    }
-
-    public function testFormatJsonResponseCallback()
-    {
-        $app = new App();
-        $format = $app->format('json');
-        $callback = $format['response'];
-
-        $response = $callback($app, 200, array('foo' => 'bar', 'bar' => array('key1' => 'val1'), 'baz' => array('val2', 'val3')));
-        $this->assertEquals('{"status":"success","data":{"foo":"bar","bar":{"key1":"val1"},"baz":["val2","val3"]}}', $response);
-
-        $response = $callback($app, 412, array('foo' => 'bar', 'bar' => array('key1' => 'val1'), 'baz' => array('val2', 'val3')));
-        $this->assertEquals('{"status":"fail","data":{"foo":"bar","bar":{"key1":"val1"},"baz":["val2","val3"]}}', $response);
-    }
-
-    public function testDefaultFormatJsonResponseHandlesJSONPCallback()
-    {
-        $_GET = array(
-            'callback' => 'jsonp1234'
-        );
-
-        $app = new App();
-        $format = $app->format('json');
-        $callback = $format['response'];
-
-        $response = $callback($app, 412, array('foo' => 'bar', 'bar' => array('key1' => 'val1'), 'baz' => array('val2', 'val3')));
-        $this->assertEquals('jsonp1234({"status":"fail","data":{"foo":"bar","bar":{"key1":"val1"},"baz":["val2","val3"]}})', $response);
-    }
-
-    public function testDefaultFormatJsonResponseIgnoresInvalidJSONPCallback()
-    {
-        $_GET = array(
-            'callback' => '1234'
-        );
-
-        $app = new App();
-        $format = $app->format('json');
-        $callback = $format['response'];
-
-        $response = $callback($app, 412, array('foo' => 'bar', 'bar' => array('key1' => 'val1'), 'baz' => array('val2', 'val3')));
-        $this->assertEquals('{"status":"fail","data":{"foo":"bar","bar":{"key1":"val1"},"baz":["val2","val3"]}}', $response);
-    }
-
-    public function testDefaultFormatXmlResponse()
-    {
-        $app = new App();
-        $format = $app->format('xml');
-        $callback = $format['response'];
-
-        $response = $callback($app, 200, array('foo' => 'bar', 'bar' => array('key1' => 'val1'), 'baz' => array('val2', 'val3')));
-        $this->assertEquals('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><response><status>success</status><data><foo>bar</foo><bar><key1>val1</key1></bar><baz>val2</baz><baz>val3</baz></data></response>', $response);
-
-        $response = $callback($app, 412, array('foo' => 'bar', 'bar' => array('key1' => 'val1'), 'baz' => array('val2', 'val3')));
-        $this->assertEquals('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><response><status>fail</status><data><foo>bar</foo><bar><key1>val1</key1></bar><baz>val2</baz><baz>val3</baz></data></response>', $response);
-
-        $response = $callback($app, 200, (object) array('foo' => 'bar', 'bar' => (object) array('key1' => 'val1'), 'baz' => array('val2', 'val3')));
-        $this->assertEquals('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><response><status>success</status><data><foo>bar</foo><bar><key1>val1</key1></bar><baz>val2</baz><baz>val3</baz></data></response>', $response);
     }
 
     public function testFormatJsonUnserializeCallback()

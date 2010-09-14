@@ -20,18 +20,9 @@ include __DIR__ . '/../../src/Phix/App.php';
     // Remove XML format
     ->format('xml', null)
 
-    // Manipulate JSON response and error callbacks
+    // Manipulate JSON error callback
     ->format('json', function($app) {
         $curr = $app->format('json');
-        $curr['response'] = function($app, $status, $data) {
-            $response = json_encode($data);
-
-            if (!empty($_GET['callback']) && preg_match('/^[a-zA-Z_$][0-9a-zA-Z_$]*$/', $_GET['callback'])) {
-                $response = $_GET['callback'] . '(' . $response . ')';
-            }
-
-            return $response;
-        };
         $curr['error'] = function($app, $status, $msg) {
             if (is_string($msg)) {
                 $msg = array(
@@ -42,6 +33,18 @@ include __DIR__ . '/../../src/Phix/App.php';
             return json_encode($msg);
         };
         return $curr;
+    })
+
+    // Add generic named view
+    ->view('response', function($app, array $vars, $format) {
+        $response = json_encode($vars);
+
+        // JSONP support
+        if (!empty($_GET['callback']) && preg_match('/^[a-zA-Z_$][0-9a-zA-Z_$]*$/', $_GET['callback'])) {
+            $response = $_GET['callback'] . '(' . $response . ')';
+        }
+
+        return $response;
     })
 
     // Fake request header in case it was not set (we only accept JSON)
@@ -71,7 +74,7 @@ include __DIR__ . '/../../src/Phix/App.php';
             ));
         } else {
             $app->status(200);
-            $app->response(json_decode(file_get_contents($file)));
+            $app->render('response', json_decode(file_get_contents($file)));
         }
     })
 
@@ -91,7 +94,7 @@ include __DIR__ . '/../../src/Phix/App.php';
             file_put_contents($file, json_encode(array('_id' => $id) + $_POST));
 
             $app->status(201);
-            $app->response(array('ok' => true, 'id' => $id));
+            $app->render('response', array('ok' => true, 'id' => $id));
         }
     })
 
@@ -107,7 +110,7 @@ include __DIR__ . '/../../src/Phix/App.php';
         } else {
             unlink($file);
             $app->status(200);
-            $app->response(array('ok' => true, 'id' => $id));
+            $app->render('response', array('ok' => true, 'id' => $id));
         }
     })
 
@@ -117,7 +120,7 @@ include __DIR__ . '/../../src/Phix/App.php';
         $file = $app->reg('data_dir') . '/' . $id;
         file_put_contents($file, json_encode(array('_id' => $id) + $_POST));
         $app->status(201);
-        $app->response(array('ok' => true, 'id' => $id));
+        $app->render('response', array('ok' => true, 'id' => $id));
     })
 
     // List all documents
@@ -126,7 +129,7 @@ include __DIR__ . '/../../src/Phix/App.php';
         foreach (glob($app->reg('data_dir') . '/*') as $doc) {
             $docs[] = json_decode(file_get_contents($doc));
         }
-        $app->response($docs);
+        $app->render('response', $docs);
     })
 
     // -----------------------

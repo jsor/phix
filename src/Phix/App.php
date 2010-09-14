@@ -758,10 +758,6 @@ class App
             $output = call_user_func($output, $this);
         }
 
-        if (!is_string($output) && isset($formats[$format]['response'])) {
-            $output = call_user_func($formats[$format]['response'], $this, $this->status(), $output);
-        }
-
         $this->output($output);
 
         return $this;
@@ -1993,16 +1989,6 @@ class App
                                '<p>' . $app->escape($msg) . '</p>' .
                              '</body>' .
                            '</html>';
-                },
-                'response' => function(\Phix\App $app, $status, $data) {
-                    return '<!DOCTYPE html>' .
-                           '<html>' .
-                             '<head><title>' . $app->statusPhrase($status) . '</title></head>' .
-                             '<body>' .
-                               '<h1>' . $app->statusPhrase($status) . '</h1>' .
-                               '<pre>' . $app->escape(print_r($data, true)) . '</pre>' .
-                             '</body>' .
-                           '</html>';
                 }
             ),
             'json' => array(
@@ -2016,17 +2002,6 @@ class App
                 ),
                 'error' => function(\Phix\App $app, $status, $msg) {
                     return json_encode(array('status' => 'error', 'message' => $msg));
-                },
-                'response' => function(\Phix\App $app, $status, $data) {
-                    $statusString = 200 <= $status && 206 >= $status ? 'success' : 'fail';
-                    $response = json_encode(array('status' => $statusString, 'data' => $data));
-
-                    // Handle JSONP callbacks
-                    if (!empty($_GET['callback']) && preg_match('/^[a-zA-Z_$][0-9a-zA-Z_$]*$/', $_GET['callback'])) {
-                        $response = $_GET['callback'] . '(' . $response . ')';
-                    }
-
-                    return $response;
                 },
                 'unserialize' => function(\Phix\App $app, $string) {
                     return json_decode($string, true);
@@ -2046,48 +2021,6 @@ class App
                            '<response>' .
                              '<status>error</status>' .
                              '<message>' . $app->escape($msg) . '</message>' .
-                           '</response>';
-                },
-                'response' => function(\Phix\App $app, $status, $data) {
-                    $arrayToXml = function(array $array, $root) use (&$arrayToXml) {
-                        $xml  = '';
-                        $wrap = true;
-                        foreach ($array as $key => $value) {
-                            if (is_object($value)) {
-                                $value = get_object_vars($value);
-                            }
-                            if (is_array($value)) {
-                                if (is_numeric($key)) {
-                                    $key  = $root;
-                                    $wrap = false;
-                                }
-                                $xml .= $arrayToXml($value, $key);
-                            } else {
-                                if (is_numeric($key)) {
-                                    $wrap = false;
-                                    $xml .= '<' . $root . '>' . htmlspecialchars($value, ENT_COMPAT, 'UTF-8') . '</' . $root . '>';
-                                } else {
-                                    $xml .= '<' . $key . '>' . htmlspecialchars($value, ENT_COMPAT, 'UTF-8') . '</' . $key . '>';
-                                }
-                            }
-                        }
-
-                        if ($wrap) {
-                            $xml = '<' . $root . '>' . $xml . '</' . $root . '>';
-                        }
-
-                        return $xml;
-                    };
-
-                    $statusString = 20 <= $status && 206 >= $status ? 'success' : 'fail';
-                    if (is_object($data)) {
-                        $data = get_object_vars($data);
-                    }
-
-                    return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' .
-                           '<response>' .
-                             '<status>' . $statusString . '</status>' .
-                             $arrayToXml($data, 'data') .
                            '</response>';
                 },
                 'unserialize' => function(\Phix\App $app, $string) {

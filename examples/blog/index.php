@@ -101,6 +101,56 @@ include __DIR__ . '/../../src/Phix/App.php';
 <?php
         return ob_get_clean();
     })
+    ->view(array('*', 'json'), function($app, array $vars, $format) {
+        $statusString = 200 <= $app->status() && 206 >= $app->status() ? 'success' : 'fail';
+        $response = json_encode(array('status' => $statusString, 'data' => $vars));
+
+        // Handle JSONP callbacks
+        if (!empty($_GET['callback']) && preg_match('/^[a-zA-Z_$][0-9a-zA-Z_$]*$/', $_GET['callback'])) {
+            $response = $_GET['callback'] . '(' . $response . ')';
+        }
+
+        return $response;
+    })
+    ->view(array('*', 'xml'), function($app, array $vars, $format) {
+        $arrayToXml = function(array $array, $root) use (&$arrayToXml) {
+            $xml  = '';
+            $wrap = true;
+            foreach ($array as $key => $value) {
+                if (is_object($value)) {
+                    $value = get_object_vars($value);
+                }
+                if (is_array($value)) {
+                    if (is_numeric($key)) {
+                        $key  = $root;
+                        $wrap = false;
+                    }
+                    $xml .= $arrayToXml($value, $key);
+                } else {
+                    if (is_numeric($key)) {
+                        $wrap = false;
+                        $xml .= '<' . $root . '>' . htmlspecialchars($value, ENT_COMPAT, 'UTF-8') . '</' . $root . '>';
+                    } else {
+                        $xml .= '<' . $key . '>' . htmlspecialchars($value, ENT_COMPAT, 'UTF-8') . '</' . $key . '>';
+                    }
+                }
+            }
+
+            if ($wrap) {
+                $xml = '<' . $root . '>' . $xml . '</' . $root . '>';
+            }
+
+            return $xml;
+        };
+
+        $statusString = 20 <= $app->status() && 206 >= $app->status() ? 'success' : 'fail';
+
+        return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' .
+               '<response>' .
+                 '<status>' . $statusString . '</status>' .
+                 $arrayToXml($vars, 'data') .
+               '</response>';
+    })
 
     // -------------------------------------------------------------------------
     // -- Routes ---------------------------------------------------------------
@@ -116,11 +166,7 @@ include __DIR__ . '/../../src/Phix/App.php';
         $stmt->bindValue(':id', $app->param('id'), PDO::PARAM_INT);
 
         if ($stmt->execute() && $post = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            if ($app->currentFormat() == 'html') {
-                $app->render('posts/view', compact('post'));
-            } else {
-                $app->response(compact('post'));
-            }
+            $app->render('posts/view', compact('post'));
         } else {
             $app->notFound('There is no such post');
         }
@@ -156,7 +202,7 @@ include __DIR__ . '/../../src/Phix/App.php';
                 if ($app->currentFormat() == 'html') {
                     $app->redirect($location);
                 } else {
-                    $app->response(compact('post'));
+                    $app->render('*', compact('post'));
                 }
             } else {
                 $app->error('Error updating post');
@@ -247,7 +293,7 @@ include __DIR__ . '/../../src/Phix/App.php';
                 $app->status(201);
                 $app->header('Location: ' . $location);
                 $app->header('Content-Location: ' . $location);
-                $app->response(compact('post', 'location'));
+                $app->render('*', compact('post', 'location'));
             }
         } else {
             $app->error('Error creating post');
@@ -262,11 +308,7 @@ include __DIR__ . '/../../src/Phix/App.php';
         $stmt->execute();
         $posts = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        if ($app->currentFormat() == 'html') {
-            $app->render('posts/index', compact('posts'));
-        } else {
-            $app->response(compact('posts'));
-        }
+        $app->render('posts/index', compact('posts'));
     })
     ->get('/css/blog.css', function($app) {
         $app->css('
