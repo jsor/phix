@@ -86,6 +86,10 @@ When `PUT` or `DELETE` methods are not supported (for example in HTML form submi
         <input type="submit" value="Update">
     </form>
 
+You can also send a HTTP `POST` and set the method override header as follows:
+
+    X-HTTP-Method-Override: PUT
+
 Route patterns may include named parameters, accessible via the `params` method:
 
     $app
