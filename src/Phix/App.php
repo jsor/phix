@@ -1226,7 +1226,7 @@ class App
                                     $names = range($numNames, $numMatches - 1);
                                 }
 
-                                $params = array_combine($names, $matches) + $params;
+                                $params = array_filter(array_combine($names, $matches), function($var) { return $var !== ''; }) + $params;
                             }
 
                             if (is_callable($route['callback'])) {
