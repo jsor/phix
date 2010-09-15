@@ -1854,12 +1854,6 @@ class AppTest extends \PHPUnit_Framework_TestCase
 
         $app->reset();
 
-        $app->render('Just a string', array(), 'html');
-        $this->assertEquals('Just a string', $app->output());
-        $this->assertTrue(in_array('Content-Type: text/html;charset=utf-8', $app->headers()));
-
-        $app->reset();
-
         $app->render('view', array('controller' => 'foo'), function() {
             return 'html';
         });
@@ -1913,6 +1907,19 @@ class AppTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
+     * @covers \Phix\App::render
+     */
+    public function testRenderSets406ErrorOnInvalidView()
+    {
+        $app = new App();
+        $app->requestUri('/');
+        $app->render('unknown');
+
+        $this->assertEquals(406, $app->status());
+        $this->assertTrue($app->stopped());
+    }
+
+    /**
      * @covers \Phix\App::renderView
      */
     public function testRenderView()
@@ -1927,12 +1934,6 @@ class AppTest extends \PHPUnit_Framework_TestCase
 
         $content = $app->renderView('view', array('controller' => 'foo'), 'html');
         $this->assertEquals('foo', $content);
-
-        $content = $app->renderView('Just a string', array(), 'html');
-        $this->assertEquals('Just a string', $content);
-
-        $content = $app->renderView('Just a %s', array('string'), 'html');
-        $this->assertEquals('Just a string', $content);
     }
 
     /**

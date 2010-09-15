@@ -1739,29 +1739,39 @@ class App
 
         $content = $this->renderView($view, $vars, $format);
 
-        if (!$this->stopped() && false !== $layout) {
-            if (null === ($formatConfig = $this->format($format))) {
-                throw new \Exception('Invalid format "' . $format . '"');
+        if (false === $content) {
+            $this->error(406, 'An appropriate representation of the request resource ' . $this->escape($this->requestUri()) . ' could not be found on this server.');
+        } else {
+            if (false !== $layout) {
+                if (null === ($formatConfig = $this->format($format))) {
+                    throw new \Exception('Invalid format "' . $format . '"');
+                }
+
+                if (isset($formatConfig['view']['layout'])) {
+                    $formatLayout = $formatConfig['view']['layout'];
+                } else {
+                    $formatLayout = null;
+                }
+
+                if (false !== $formatLayout) {
+                    if (null !== $formatLayout) {
+                        $layout = $formatLayout;
+                    }
+
+                    if (null === $layout) {
+                        $layout = $this->layout();
+                    }
+
+                    if (null !== $layout) {
+                        $vars = array('content' => $content);
+                        $content = $this->renderView($layout, $vars, $format);
+                    }
+                }
             }
 
-            if (false !== $formatConfig['view']['layout']) {
-                if (null === $layout) {
-                    $layout = $this->layout();
-                }
-
-                if (null !== $formatConfig['view']['layout']) {
-                    $layout = $formatConfig['view']['layout'];
-                }
-
-                if (null !== $layout) {
-                    $vars = array('content' => $content);
-                    $content = $this->renderView($layout, $vars, $format);
-                }
+            if (!$this->stopped() && false !== $content) {
+                $this->response($content, $format);
             }
-        }
-
-        if (!$this->stopped()) {
-            $this->response($content, $format);
         }
 
         return $this;
@@ -1788,19 +1798,13 @@ class App
         $obLevel = ob_get_level();
         ob_start();
 
-        $rendered = null;
-
         try {
             if (is_callable($view)) {
                 $rendered = call_user_func($view, $this, $vars, $format);
             } elseif (false !== ($viewFilename = $this->viewFilename($view, $format))) {
                 $rendered = call_user_func($this->renderer(), $this, $viewFilename, $vars);
             } else {
-                if (count($vars) > 0) {
-                    $rendered = vsprintf($view, $vars);
-                } else {
-                    $rendered = (string) $view;
-                }
+                $rendered = false;
             }
         } catch (\Exception $e) {
             // Clean output buffer on error
@@ -1816,7 +1820,11 @@ class App
 
         $content = ob_get_clean();
         if ($content != '') {
-            $rendered .= $content;
+            if (false === $rendered) {
+                $rendered = $content;
+            } else {
+                $rendered .= $content;
+            }
         }
 
         return $rendered;
