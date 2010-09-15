@@ -1739,7 +1739,7 @@ class App
 
         $content = $this->renderView($view, $vars, $format);
 
-        if (false !== $layout) {
+        if (!$this->stopped() && false !== $layout) {
             if (null === ($formatConfig = $this->format($format))) {
                 throw new \Exception('Invalid format "' . $format . '"');
             }
@@ -1760,7 +1760,9 @@ class App
             }
         }
 
-        $this->response($content, $format);
+        if (!$this->stopped()) {
+            $this->response($content, $format);
+        }
 
         return $this;
     }
@@ -1785,6 +1787,8 @@ class App
 
         $obLevel = ob_get_level();
         ob_start();
+
+        $rendered = null;
 
         try {
             if (is_callable($view)) {
