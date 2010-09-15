@@ -1764,12 +1764,16 @@ class App
 
                     if (null !== $layout) {
                         $vars = array('content' => $content);
-                        $content = $this->renderView($layout, $vars, $format);
+                        $layoutContent = $this->renderView($layout, $vars, $format);
+
+                        if (false !== $layoutContent) {
+                            $content = $layoutContent;
+                        }
                     }
                 }
             }
 
-            if (!$this->stopped() && false !== $content) {
+            if (!$this->stopped()) {
                 $this->response($content, $format);
             }
         }
