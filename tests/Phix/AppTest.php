@@ -1808,16 +1808,45 @@ class AppTest extends \PHPUnit_Framework_TestCase
         $app->view('foo', 'bar');
         $this->assertEquals('bar', $app->view('foo'));
         
+        $app = new App();
         $app->view(array('foo', 'html'), 'bar');
         $this->assertEquals('bar', $app->view(array('foo', 'html')));
         $this->assertNull($app->view(array('foo', 'json')));
 
+        $app = new App();
+        $app->view(array('*', 'json'), 'bar');
+        $this->assertEquals('bar', $app->view(array('foo', 'json')));
+
+        $app = new App();
+        $app->view(array('foo', '*'), 'bar');
+        $this->assertEquals('bar', $app->view(array('foo', 'json')));
+
+        $app = new App();
+        $app->view(array('*', '*'), 'bar');
+        $this->assertEquals('bar', $app->view(array('foo', 'json')));
+
+        $app = new App();
+        $app->view(array('foo', function() { return 'html'; }), 'bar');
+        $this->assertEquals('bar', $app->view(array('foo', 'html')));
+        $this->assertNull($app->view(array('foo', 'json')));
+
+        $app = new App();
         $func = function() {
             return 'baz';
         };
         $ret = $app->view('foo', $func);
         $this->assertEquals($func, $app->view('foo'));
         $this->assertEquals($ret, $app);
+    }
+
+    /**
+     * @covers \Phix\App::view
+     */
+    public function testViewThrowsExceptionForInvalidFormat()
+    {
+        $this->setExpectedException('\Exception', 'Invalid format "bogus"');
+        $app = new App();
+        $app->view(array('foo','bogus'));
     }
 
     /**

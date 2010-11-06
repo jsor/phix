@@ -1660,14 +1660,16 @@ class App
         if (is_array($name)) {
             list($name, $format) = $name;
 
-            if (is_callable($format)) {
-                $format = call_user_func($format, $this);
-            }
+            if ($format !== null && $format !== '*') {
+                if (is_callable($format)) {
+                    $format = call_user_func($format, $this);
+                }
 
-            $formats = $this->formats();
+                $formats = $this->formats();
 
-            if (!isset($formats[$format])) {
-                throw new \Exception('Invalid format "' . $format . '"');
+                if (!isset($formats[$format])) {
+                    throw new \Exception('Invalid format "' . $format . '"');
+                }
             }
         }
 
@@ -1680,8 +1682,16 @@ class App
                 return $this->_views[$name][$format];
             }
 
+            if (isset($this->_views[$name]['*'])) {
+                return $this->_views[$name]['*'];
+            }
+
             if (isset($this->_views['*'][$format])) {
                 return $this->_views['*'][$format];
+            }
+
+            if (isset($this->_views['*']['*'])) {
+                return $this->_views['*']['*'];
             }
 
             return null;
