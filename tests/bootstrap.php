@@ -17,29 +17,14 @@
 // Get base and application path
 $rootPath = dirname(dirname(__FILE__));
 
-// Define filters for clover report
-PHPUnit_Util_Filter::addDirectoryToWhitelist($rootPath . '/src');
-
-PHPUnit_Util_Filter::addDirectoryToFilter($rootPath . '/tests');
-
-if (defined('PEAR_INSTALL_DIR') && is_dir(PEAR_INSTALL_DIR)) {
-    PHPUnit_Util_Filter::addDirectoryToFilter(PEAR_INSTALL_DIR);
-}
-if (defined('PHP_LIBDIR') && is_dir(PEAR_INSTALL_DIR)) {
-    PHPUnit_Util_Filter::addDirectoryToFilter(PHP_LIBDIR);
-}
-
+// Set include path
 set_include_path(implode(PATH_SEPARATOR, array(
     $rootPath . '/tests',
     $rootPath . '/src',
     get_include_path()
 )));
 
-unset($rootPath);
-
-/**
- * Setup autoloading
- */
+// Setup autoloading
 spl_autoload_register(function($className) {
     if (false !== strripos($className, '\\')) {
         $replace = '\\';
@@ -51,3 +36,18 @@ spl_autoload_register(function($className) {
 
     return true;
 }, true, true);
+
+// Define filters for clover report
+PHP_CodeCoverage_Filter::getInstance()->addDirectoryToWhitelist($rootPath . '/src');
+
+PHP_CodeCoverage_Filter::getInstance()->addDirectoryToBlacklist($rootPath . '/tests');
+
+if (defined('PEAR_INSTALL_DIR') && is_dir(PEAR_INSTALL_DIR)) {
+    PHP_CodeCoverage_Filter::getInstance()->addDirectoryToBlacklist(PEAR_INSTALL_DIR);
+}
+
+if (defined('PHP_LIBDIR') && is_dir(PEAR_INSTALL_DIR)) {
+    PHP_CodeCoverage_Filter::getInstance()->addDirectoryToBlacklist(PHP_LIBDIR);
+}
+
+unset($rootPath);
