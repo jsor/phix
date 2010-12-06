@@ -1,7 +1,7 @@
 Phix
 ====
 
-[Phix](http://github.com/jsor/phix) is a lightweight and flexible PHP 5.3+ microframework for rapid web application development.
+[Phix](https://github.com/jsor/phix) is a lightweight and flexible PHP 5.3+ microframework for rapid web application development.
 
 ## License ##
 
@@ -163,6 +163,6 @@ The route methods accept two additional arguments. The first is an array with de
 
 Phix is inspired by and/or uses code from
 
-* [Sinatra](http://github.com/sinatra/sinatra)
-* [limonade](http://github.com/sofadesign/limonade)
-* [Zend Framework](http://github.com/zendframework/zf2)
+* [Sinatra](https://github.com/sinatra/sinatra)
+* [limonade](https://github.com/sofadesign/limonade)
+* [Zend Framework](https://github.com/zendframework/zf2)
