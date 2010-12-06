@@ -29,6 +29,7 @@ Note: If installing from a git clone, you may need to delete any previous Phix i
 
 Phix is a DSL for quickly creating web applications in PHP with minimal effort:
 
+    <?php
     include_once 'Phix/App.php';
 
     $app = new \Phix\App();
@@ -61,6 +62,7 @@ You can then omit the index.php part of the URL:
 
 A route is a HTTP method paired with an URL matching pattern. Each route is associated with a callback:
 
+    <?php
     $app
         ->get('/', function(\Phix\App $app) {
             // Show something
@@ -73,13 +75,13 @@ A route is a HTTP method paired with an URL matching pattern. Each route is asso
         })
         ->delete('/', function(\Phix\App $app) {
             // Delete something
-        })
+        });
 
 Routes are matched in reverse order (LIFO, "Last In, First Out") they are defined. The first route that matches the request is invoked.
 
 The callback receives the `\Phix\App` instance as the first argument.
 
-When `PUT` or `DELETE` methods are not supported (for example in HTML form submision), you can use the `_method` parameter in `POST` requests:
+When `PUT` or `DELETE` methods are not supported (for example in HTML form submission), you can use the `_method` parameter in `POST` requests:
 
     <form action="/" method="post">
         <input type="hidden" name="_method" value="PUT">
@@ -92,14 +94,15 @@ You can also send a HTTP `POST` and set the method override header as follows:
 
 Route patterns may include named parameters, accessible via the `params` method:
 
+    <?php
     $app
         ->get('/hello/:name', function(\Phix\App $app) {
             echo 'Hello ' . $app->param('name') . '!';
-        })
+        });
 
 Route patterns may also include wildcard parameters. Associated values are available through numeric indexes, in the same order as in the pattern:
 
-
+    <?php
     $app
         ->get('/say/*/to/*', function(\Phix\App $app) {
             // matches /say/hello/to/world
@@ -110,26 +113,29 @@ Route patterns may also include wildcard parameters. Associated values are avail
             // matches /download/file.xml
             $app->param(0); // file
             $app->param(1); // xml
-        })
+        });
 
 Unlike the simple wildcard character `*`, the double wildcard character `**` specifies a string that may contain a `/`:
 
+    <?php
     $app
         ->get('download/**', function(\Phix\App $app) {
             // matches /download/path/to/file.xml
             $app->param(0); // path/to/file.xml
-        })
+        });
 
 A route pattern may also be a regular expression if it begins with a `^`:
 
+    <?php
     $app
         ->get('^/my/own/(\d+)/regexp', function(\Phix\App $app) {
             // matches /say/hello/to/world
             $app->param(0); // 12
-        })
+        });
 
 Wildcard parameters and regular expressions may be named too:
 
+    <?php
     $app
         ->get(array('/say/*/to/**', array('what', 'who')), function(\Phix\App $app) {
             // matches /say/hello/to/world
@@ -139,6 +145,7 @@ Wildcard parameters and regular expressions may be named too:
 
 The route methods accept two additional arguments. The first is an array with default values and the second is a callback function. The callback function is executed right after the route is matched. If the function returns an array, this data is added as additional params. If it returns false, the route is omitted and Phix tries to find the next matching route:
 
+    <?php
     $app
         ->get(
             '/foo/:bar',
@@ -150,7 +157,7 @@ The route methods accept two additional arguments. The first is an array with de
             function(\Phix\App $app, $params) {
                 return false; // Route will never match
             }
-        )
+        );
 
 ## Credits ##
 
