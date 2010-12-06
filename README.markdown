@@ -5,7 +5,7 @@ Phix
 
 ## License ##
 
-Phix is released under the [BSD license](http://opensource.org/licenses/bsd-license.php).
+Phix is released under the [BSD license](https://github.com/jsor/phix/blob/master/LICENSE).
 
 ## Prerequisites ##
 

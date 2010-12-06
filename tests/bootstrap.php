@@ -6,12 +6,12 @@
  *
  * This source file is subject to the BSD license that is available
  * through the world-wide-web at this URL:
- * http://opensource.org/licenses/bsd-license.php
+ * https://github.com/jsor/phix/blob/master/LICENSE
  *
  * @package    Phix
  * @subpackage UnitTests
  * @copyright  Copyright (c) 2010-Present Jan Sorgalla
- * @license    http://opensource.org/licenses/bsd-license.php The BSD License
+ * @license    https://github.com/jsor/phix/blob/master/LICENSE The BSD License
  */
 
 // Get base and application path

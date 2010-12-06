@@ -20,7 +20,7 @@
     <release>alpha</release>
     <api>alpha</api>
   </stability>
-  <license uri="http://www.opensource.org/licenses/bsd-license.php">BSD</license>
+  <license uri="https://github.com/jsor/phix/blob/master/LICENSE">BSD</license>
   <notes>https://github.com/jsor/phix#readme</notes>
   <contents>
     <dir name="/" baseinstalldir="/">
