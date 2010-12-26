@@ -13,17 +13,10 @@ Phix requires PHP 5.3.0 or higher. The following PHP extensions are required: do
 
 ## Installation ##
 
-The preferred installation method is via PEAR. At present no PEAR channel has been provided but this does not prevent a simple install! The simplest method of installation is:
+You can install Phix via the [GitHub hosted PEAR channel](http://jsor.github.com/pear/). Run this from your command line:
 
-    git clone git://github.com/jsor/phix.git phix
-    cd phix
-    sudo pear install package.xml
-
-The above process will install Phix as a PEAR library.
-
-Note: If installing from a git clone, you may need to delete any previous Phix install via PEAR using:
-
-    sudo pear uninstall Phix
+    sudo pear channel-discover jsor.github.com/pear
+    sudo pear install jsor/Phix-alpha
 
 ## Introduction ##
 
