@@ -122,7 +122,7 @@ A route pattern may also be a regular expression if it begins with a `^`:
     <?php
     $app
         ->get('^/my/own/(\d+)/regexp', function(\Phix\App $app) {
-            // matches /say/hello/to/world
+            // matches /my/own/12/regexp
             $app->param(0); // 12
         });
 
