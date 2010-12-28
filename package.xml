@@ -24,10 +24,12 @@
   <notes>https://github.com/jsor/phix#readme</notes>
   <contents>
     <dir name="/" baseinstalldir="/">
+      <file name="LICENSE" role="doc" />
+      <file name="README.markdown" role="doc" />
       <dir name="src">
         <dir name="Phix">
-          <file name="App.php" role="php"/>
-          <file name="AppTestCase.php" role="php"/>
+          <file install-as="Phix/App.php" name="App.php" role="php"/>
+          <file install-as="Phix/AppTestCase.php" name="AppTestCase.php" role="php"/>
         </dir>
       </dir>
     </dir>
@@ -42,10 +44,5 @@
       </pearinstaller>
     </required>
   </dependencies>
-  <phprelease>
-    <filelist>
-      <install name="src/Phix/App.php" as="Phix/App.php"/>
-      <install name="src/Phix/AppTestCase.php" as="Phix/AppTestCase.php"/>
-    </filelist>
-  </phprelease>
+  <phprelease/>
 </package>
