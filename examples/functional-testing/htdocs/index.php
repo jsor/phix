@@ -1,21 +1,18 @@
 <?php
 
 set_include_path(implode(PATH_SEPARATOR, array(
-    __DIR__ . '/..',
     __DIR__ . '/../../../src',
     get_include_path()
 )));
 
 spl_autoload_register(function($className) {
-    if (false !== strripos($className, '\\')) {
-        $replace = '\\';
-    } else {
-        $replace = '_';
+    if (strpos($className, 'Phix\\') === false) {
+        return;
     }
 
-    require str_replace($replace, DIRECTORY_SEPARATOR, $className) . '.php';
-
-    return true;
+    require str_replace('\\', DIRECTORY_SEPARATOR, $className) . '.php';
 }, true, true);
 
-\app\MyPhixApp::instance()->run();
+include_once __DIR__ . '/../app/MyPhixApp.php';
+
+MyPhixApp::instance()->run();

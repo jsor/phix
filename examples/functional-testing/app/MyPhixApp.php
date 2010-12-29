@@ -1,7 +1,5 @@
 <?php
 
-namespace app;
-
 class MyPhixApp extends \Phix\App
 {
     protected function _setup()
