@@ -1,12 +1,15 @@
 <?php
 
 set_include_path(implode(PATH_SEPARATOR, array(
-    __DIR__ . '/..',
     __DIR__ . '/../../../src',
     get_include_path()
 )));
 
 spl_autoload_register(function($className) {
+    if (strpos($className, 'PHPUnit_') === false && strpos($className, 'Phix\\') === false) {
+        return;
+    }
+
     if (false !== strripos($className, '\\')) {
         $replace = '\\';
     } else {
@@ -14,6 +17,4 @@ spl_autoload_register(function($className) {
     }
 
     require str_replace($replace, DIRECTORY_SEPARATOR, $className) . '.php';
-
-    return true;
 }, true, true);

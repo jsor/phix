@@ -1,6 +1,6 @@
 <?php
 
-namespace app;
+include_once __DIR__ . '/../../app/MyPhixApp.php';
 
 class MyPhixAppTest extends \Phix\AppTestCase
 {
