@@ -47,7 +47,7 @@ API
     </tr>
 </table>
 
-Open <client.html> fora simple HTML/JavaScript client.
+Open [client.html](./client.html) for a simple HTML/JavaScript client.
 
 Notes
 ------------
