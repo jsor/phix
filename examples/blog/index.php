@@ -54,6 +54,8 @@ include __DIR__ . '/../../src/Phix/App.php';
     <li><a href="<?php echo $app->escape($app->url(array('posts', $post['id']))); ?>"><?php echo $app->escape($post['title']); ?></a> (<span class="date"><?php echo date('r', strtotime($post['created'])); ?></span>)</li>
 <?php endforeach; ?>
 </ul>
+<hr>
+<small><a href="?format=json">JSON</a> | <a href="?format=xml">XML</a></small>
 <?php
         return ob_get_clean();
     })
@@ -69,6 +71,8 @@ include __DIR__ . '/../../src/Phix/App.php';
     <input type="hidden" name="_method" value="DELETE">
     <input type="submit" value="Delete Post">
 </form>
+<hr>
+<small><a href="?format=json">JSON</a> | <a href="?format=xml">XML</a></small>
 <?php
         return ob_get_clean();
     })
@@ -143,7 +147,7 @@ include __DIR__ . '/../../src/Phix/App.php';
             return $xml;
         };
 
-        $statusString = 20 <= $app->status() && 206 >= $app->status() ? 'success' : 'fail';
+        $statusString = 200 <= $app->status() && 206 >= $app->status() ? 'success' : 'fail';
 
         return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' .
                '<response>' .
@@ -160,7 +164,7 @@ include __DIR__ . '/../../src/Phix/App.php';
     })
     ->get('/posts/:id', function($app) {
         $sql = "SELECT *
-                FROM posts where id=:id";
+                FROM posts where id = :id";
 
         $stmt = $app->reg('pdo')->prepare($sql);
         $stmt->bindValue(':id', $app->param('id'), PDO::PARAM_INT);
@@ -173,17 +177,15 @@ include __DIR__ . '/../../src/Phix/App.php';
     })
     ->put('/posts/:id', function($app) {
         $sql = "SELECT *
-                FROM posts where id=:id";
+                FROM posts where id = :id";
 
         $stmt = $app->reg('pdo')->prepare($sql);
         $stmt->bindValue(':id', $app->param('id'), PDO::PARAM_INT);
 
         if ($stmt->execute() && $post = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $date = date('Y-m-d H:i:s');
-
             $post['title']    = $_POST['title'];
             $post['content']  = $_POST['content'];
-            $post['modified'] = $date;
+            $post['modified'] = date('Y-m-d H:i:s');
 
             $sql = "UPDATE posts
                     SET title = :title, content = :content, modified = :modified
@@ -191,9 +193,9 @@ include __DIR__ . '/../../src/Phix/App.php';
 
             $stmt = $app->reg('pdo')->prepare($sql);
 
-            $stmt->bindValue(':id', $app->param('id'), PDO::PARAM_INT);
-            $stmt->bindValue(':title', $post['title'], PDO::PARAM_STR);
-            $stmt->bindValue(':content', $post['content'], PDO::PARAM_STR);
+            $stmt->bindValue(':id',       $app->param('id'), PDO::PARAM_INT);
+            $stmt->bindValue(':title',    $post['title'],    PDO::PARAM_STR);
+            $stmt->bindValue(':content',  $post['content'],  PDO::PARAM_STR);
             $stmt->bindValue(':modified', $post['modified'], PDO::PARAM_STR);
 
             if ($stmt->execute()) {
@@ -213,7 +215,7 @@ include __DIR__ . '/../../src/Phix/App.php';
     })
     ->delete('/posts/:id', function($app) {
         $sql = "SELECT *
-                FROM posts where id=:id";
+                FROM posts where id = :id";
 
         $stmt = $app->reg('pdo')->prepare($sql);
         $stmt->bindValue(':id', $app->param('id'), PDO::PARAM_INT);
@@ -241,7 +243,7 @@ include __DIR__ . '/../../src/Phix/App.php';
     })
     ->get('/posts/:id/edit', function($app) {
         $sql = "SELECT *
-                FROM posts where id=:id";
+                FROM posts where id = :id";
 
         $stmt = $app->reg('pdo')->prepare($sql);
         $stmt->bindValue(':id', $app->param('id'), PDO::PARAM_INT);
@@ -271,10 +273,10 @@ include __DIR__ . '/../../src/Phix/App.php';
 
         $stmt = $app->reg('pdo')->prepare($sql);
 
-        $stmt->bindValue(':title', $_POST['title'], PDO::PARAM_STR);
-        $stmt->bindValue(':content', $_POST['content'], PDO::PARAM_STR);
-        $stmt->bindValue(':created', $date, PDO::PARAM_STR);
-        $stmt->bindValue(':modified', $date, PDO::PARAM_STR);
+        $stmt->bindValue(':title',    $_POST['title'],   PDO::PARAM_STR);
+        $stmt->bindValue(':content',  $_POST['content'], PDO::PARAM_STR);
+        $stmt->bindValue(':created',  $date,             PDO::PARAM_STR);
+        $stmt->bindValue(':modified', $date,             PDO::PARAM_STR);
 
         if ($stmt->execute()) {
             $post = array(
