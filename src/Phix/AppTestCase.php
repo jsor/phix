@@ -260,8 +260,7 @@ class AppTestCase extends \PHPUnit_Framework_TestCase
     {
         $this->addToAssertionCount(1);
 
-        $status = $this->getApp()->status();
-        if (!(300 <= $status && 307 >= $status)) {
+        if (!$this->getApp()->redirected()) {
             $failure = 'Failed asserting response is a redirect';
             if (!empty($message)) {
                 $failure = $message . "\n" . $failure;
@@ -280,8 +279,7 @@ class AppTestCase extends \PHPUnit_Framework_TestCase
     {
         $this->addToAssertionCount(1);
 
-        $status = $this->getApp()->status();
-        if (300 <= $status && 307 >= $status) {
+        if ($this->getApp()->redirected()) {
             $failure = 'Failed asserting response is NOT a redirect';
             if (!empty($message)) {
                 $failure = $message . "\n" . $failure;
@@ -298,8 +296,7 @@ class AppTestCase extends \PHPUnit_Framework_TestCase
      */
     protected function _checkRedirectTo($url)
     {
-        $status = $this->getApp()->status();
-        if (300 <= $status && 307 >= $status) {
+        if ($this->getApp()->redirected()) {
             foreach ($this->getApp()->headers() as $h) {
                 if (stripos($h, 'Location') === 0) {
                     $contents = str_ireplace('Location: ', '', $h);
